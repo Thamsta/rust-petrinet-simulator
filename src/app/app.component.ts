@@ -8,9 +8,4 @@ import {invoke} from '@tauri-apps/api'
 })
 export class AppComponent {
 	title = 'petrinets';
-
-	constructor() {
-		invoke('greet', {name: 'World'})
-			.then((response) => console.log(response))
-	}
 }
