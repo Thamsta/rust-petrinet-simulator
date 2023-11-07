@@ -25,7 +25,7 @@ export class CanvasComponent implements AfterContentInit {
 			width: window.innerWidth * 0.7,
 			height: window.innerHeight
 		});
-		this.canvas.setBackgroundColor('#565656', this.canvas.renderAll.bind(this.canvas));
+		this.canvas.setBackgroundColor('#989898', this.canvas.renderAll.bind(this.canvas));
 
 		// extra canvas settings
 		this.canvas.preserveObjectStacking = true;
@@ -34,16 +34,18 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	addRect = () => {
-		this.canvas.add(new fabric.Rect({
+		let rect = new fabric.Rect({
 			left: this.canvas.width!! / 2,
 			top: this.canvas.height!! / 2,
-			fill: '#ffa726',
-			width: 100,
-			height: 100,
+			fill: '#ffffff',
+			borderColor: '#000000',
+			width: 80,
+			height: 50,
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 0
-		}));
+		})
+		this.canvas.add(rect);
 	}
 
 	onWindowResize = () => {
