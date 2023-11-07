@@ -1,5 +1,8 @@
-import {AfterContentInit, Component} from '@angular/core';
+import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
+import {IEvent} from "fabric/fabric-impl";
+import {ToolbarComponent} from "../toolbar/toolbar.component";
+import {DrawingTools, Place, Transition} from "../models";
 
 @Component({
 	selector: 'app-canvas',
@@ -9,7 +12,10 @@ import {fabric} from 'fabric';
 export class CanvasComponent implements AfterContentInit {
 	canvas: fabric.Canvas = new fabric.Canvas('canvas');
 	activeObject?: fabric.Object | undefined;
+	lastSelected?: fabric.Object | undefined;
 	color: any;
+
+	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
 	constructor() {
 	}
@@ -17,40 +23,55 @@ export class CanvasComponent implements AfterContentInit {
 	ngAfterContentInit() {
 		this.canvas = new fabric.Canvas('canvas');
 		this.setupCanvas()
+		this.canvas.on('mouse:down', (event) => this.placeObject(event))
+		// this.canvas.on('object:selected', (e) => this.)
 		window.addEventListener('resize', this.onWindowResize);
 	}
 
 	setupCanvas = () => {
 		this.canvas.setDimensions({
-			width: window.innerWidth * 0.7,
+			width: window.innerWidth,
 			height: window.innerHeight
 		});
-		this.canvas.setBackgroundColor('#989898', this.canvas.renderAll.bind(this.canvas));
+		this.canvas.setBackgroundColor('#fcfcfc', this.canvas.renderAll.bind(this.canvas));
 
 		// extra canvas settings
 		this.canvas.preserveObjectStacking = true;
 		this.canvas.stopContextMenu = true;
-		this.addRect()
+		this.addRect(100, 100)
 	}
 
-	addRect = () => {
-		let rect = new fabric.Rect({
-			left: this.canvas.width!! / 2,
-			top: this.canvas.height!! / 2,
-			fill: '#ffffff',
-			borderColor: '#000000',
-			width: 80,
-			height: 50,
-			originX: 'center',
-			originY: 'center',
-			strokeWidth: 0
-		})
+	placeObject(event: IEvent<MouseEvent>) {
+		console.log(this.toolbar.selected)
+		console.log(event.e.clientX, event.e.clientY)
+		// this.addRect(event.e.x, event.e.pageY)
+		// this.addRect(event.e.x, event.e.screenY)
+		let x = event.e.offsetX
+		let y = event.e.offsetY
+		switch (this.toolbar.selected) {
+			case DrawingTools.PLACE: {
+				this.addCircle(x, y)
+				break
+			}
+			case DrawingTools.TRANSITION: {
+				this.addRect(x, y)
+			}
+		}
+	}
+
+	addRect = (x: number, y: number) => {
+		let rect = new Transition(x, y)
 		this.canvas.add(rect);
+	}
+
+	addCircle = (x: number, y: number) => {
+		let circle = new Place(x, y)
+		this.canvas.add(circle);
 	}
 
 	onWindowResize = () => {
 		this.canvas.setDimensions({
-			width: window.innerWidth * 0.7,
+			width: window.innerWidth,
 			height: window.innerHeight
 		});
 	}
