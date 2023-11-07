@@ -1,10 +1,16 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
+import {invoke} from '@tauri-apps/api'
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+	selector: 'app-root',
+	templateUrl: './app.component.html',
+	styleUrls: ['./app.component.scss']
 })
 export class AppComponent {
-  title = 'petrinets';
+	title = 'petrinets';
+
+	constructor() {
+		invoke('greet', {name: 'World'})
+			.then((response) => console.log(response))
+	}
 }
