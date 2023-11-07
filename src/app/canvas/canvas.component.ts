@@ -2,7 +2,7 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {DrawingTools, Place, Transition} from "../models";
+import {Arc, DrawingTools, Place, Transition} from "../models";
 
 @Component({
 	selector: 'app-canvas',
@@ -24,7 +24,9 @@ export class CanvasComponent implements AfterContentInit {
 		this.canvas = new fabric.Canvas('canvas');
 		this.setupCanvas()
 		this.canvas.on('mouse:down', (event) => this.placeObject(event))
-		// this.canvas.on('object:selected', (e) => this.)
+		this.canvas.on('selection:created', (e) => this.selectCreate(e))
+		this.canvas.on('selection:updated', (e) => this.selectUpdate(e))
+		this.canvas.on('selection:cleared', (e) => this.selectClear(e))
 		window.addEventListener('resize', this.onWindowResize);
 	}
 
@@ -42,10 +44,6 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	placeObject(event: IEvent<MouseEvent>) {
-		console.log(this.toolbar.selected)
-		console.log(event.e.clientX, event.e.clientY)
-		// this.addRect(event.e.x, event.e.pageY)
-		// this.addRect(event.e.x, event.e.screenY)
 		let x = event.e.offsetX
 		let y = event.e.offsetY
 		switch (this.toolbar.selected) {
@@ -74,5 +72,44 @@ export class CanvasComponent implements AfterContentInit {
 			width: window.innerWidth,
 			height: window.innerHeight
 		});
+	}
+
+	private selectCreate(e: IEvent<MouseEvent>) {
+		let obj = e.selected!![0]
+		switch (this.toolbar.selected) {
+			case DrawingTools.GARBAGE: {
+				this.canvas.remove(obj)
+			}
+		}
+	}
+
+	private selectUpdate(e: IEvent<MouseEvent>) {
+		let obj = e.selected!![0]
+		let lastObj = e.deselected!![0]
+		console.log('new', obj)
+		console.log('last', lastObj)
+		switch (this.toolbar.selected) {
+			case DrawingTools.GARBAGE: {
+				this.canvas.remove(obj);
+				break;
+			}
+			case DrawingTools.ARC: {
+				if (obj instanceof Place && lastObj instanceof Transition
+					|| obj instanceof Transition && lastObj instanceof Place) {
+					let arc = new Arc(lastObj.left!!, lastObj.top!!, obj.left!!, obj.top!!)
+					lastObj.arcs.arcs_out.push(arc)
+					lastObj.arcs.arcs_in.push(arc)
+					this.canvas.add(arc)
+					this.canvas.sendToBack(arc)
+				}
+			}
+		}
+		this.lastSelected = this.activeObject
+		this.activeObject = obj
+	}
+
+	private selectClear(e: IEvent<MouseEvent>) {
+		this.lastSelected = undefined;
+		this.activeObject = undefined;
 	}
 }
