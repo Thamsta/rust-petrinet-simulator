@@ -1,5 +1,4 @@
 import {fabric} from "fabric";
-import {Line} from "fabric/fabric-impl";
 
 export enum DrawingTools {
 	SELECT = 'SELECT',
@@ -24,6 +23,9 @@ export class Transition extends fabric.Rect {
 			originY: 'center',
 			strokeWidth: 1,
 			stroke: '#000000',
+			lockRotation: true,
+			lockScalingX: true,
+			lockScalingY: true,
 		});
 	}
 }
@@ -37,12 +39,14 @@ export class Place extends fabric.Circle {
 			left: x,
 			top: y,
 			fill: '#ffffff',
-			borderColor: '#000000',
 			radius: 30,
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 1,
 			stroke: '#000000',
+			lockRotation: true,
+			lockScalingX: true,
+			lockScalingY: true,
 		})
 	}
 }
