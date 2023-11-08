@@ -2,7 +2,7 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {Arc, DrawingTools, Place, Transition} from "../models";
+import {Arc, DrawingTools, Place, Transition, Removable} from "../models";
 
 @Component({
 	selector: 'app-canvas',
@@ -94,13 +94,9 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	private deleteObject(obj: fabric.Object) {
-		this.canvas.remove(obj)
+		// this.canvas.remove(obj)
 		if (obj instanceof Place || obj instanceof Transition) {
-			obj.arcs.arcs_in.forEach(arc => this.canvas.remove(arc))
-			obj.arcs.arcs_out.forEach(arc => this.canvas.remove(arc))
-		}
-		if (obj instanceof Place) {
-			obj.deleteText(this.canvas);
+			obj.remove(this.canvas)
 		}
 		if (this.lastSelected == obj) {
 			this.lastSelected = undefined

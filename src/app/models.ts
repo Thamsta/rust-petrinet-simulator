@@ -1,4 +1,5 @@
 import {fabric} from "fabric";
+import {Canvas} from "fabric/fabric-impl";
 
 export enum DrawingTools {
 	SELECT = 'SELECT',
@@ -12,29 +13,41 @@ export enum DrawingTools {
 	RUN = 'RUN',
 }
 
-export class Transition extends fabric.Rect {
+const line_color = '#282828'
+const fill_color = '#ffffff'
+
+export interface Removable {
+	remove(canvas: fabric.Canvas): void
+}
+
+export class Transition extends fabric.Rect implements Removable {
 	arcs: Connectable = new Connectable()
 
 	constructor(x: number, y: number, canvas: fabric.Canvas) {
 		super({
 			left: x,
 			top: y,
-			fill: '#ffffff',
+			fill: fill_color,
 			width: 80,
 			height: 50,
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 1,
-			stroke: '#000000',
+			stroke: line_color,
 			lockRotation: true,
 			lockScalingX: true,
 			lockScalingY: true,
 		});
 		canvas.add(this)
 	}
+
+	remove(canvas: Canvas): void {
+		canvas.remove(this)
+		this.arcs.remove(canvas)
+	}
 }
 
-export class Place extends fabric.Circle {
+export class Place extends fabric.Circle implements Removable {
 	tokens= 0
 	tokenText: fabric.Text
 	arcs: Connectable = new Connectable()
@@ -46,12 +59,12 @@ export class Place extends fabric.Circle {
 		super({
 			left: x,
 			top: y,
-			fill: '#ffffff',
+			fill: fill_color,
 			radius: 30,
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 1,
-			stroke: '#000000',
+			stroke: line_color,
 			lockRotation: true,
 			lockScalingX: true,
 			lockScalingY: true,
@@ -67,6 +80,12 @@ export class Place extends fabric.Circle {
 		canvas.add(this)
 		canvas.sendBackwards(this)
 	}
+
+	remove(canvas: fabric.Canvas): void {
+        canvas.remove(this)
+		canvas.remove(this.tokenText)
+		this.arcs.remove(canvas)
+    }
 
 	moveText() {
 		this.tokenText.set({
@@ -90,28 +109,28 @@ export class Place extends fabric.Circle {
 	updateText() {
 		this.tokenText.set({text: String(this.tokens)})
 	}
-
-	deleteText(canvas: fabric.Canvas) {
-		canvas.remove(this.tokenText)
-	}
 }
 
 export class Arc extends fabric.Line {
 	constructor(sx: number, sy: number, tx: number, ty: number, canvas: fabric.Canvas) {
 		super([sx, sy, tx, ty], {
-			fill: '#ffffff',
-			borderColor: '#000000',
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 1,
-			stroke: '#000000',
+			stroke: line_color,
 			selectable: false,
 		})
 		canvas.add(this)
+		canvas.sendToBack(this)
 	}
 }
 
-export class Connectable {
+class Connectable implements Removable {
 	arcs_in: Arc[] = []
 	arcs_out: Arc[] = []
+
+	remove(canvas: fabric.Canvas) {
+		this.arcs_in.forEach(arc => canvas.remove(arc))
+		this.arcs_out.forEach(arc => canvas.remove(arc))
+	}
 }
