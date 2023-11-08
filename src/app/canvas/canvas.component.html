@@ -1,4 +1,4 @@
-<app-toolbar #toolbar></app-toolbar>
+<app-toolbar #toolbar (controlEmitter)="controlChanged($event)"></app-toolbar>
 <mat-divider></mat-divider>
 <div>
 	<canvas id="canvas"></canvas>

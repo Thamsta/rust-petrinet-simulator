@@ -59,13 +59,11 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	addRect = (x: number, y: number) => {
-		let rect = new Transition(x, y)
-		this.canvas.add(rect);
+		let rect = new Transition(x, y, this.canvas)
 	}
 
 	addCircle = (x: number, y: number) => {
-		let circle = new Place(x, y)
-		this.canvas.add(circle);
+		let circle = new Place(x, y, this.canvas)
 	}
 
 	onWindowResize = () => {
@@ -86,11 +84,12 @@ export class CanvasComponent implements AfterContentInit {
 
 	private deleteObject(obj: fabric.Object) {
 		this.canvas.remove(obj)
-		console.log(obj.type)
 		if (obj instanceof Place || obj instanceof Transition) {
-			console.log("deleting...")
 			obj.arcs.arcs_in.forEach(arc => this.canvas.remove(arc))
 			obj.arcs.arcs_out.forEach(arc => this.canvas.remove(arc))
+		}
+		if (obj instanceof Place) {
+			obj.deleteText(this.canvas);
 		}
 		if (this.lastSelected == obj) {
 			this.lastSelected = undefined
@@ -111,11 +110,9 @@ export class CanvasComponent implements AfterContentInit {
 			case DrawingTools.ARC: {
 				if (obj instanceof Place && lastObj instanceof Transition
 					|| obj instanceof Transition && lastObj instanceof Place) {
-					let arc = new Arc(lastObj.left!!, lastObj.top!!, obj.left!!, obj.top!!)
+					let arc = new Arc(lastObj.left!!, lastObj.top!!, obj.left!!, obj.top!!, this.canvas)
 					lastObj.arcs.arcs_out.push(arc)
 					obj.arcs.arcs_in.push(arc)
-					this.canvas.add(arc)
-					this.canvas.sendToBack(arc)
 				}
 			}
 		}
@@ -136,10 +133,18 @@ export class CanvasComponent implements AfterContentInit {
 				arc.setCoords()
 			})
 			obj.arcs.arcs_in.forEach(arc => {
-				arc.set({x2: obj.getCenterPoint().x, y2: obj.getCenterPoint().y})
+				arc.set({x2: obj.left, y2: obj.top})
 				arc.setCoords()
 			})
 		}
+		if (obj instanceof Place) {
+			obj.moveText()
+		}
 		this.canvas.renderAll()
+	}
+
+	controlChanged(command: DrawingTools) {
+		let objects = this.canvas.getObjects()
+		console.log(objects)
 	}
 }

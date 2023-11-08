@@ -3,6 +3,9 @@
 	<button mat-icon-button class="material-symbols-outlined" aria-label="Transition" (click)="select(DrawingTools.SELECT)">
 		<mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
 	</button>
+	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.GARBAGE)">
+		<mat-icon fontSet="material-icons-outlined">delete</mat-icon>
+	</button>
 	<span> | </span>
 	<button mat-icon-button class="material-symbols-outlined" aria-label="Transition" (click)="select(DrawingTools.TRANSITION)">
 		<mat-icon fontSet="material-icons-outlined">rectangle</mat-icon>
@@ -15,8 +18,8 @@
 		<mat-icon>arrow_forward</mat-icon>
 	</button>
 	<span> | </span>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.GARBAGE)">
-		<mat-icon fontSet="material-icons-outlined">delete</mat-icon>
+	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.RUN)">
+		<mat-icon fontSet="material-icons-outlined">play_arrow</mat-icon>
 	</button>
 	<span>| {{selected.toLowerCase()}}</span>
 </mat-toolbar>
