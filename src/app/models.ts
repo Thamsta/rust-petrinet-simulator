@@ -1,5 +1,6 @@
 import {fabric} from "fabric";
 import {Canvas} from "fabric/fabric-impl";
+import { v4 as uuidv4 } from 'uuid';
 
 export enum DrawingTools {
 	SELECT = 'SELECT',
@@ -21,6 +22,8 @@ export interface Removable {
 }
 
 export class Transition extends fabric.Rect implements Removable {
+	id = uuidv4();
+
 	arcs: Connectable = new Connectable()
 
 	constructor(x: number, y: number, canvas: fabric.Canvas) {
@@ -48,6 +51,8 @@ export class Transition extends fabric.Rect implements Removable {
 }
 
 export class Place extends fabric.Circle implements Removable {
+	id = uuidv4();
+
 	tokens= 0
 	tokenText: fabric.Text
 	arcs: Connectable = new Connectable()
@@ -112,6 +117,7 @@ export class Place extends fabric.Circle implements Removable {
 }
 
 export class Arc extends fabric.Line {
+	id = uuidv4();
 	constructor(sx: number, sy: number, tx: number, ty: number, canvas: fabric.Canvas) {
 		super([sx, sy, tx, ty], {
 			originX: 'center',
