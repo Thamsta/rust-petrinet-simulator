@@ -23,7 +23,7 @@ export class CanvasComponent implements AfterContentInit {
 	ngAfterContentInit() {
 		this.canvas = new fabric.Canvas('canvas');
 		this.setupCanvas()
-		this.canvas.on('mouse:down', (event) => this.placeObject(event))
+		this.canvas.on('mouse:down', (event) => this.onClick(event))
 		this.canvas.on('selection:created', (e) => this.selectCreate(e))
 		this.canvas.on('selection:updated', (e) => this.selectUpdate(e))
 		this.canvas.on('selection:cleared', (e) => this.selectClear(e))
@@ -44,16 +44,26 @@ export class CanvasComponent implements AfterContentInit {
 		this.addRect(100, 100)
 	}
 
-	placeObject(event: IEvent<MouseEvent>) {
+	onClick(event: IEvent<MouseEvent>) {
 		let x = event.e.offsetX
 		let y = event.e.offsetY
 		switch (this.toolbar.selected) {
 			case DrawingTools.PLACE: {
-				this.addCircle(x, y)
-				break
+				this.addCircle(x, y);
+				break;
 			}
 			case DrawingTools.TRANSITION: {
-				this.addRect(x, y)
+				this.addRect(x, y);
+				break;
+			}
+			case DrawingTools.TOKEN_INC:
+			case DrawingTools.TOKEN_DEC: {
+				let obj = event.target
+				if (obj instanceof Place) {
+					this.updatePlaceTokens(this.toolbar.selected, obj)
+					this.canvas.renderAll()
+				}
+				break;
 			}
 		}
 	}
@@ -77,7 +87,8 @@ export class CanvasComponent implements AfterContentInit {
 		let obj = e.selected!![0]
 		switch (this.toolbar.selected) {
 			case DrawingTools.GARBAGE: {
-				this.deleteObject(obj)
+				this.deleteObject(obj);
+				break;
 			}
 		}
 	}
@@ -114,10 +125,19 @@ export class CanvasComponent implements AfterContentInit {
 					lastObj.arcs.arcs_out.push(arc)
 					obj.arcs.arcs_in.push(arc)
 				}
+				break;
 			}
 		}
 		this.lastSelected = this.selected
 		this.selected = obj
+	}
+
+	private updatePlaceTokens(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, place: Place) {
+		if (mode == DrawingTools.TOKEN_INC) {
+			place.addToken()
+		} else {
+			place.removeToken()
+		}
 	}
 
 	private selectClear(e: IEvent<MouseEvent>) {

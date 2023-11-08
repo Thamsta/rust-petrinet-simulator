@@ -2,11 +2,13 @@ import {fabric} from "fabric";
 
 export enum DrawingTools {
 	SELECT = 'SELECT',
+	GARBAGE = 'GARBAGE',
 	TRANSITION = 'TRANSITION',
 	PLACE = 'PLACE',
 	ARC = 'ARC',
 	TEXT = 'TEXT',
-	GARBAGE = 'GARBAGE',
+	TOKEN_INC = 'TOKEN_INC',
+	TOKEN_DEC = 'TOKEN_DEC',
 	RUN = 'RUN',
 }
 
