@@ -3,6 +3,7 @@ import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
 import {Arc, DrawingTools, Place, Transition} from "../models";
+import {SimulatorService} from "../simulator.service";
 
 @Component({
 	selector: 'app-canvas',
@@ -15,6 +16,8 @@ export class CanvasComponent implements AfterContentInit {
 	lastSelected?: fabric.Object | undefined;
 
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
+
+	constructor(private simulatorService: SimulatorService) {}
 
 	ngAfterContentInit() {
 		this.canvas = new fabric.Canvas('canvas');
@@ -160,7 +163,8 @@ export class CanvasComponent implements AfterContentInit {
 		}
 
 		let [places, transitions] = this.getPlacesAndTransitions(this.canvas.getObjects())
-		this.toMatrix(places, transitions);
+		let [p, pxt] = this.toMatrix(places, transitions);
+		this.callSimulate(p, pxt, 1);
 	}
 
 	getPlacesAndTransitions(objects: fabric.Object[]): [Place[], Transition[]] {
@@ -181,20 +185,27 @@ export class CanvasComponent implements AfterContentInit {
 		return [places, transitions]
 	}
 
-	toMatrix(places: Place[], transitions: Transition[]): number[][] {
+	toMatrix(places: Place[], transitions: Transition[]): [number[], number[][]] {
 		let pxt: number[][] = []
 
 		const p = places.map(p => p.tokens)
 		const place_to_index = new Map<string, number>(places.map((p, i) => [p.id,i]))
 
 		transitions.forEach(transition => {
+			console.log(transition)
 			let t_array = Array(p.length).fill(0);
 			transition.arcs.arcs_out.forEach(arc => t_array[place_to_index.get(arc.to.id)!] = arc.weight)
-			transition.arcs.arcs_in.forEach(arc => t_array[place_to_index.get(arc.to.id)!] = -arc.weight)
+			transition.arcs.arcs_in.forEach(arc => t_array[place_to_index.get(arc.from.id)!] = -arc.weight)
 			pxt.push(t_array)
 		})
 
 		console.log(pxt)
-		return pxt
+		return [p, pxt]
+	}
+
+	async callSimulate(p: number[], pxt: number[][], steps: number) {
+		console.log(p, pxt, steps)
+		const result = await this.simulatorService.sendToSimulator(p, pxt, steps);
+		console.log('Result from Tauri:', result);
 	}
 }
