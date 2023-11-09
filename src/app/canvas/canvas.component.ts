@@ -185,8 +185,8 @@ export class CanvasComponent implements AfterContentInit {
 		return [places, transitions]
 	}
 
-	toMatrix(places: Place[], transitions: Transition[]) {
-		let pxt: number[][] = [];
+	toMatrix(places: Place[], transitions: Transition[]): number[][] {
+		let pxt: number[][] = []
 
 		const p = places.map(p => p.tokens)
 		const place_to_index = new Map<string, number>(places.map((p, i) => [p.id,i]))
@@ -199,5 +199,6 @@ export class CanvasComponent implements AfterContentInit {
 		})
 
 		console.log(pxt)
+		return pxt
 	}
 }
