@@ -123,7 +123,7 @@ export class Arc extends fabric.Line {
 	weight = 1
 
 	constructor(from: Place | Transition, to: Place | Transition, canvas: fabric.Canvas) {
-		super([from.top!, from.left!, to.top!, to.left!], {
+		super([from.left!, from.top!, to.left!, to.top!], {
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 1,
