@@ -144,11 +144,11 @@ export class CanvasComponent implements AfterContentInit {
 		if (obj instanceof Place || obj instanceof Transition) {
 			obj.arcs.arcs_out.forEach(arc => {
 				arc.set({x1: obj.left, y1: obj.top})
-				arc.setCoords()
+				arc.updateLinePoints()
 			})
 			obj.arcs.arcs_in.forEach(arc => {
 				arc.set({x2: obj.left, y2: obj.top})
-				arc.setCoords()
+				arc.updateLinePoints()
 			})
 		}
 		if (obj instanceof Place) {
