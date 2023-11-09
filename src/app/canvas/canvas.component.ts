@@ -164,7 +164,7 @@ export class CanvasComponent implements AfterContentInit {
 
 		let [places, transitions] = this.getPlacesAndTransitions(this.canvas.getObjects())
 		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
-		this.callSimulate(p, pxt_in, pxt_out, 10000);
+		this.callSimulate(p, pxt_in, pxt_out, 1000000);
 	}
 
 	getPlacesAndTransitions(objects: fabric.Object[]): [Place[], Transition[]] {

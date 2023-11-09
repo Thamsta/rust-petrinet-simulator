@@ -42,7 +42,6 @@ fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_
         state  = add_two_vectors(&state, &e);
       }
     }
-    println!("Step {}: {:?}", step, state)
   }
 
   return state;
