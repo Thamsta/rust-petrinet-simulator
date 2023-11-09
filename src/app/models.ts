@@ -152,7 +152,7 @@ export class Arc extends fabric.Line implements Removable {
 
 		let lineP2 = this.shortenLine({x: from.left!, y: from.top!}, {x: to.left!, y: to.top!}, 30)
 
-		let [a1, a2] = this.calculateArrowhead({x: from.left!, y:from.top!}, lineP2, 25)
+		let [a1, a2] = this.calculateArrowhead({x: from.left!, y:from.top!}, lineP2, 20)
 
 		this.arrowArc1 = new fabric.Line([lineP2.x, lineP2.y, a1.x, a1.y], options)
 		this.arrowArc2 = new fabric.Line([lineP2.x, lineP2.y, a2.x, a2.y], options)
