@@ -118,16 +118,24 @@ export class Place extends fabric.Circle implements Removable {
 
 export class Arc extends fabric.Line {
 	id = uuidv4();
-	constructor(sx: number, sy: number, tx: number, ty: number, canvas: fabric.Canvas) {
-		super([sx, sy, tx, ty], {
+
+	from: Place | Transition;
+	to: Place | Transition;
+	weight = 1
+
+
+	constructor(from: Place | Transition, to: Place | Transition, canvas: fabric.Canvas) {
+		super([from.top!, from.left!, to.top!, to.left!], {
 			originX: 'center',
 			originY: 'center',
 			strokeWidth: 1,
 			stroke: line_color,
 			selectable: false,
-		})
-		canvas.add(this)
-		canvas.sendToBack(this)
+		});
+		this.from = from;
+		this.to = to;
+		canvas.add(this);
+		canvas.sendToBack(this);
 	}
 }
 

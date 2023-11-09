@@ -2,7 +2,7 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {Arc, DrawingTools, Place, Transition, Removable} from "../models";
+import {Arc, DrawingTools, Place, Transition} from "../models";
 
 @Component({
 	selector: 'app-canvas',
@@ -13,7 +13,6 @@ export class CanvasComponent implements AfterContentInit {
 	canvas: fabric.Canvas = new fabric.Canvas('canvas');
 	selected?: fabric.Object | undefined;
 	lastSelected?: fabric.Object | undefined;
-	color: any;
 
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
@@ -117,7 +116,7 @@ export class CanvasComponent implements AfterContentInit {
 			case DrawingTools.ARC: {
 				if (obj instanceof Place && lastObj instanceof Transition
 					|| obj instanceof Transition && lastObj instanceof Place) {
-					let arc = new Arc(lastObj.left!!, lastObj.top!!, obj.left!!, obj.top!!, this.canvas)
+					let arc = new Arc(lastObj, obj, this.canvas)
 					lastObj.arcs.arcs_out.push(arc)
 					obj.arcs.arcs_in.push(arc)
 				}
@@ -160,7 +159,45 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	controlChanged(command: DrawingTools) {
-		let objects = this.canvas.getObjects()
-		console.log(objects)
+		if (command != DrawingTools.RUN) {
+			return;
+		}
+
+		let [places, transitions] = this.getPlacesAndTransitions(this.canvas.getObjects())
+		this.toMatrix(places, transitions);
+	}
+
+	getPlacesAndTransitions(objects: fabric.Object[]): [Place[], Transition[]] {
+		let places: Place[] = [];
+		let transitions: Transition[] = [];
+
+		objects.forEach(object => {
+			if (object instanceof Place) {
+				places.push(object)
+			} else if (object instanceof Transition) {
+				transitions.push(object)
+			}
+		})
+
+		places.sort((p1, p2) => (p1.id > p2.id ? -1 : 1))
+		transitions.sort((t1, t2) => (t1.id > t2.id ? -1 : 1))
+
+		return [places, transitions]
+	}
+
+	toMatrix(places: Place[], transitions: Transition[]) {
+		let pxt: number[][] = [];
+
+		const p = places.map(p => p.tokens)
+		const place_to_index = new Map<string, number>(places.map((p, i) => [p.id,i]))
+
+		transitions.forEach(transition => {
+			let t_array = Array(p.length).fill(0);
+			transition.arcs.arcs_out.forEach(arc => t_array[place_to_index.get(arc.to.id)!] = arc.weight)
+			transition.arcs.arcs_in.forEach(arc => t_array[place_to_index.get(arc.to.id)!] = -arc.weight)
+			pxt.push(t_array)
+		})
+
+		console.log(pxt)
 	}
 }
