@@ -163,8 +163,8 @@ export class CanvasComponent implements AfterContentInit {
 		}
 
 		let [places, transitions] = this.getPlacesAndTransitions(this.canvas.getObjects())
-		let [p, pxt] = this.toMatrix(places, transitions);
-		this.callSimulate(p, pxt, 1);
+		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
+		this.callSimulate(p, pxt_in, pxt_out, 10000);
 	}
 
 	getPlacesAndTransitions(objects: fabric.Object[]): [Place[], Transition[]] {
@@ -185,27 +185,30 @@ export class CanvasComponent implements AfterContentInit {
 		return [places, transitions]
 	}
 
-	toMatrix(places: Place[], transitions: Transition[]): [number[], number[][]] {
-		let pxt: number[][] = []
+	toMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
+		let pxt_in: number[][] = []
+		let pxt_out: number[][] = []
 
 		const p = places.map(p => p.tokens)
 		const place_to_index = new Map<string, number>(places.map((p, i) => [p.id,i]))
 
 		transitions.forEach(transition => {
 			console.log(transition)
-			let t_array = Array(p.length).fill(0);
-			transition.arcs.arcs_out.forEach(arc => t_array[place_to_index.get(arc.to.id)!] = arc.weight)
-			transition.arcs.arcs_in.forEach(arc => t_array[place_to_index.get(arc.from.id)!] = -arc.weight)
-			pxt.push(t_array)
+			let t_in_array = Array(p.length).fill(0);
+			let t_out_array = Array(p.length).fill(0);
+			transition.arcs.arcs_out.forEach(arc => t_out_array[place_to_index.get(arc.to.id)!] = arc.weight)
+			transition.arcs.arcs_in.forEach(arc => t_in_array[place_to_index.get(arc.from.id)!] = arc.weight)
+			pxt_in.push(t_in_array)
+			pxt_out.push(t_out_array)
 		})
 
-		console.log(pxt)
-		return [p, pxt]
+		console.log(pxt_in, pxt_out)
+		return [p, pxt_in, pxt_out]
 	}
 
-	async callSimulate(p: number[], pxt: number[][], steps: number) {
-		console.log(p, pxt, steps)
-		const result = await this.simulatorService.sendToSimulator(p, pxt, steps);
+	async callSimulate(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
+		console.log(p, pxt_in, pxt_out, steps)
+		const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps);
 		console.log('Result from Tauri:', result);
 	}
 }
