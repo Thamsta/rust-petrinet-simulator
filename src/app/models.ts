@@ -8,7 +8,6 @@ export enum DrawingTools {
 	TRANSITION = 'TRANSITION',
 	PLACE = 'PLACE',
 	ARC = 'ARC',
-	TEXT = 'TEXT',
 	TOKEN_INC = 'TOKEN_INC',
 	TOKEN_DEC = 'TOKEN_DEC',
 	RUN = 'RUN',
@@ -122,7 +121,6 @@ export class Arc extends fabric.Line {
 	from: Place | Transition;
 	to: Place | Transition;
 	weight = 1
-
 
 	constructor(from: Place | Transition, to: Place | Transition, canvas: fabric.Canvas) {
 		super([from.top!, from.left!, to.top!, to.left!], {

@@ -16,9 +16,6 @@ export class CanvasComponent implements AfterContentInit {
 
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
-	constructor() {
-	}
-
 	ngAfterContentInit() {
 		this.canvas = new fabric.Canvas('canvas');
 		this.setupCanvas()
@@ -68,11 +65,11 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	addRect = (x: number, y: number) => {
-		let rect = new Transition(x, y, this.canvas)
+		new Transition(x, y, this.canvas)
 	}
 
 	addCircle = (x: number, y: number) => {
-		let circle = new Place(x, y, this.canvas)
+		new Place(x, y, this.canvas)
 	}
 
 	onWindowResize = () => {
@@ -93,7 +90,6 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	private deleteObject(obj: fabric.Object) {
-		// this.canvas.remove(obj)
 		if (obj instanceof Place || obj instanceof Transition) {
 			obj.remove(this.canvas)
 		}
@@ -135,7 +131,7 @@ export class CanvasComponent implements AfterContentInit {
 		}
 	}
 
-	private selectClear(e: IEvent<MouseEvent>) {
+	private selectClear(_: IEvent<MouseEvent>) {
 		this.lastSelected = undefined;
 		this.selected = undefined;
 	}
