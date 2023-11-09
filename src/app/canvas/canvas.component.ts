@@ -59,7 +59,7 @@ export class CanvasComponent implements AfterContentInit {
 			case DrawingTools.TOKEN_DEC: {
 				let obj = event.target
 				if (obj instanceof Place) {
-					this.updatePlaceTokens(this.toolbar.selected, obj)
+					this.addOrRemovePlaceToken(this.toolbar.selected, obj)
 					this.canvas.renderAll()
 				}
 				break;
@@ -126,7 +126,7 @@ export class CanvasComponent implements AfterContentInit {
 		this.selected = obj
 	}
 
-	private updatePlaceTokens(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, place: Place) {
+	private addOrRemovePlaceToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, place: Place) {
 		if (mode == DrawingTools.TOKEN_INC) {
 			place.addToken()
 		} else {
@@ -208,7 +208,9 @@ export class CanvasComponent implements AfterContentInit {
 
 	async callSimulate(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
 		console.log(p, pxt_in, pxt_out, steps)
+		// TODO: lock UI.
 		const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps);
-		console.log('Result from Tauri:', result);
+		// TODO: update markings
+		console.log('Result from simulator:', result);
 	}
 }
