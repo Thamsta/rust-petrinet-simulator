@@ -44,7 +44,7 @@ export class CanvasComponent implements AfterContentInit {
 
 		// extra canvas settings
 		this.canvas.preserveObjectStacking = true;
-		this.canvas.stopContextMenu = true;
+		//this.canvas.stopContextMenu = true;
 		this.addTransition(100, 100)
 	}
 
@@ -55,6 +55,7 @@ export class CanvasComponent implements AfterContentInit {
 
 		let x = event.e.offsetX
 		let y = event.e.offsetY
+		let target = event.target
 		switch (this.toolbar.selected) {
 			case DrawingTools.PLACE: {
 				this.addPlace(x, y);
@@ -66,12 +67,16 @@ export class CanvasComponent implements AfterContentInit {
 			}
 			case DrawingTools.TOKEN_INC:
 			case DrawingTools.TOKEN_DEC: {
-				let obj = event.target
-				if (obj instanceof Place || obj instanceof Arc) {
-					this.addOrRemovePlaceToken(this.toolbar.selected, obj)
+				if (target instanceof Place || target instanceof Arc) {
+					this.addOrRemovePlaceToken(this.toolbar.selected, target)
 					this.canvas.renderAll()
 				}
 				break;
+			}
+			case DrawingTools.GARBAGE: {
+				if (target) {
+					this.deleteObject(target);
+				}
 			}
 		}
 	}
@@ -93,16 +98,10 @@ export class CanvasComponent implements AfterContentInit {
 
 	private selectCreate(e: IEvent<MouseEvent>) {
 		let obj = e.selected!![0]
-		switch (this.toolbar.selected) {
-			case DrawingTools.GARBAGE: {
-				this.deleteObject(obj);
-				break;
-			}
-		}
 	}
 
 	private deleteObject(obj: fabric.Object) {
-		if (obj instanceof Place || obj instanceof Transition) {
+		if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
 			obj.remove(this.canvas)
 		}
 		if (this.lastSelected == obj) {

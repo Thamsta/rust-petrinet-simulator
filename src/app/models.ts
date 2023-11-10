@@ -200,6 +200,14 @@ export class Arc extends fabric.Line implements Removable, Countable {
 	}
 
 	remove(canvas: fabric.Canvas): void {
+		let in_index = this.from.arcs.arcs_out.indexOf(this)
+		if (in_index >= 0) {
+			this.from.arcs.arcs_out.splice(in_index, 1)
+		}
+		let out_index = this.to.arcs.arcs_in.indexOf(this)
+		if (out_index >= 0) {
+			this.to.arcs.arcs_in.splice(out_index, 1)
+		}
         canvas.remove(this, this.arrowArc1, this.arrowArc2, this.weightText)
     }
 
