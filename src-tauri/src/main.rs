@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use rand::Rng;
+use serde::Serialize;
 
 fn main() {
   tauri::Builder::default()
@@ -11,32 +12,36 @@ fn main() {
 }
 
 #[tauri::command]
-fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Vec<i32> {
-  println!("input matrix: {:?}", transition_inputs);
-  println!("output matrix: {:?}", transition_outputs);
-  println!("input vector: {:?}", marking);
-  println!("steps: {:?}", steps);
-
+fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<Response, String> {
   let transition_effects = subtract_two_matrices(&transition_outputs, &transition_inputs);
-  println!("effect matrix: {:?}", transition_effects);
 
   let mut state = marking.clone();
+  let mut t_heat: Vec<i32> = Vec::new();
+  for _ in 0..transition_inputs.len() {
+    t_heat.push(0);
+  }
   for step in 0..steps {
     let active_transitions = find_active_transitions(&state, &transition_inputs);
 
     if active_transitions.is_empty() {
       println!("No active transitions after step {} with state {:?}.", step, state);
-      return state;
+
+      return Ok(Response {
+        marking: state,
+        firings: t_heat,
+      })
     }
 
     let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
     let t_opt = active_transitions.get(rng_index);
-    let t = t_opt.unwrap();
-    let effect = transition_effects.get(*t as usize);
+    let t = *t_opt.unwrap() as usize;
+    let effect = transition_effects.get(t);
+    t_heat[t] += 1;
     // println!("{} is active with effect {:?}. All effects are {:?}", t, effect, transition_effects);
     match effect {
       None => {
-        panic!("Found active transition {} which is not in {:?}", t, transition_effects);
+        println!("Found active transition {} which is not in {:?}", t, transition_effects);
+        return Err("Internal Error".to_string())
       }
       Some(e) => {
         state  = add_two_vectors(&state, &e);
@@ -44,7 +49,16 @@ fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_
     }
   }
 
-  return state;
+  return Ok(Response {
+    marking: state,
+    firings: t_heat,
+  })
+}
+
+#[derive(Serialize)]
+struct Response {
+  marking: Vec<i32>,
+  firings: Vec<i32>,
 }
 
 fn find_active_transitions(marking: &Vec<i32>, transition_inputs: &Vec<Vec<i32>>) -> Vec<i32> {

@@ -2,8 +2,9 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {Arc, DrawingTools, isRunCommand, Place, Transition} from "../models";
+import {Arc, DrawingTools, fill_color, isRunCommand, max_heat_color, Place, Transition} from "../models";
 import {SimulatorService} from "../simulator.service";
+import * as chroma from "chroma-js";
 
 @Component({
 	selector: 'app-canvas',
@@ -249,17 +250,34 @@ export class CanvasComponent implements AfterContentInit {
 
 	async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
 		const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps);
-		this.setMarking(result)
-		return new Promise((resolve, _) => {
-			resolve(result)
+		this.setMarking(result.marking)
+		this.setTransitionHeat(result.firings)
+		this.canvas.renderAll()
+		return new Promise((resolve, reject) => {
+			resolve(result.marking)
 		})
 	}
 
-	setMarking(p: number[]) {
+	private setMarking(p: number[]) {
 		let [places, _] = this.getPlacesAndTransitions()
 		for (let i = 0; i < places.length; i++) {
 			places[i].setTokens(p[i]);
 		}
-		this.canvas.renderAll()
 	}
+
+	private setTransitionHeat(firings: number[]) {
+		let [_, transitions] = this.getPlacesAndTransitions();
+		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+
+		firings.map(value => value / sum)
+			.map(value => this.toHeatColor(value))
+			.forEach((value, index) => {
+				transitions[index].set({fill: value})
+			})
+	}
+
+	private toHeatColor(value: number): string {
+		return chroma.mix(fill_color, max_heat_color, value).hex();
+	}
+
 }

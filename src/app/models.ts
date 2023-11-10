@@ -16,12 +16,18 @@ export enum DrawingTools {
 	PAUSE = 'PAUSE',
 }
 
+export type SimulationResponse = {
+	marking: number[],
+	firings: number[],
+}
+
 export function isRunCommand(tool: DrawingTools): Boolean {
 	return Object.values([DrawingTools.RUN, DrawingTools.STEP, DrawingTools.STOP, DrawingTools.PAUSE]).includes(tool)
 }
 
-const line_color = '#282828'
-const fill_color = '#ffffff'
+export const line_color = '#282828'
+export const fill_color = '#ffffff'
+export const max_heat_color = '#ff8700'
 
 interface Removable {
 	remove(canvas: fabric.Canvas): void
@@ -63,6 +69,10 @@ export class Transition extends fabric.Rect implements Removable {
 			lockScalingY: true,
 		});
 		canvas.add(this)
+	}
+
+	setColor(color: string) {
+		this.fill = color
 	}
 
 	remove(canvas: Canvas): void {
