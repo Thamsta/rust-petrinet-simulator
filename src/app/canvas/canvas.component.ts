@@ -67,7 +67,7 @@ export class CanvasComponent implements AfterContentInit {
 			case DrawingTools.TOKEN_INC:
 			case DrawingTools.TOKEN_DEC: {
 				let obj = event.target
-				if (obj instanceof Place) {
+				if (obj instanceof Place || obj instanceof Arc) {
 					this.addOrRemovePlaceToken(this.toolbar.selected, obj)
 					this.canvas.renderAll()
 				}
@@ -135,11 +135,11 @@ export class CanvasComponent implements AfterContentInit {
 		this.selected = obj
 	}
 
-	private addOrRemovePlaceToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, place: Place) {
+	private addOrRemovePlaceToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: Place | Arc) {
 		if (mode == DrawingTools.TOKEN_INC) {
-			place.addToken()
+			obj.increment()
 		} else {
-			place.removeToken()
+			obj.decrement()
 		}
 	}
 
@@ -267,7 +267,7 @@ export class CanvasComponent implements AfterContentInit {
 	private setMarking(p: number[]) {
 		let [places, _] = this.getPlacesAndTransitions()
 		for (let i = 0; i < places.length; i++) {
-			places[i].setTokens(p[i]);
+			places[i].setAmount(p[i]);
 		}
 	}
 

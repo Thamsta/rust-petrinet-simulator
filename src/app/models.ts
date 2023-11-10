@@ -35,6 +35,12 @@ interface Removable {
 	remove(canvas: fabric.Canvas): void
 }
 
+interface Countable {
+	increment(): void
+	decrement(): void
+	setAmount(amount: number): void
+}
+
 class Connectable implements Removable {
 	arcs_in: Arc[] = []
 	arcs_out: Arc[] = []
@@ -79,7 +85,7 @@ export class Transition extends fabric.Rect implements Removable {
 	}
 }
 
-export class Place extends fabric.Circle implements Removable {
+export class Place extends fabric.Circle implements Removable, Countable {
 	id = uuidv4();
 
 	tokens= 0
@@ -127,19 +133,19 @@ export class Place extends fabric.Circle implements Removable {
 		})
 	}
 
-	addToken() {
+	increment() {
 		this.tokens++;
 		this.updateText()
 	}
 
-	removeToken() {
+	decrement() {
 		if (this.tokens > 0) {
 			this.tokens--;
 		}
 		this.updateText()
 	}
 
-	setTokens(tokens: number) {
+	setAmount(tokens: number) {
 		this.tokens = tokens;
 		this.updateText()
 	}
@@ -157,12 +163,13 @@ const options = {
 	selectable: false,
 }
 
-export class Arc extends fabric.Line implements Removable {
+export class Arc extends fabric.Line implements Removable, Countable {
 	id = uuidv4();
 
 	from: Place | Transition;
 	to: Place | Transition;
 	weight = 1
+	weightText: fabric.Text
 
 	arrowArc1: fabric.Line;
 	arrowArc2: fabric.Line;
@@ -174,18 +181,33 @@ export class Arc extends fabric.Line implements Removable {
 
 		let [a1, a2] = this.calculateArrowhead({x: from.left!, y:from.top!}, lineP2, 20)
 
+		this.weightText = new fabric.Text(this.weight.toString(), {
+			top: a1.y,
+			left: a2.x,
+			textAlign: 'center',
+			selectable: false,
+			lockRotation: true,
+		})
+		this.updateTextPosition({x: from.left!, y: from.top!}, lineP2)
+
 		this.arrowArc1 = new fabric.Line([lineP2.x, lineP2.y, a1.x, a1.y], options)
 		this.arrowArc2 = new fabric.Line([lineP2.x, lineP2.y, a2.x, a2.y], options)
 
 		this.from = from;
 		this.to = to;
-		canvas.add(this, this.arrowArc1, this.arrowArc2);
+		canvas.add(this, this.arrowArc1, this.arrowArc2, this.weightText);
 		canvas.sendToBack(this);
 	}
 
 	remove(canvas: fabric.Canvas): void {
-        canvas.remove(this, this.arrowArc1, this.arrowArc2)
+        canvas.remove(this, this.arrowArc1, this.arrowArc2, this.weightText)
     }
+
+	private updateTextPosition(start: Point, end: Point) {
+		let x = start.x + (end.x - start.x) / 2
+		let y = start.y + (end.y - start.y) / 2
+		this.weightText.set({top: y, left: x})
+	}
 
 	updateLinePoints() {
 		let lineStart: Point = {x: this.from.left!, y: this.from.top!}
@@ -193,6 +215,7 @@ export class Arc extends fabric.Line implements Removable {
 		let lineEnd: Point = this.shortenLine(lineStart, target, 30)
 		let [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
 		//super.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})
+		this.updateTextPosition(lineStart, lineEnd)
 		this.arrowArc1.set({x1: lineEnd.x, y1: lineEnd.y, x2: a1.x, y2: a1.y})
 		this.arrowArc2.set({x1: lineEnd.x, y1: lineEnd.y, x2: a2.x, y2: a2.y})
 		this.arrowArc1.setCoords()
@@ -232,5 +255,27 @@ export class Arc extends fabric.Line implements Removable {
 		const arrowTip2 = { x: end.x - dx2, y: end.y - dy2 };
 
 		return [arrowTip1, arrowTip2];
+	}
+
+	increment() {
+		this.weight++;
+		this.updateText();
+	}
+
+	decrement() {
+		if (this.weight > 1) {
+			this.weight--;
+		}
+		this.updateText();
+	}
+
+	setAmount(amount: number): void {
+		this.weight = amount;
+		if (this.weight <= 1) { this.weight = 1}
+		this.updateText()
+	}
+
+	private updateText() {
+		this.weightText.set({text: String(this.weight)});
 	}
 }
