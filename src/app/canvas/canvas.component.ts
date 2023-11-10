@@ -59,11 +59,15 @@ export class CanvasComponent implements AfterContentInit {
 		let target = event.target
 		switch (this.toolbar.selected) {
 			case DrawingTools.PLACE: {
-				this.addPlace(x, y);
+				if (target == undefined) {
+					this.addPlace(x, y);
+				}
 				break;
 			}
 			case DrawingTools.TRANSITION: {
-				this.addTransition(x, y);
+				if (target == undefined) {
+					this.addTransition(x, y);
+				}
 				break;
 			}
 			case DrawingTools.TOKEN_INC:
