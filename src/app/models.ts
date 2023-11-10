@@ -12,6 +12,12 @@ export enum DrawingTools {
 	TOKEN_DEC = 'TOKEN_DEC',
 	RUN = 'RUN',
 	STEP = 'STEP',
+	STOP = 'STOP',
+	PAUSE = 'PAUSE',
+}
+
+export function isRunCommand(tool: DrawingTools): Boolean {
+	return Object.values([DrawingTools.RUN, DrawingTools.STEP, DrawingTools.STOP, DrawingTools.PAUSE]).includes(tool)
 }
 
 const line_color = '#282828'

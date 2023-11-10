@@ -2,7 +2,7 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {Arc, DrawingTools, Place, Transition} from "../models";
+import {Arc, DrawingTools, isRunCommand, Place, Transition} from "../models";
 import {SimulatorService} from "../simulator.service";
 
 @Component({
@@ -16,6 +16,7 @@ export class CanvasComponent implements AfterContentInit {
 	lastSelected?: fabric.Object | undefined;
 
 	isSimulating = false;
+	stopRequested = false;
 
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
@@ -164,28 +165,40 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	controlChanged(command: DrawingTools) {
-		if (!(command == DrawingTools.RUN || command == DrawingTools.STEP)) {
+		if (!isRunCommand(command)) {
 			return;
 		}
+		if (command == DrawingTools.STOP || command == DrawingTools.PAUSE) {
+			this.stopRequested = true;
+			return
+		}
 
-		let [places, transitions] = this.getPlacesAndTransitions()
+		let [places, transitions] = this.getPlacesAndTransitions();
 		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
+
+		this.lock()
+
 		if (command == DrawingTools.STEP) {
+			this.stopRequested = false;
 			this.step(p, pxt_in, pxt_out)
 		}
 		if (command == DrawingTools.RUN) {
+			this.stopRequested = false;
 			this.run(p, pxt_in, pxt_out)
 		}
 	}
 
 	run(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-		while (true) {
-			this.simulate(p, pxt_in, pxt_out, 1000);
+		if (this.stopRequested) {
+			this.unlock()
+			return
 		}
+		this.simulateSteps(p, pxt_in, pxt_out, 10000).then(marking => this.run(marking, pxt_in, pxt_out));
 	}
 
 	step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-		this.simulate(p, pxt_in, pxt_out, 1);
+		this.simulateSteps(p, pxt_in, pxt_out, 1);
+		this.unlock()
 	}
 
 	getPlacesAndTransitions(): [Place[], Transition[]] {
@@ -226,13 +239,20 @@ export class CanvasComponent implements AfterContentInit {
 		return [p, pxt_in, pxt_out]
 	}
 
-	async simulate(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
-		// console.log(p, pxt_in, pxt_out, steps)
-		this.isSimulating = true
+	private lock() {
+		this.isSimulating = true;
+	}
+
+	private unlock() {
+		this.isSimulating = false;
+	}
+
+	async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
 		const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps);
-		console.log('Result from simulator:', result);
 		this.setMarking(result)
-		this.isSimulating = false
+		return new Promise((resolve, _) => {
+			resolve(result)
+		})
 	}
 
 	setMarking(p: number[]) {
