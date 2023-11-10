@@ -2,9 +2,10 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {Arc, canvas_color, canvas_color_simulating, DrawingTools, fill_color, isRunCommand, max_heat_color, Place, Transition} from "../models";
+import {Arc, DrawingTools, isRunCommand, Place, Transition} from "../models";
 import {SimulatorService} from "../simulator.service";
 import * as chroma from "chroma-js";
+import {canvas_color, canvas_color_simulating, fill_color, max_heat_color, toHeatColor} from "../colors";
 
 @Component({
 	selector: 'app-canvas',
@@ -282,13 +283,9 @@ export class CanvasComponent implements AfterContentInit {
 		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 1);
 
 		firings.map(value => value / sum)
-			.map(value => this.toHeatColor(value))
+			.map(value => toHeatColor(value))
 			.forEach((value, index) => {
 				transitions[index].set({fill: value})
 			})
-	}
-
-	private toHeatColor(value: number): string {
-		return chroma.mix(fill_color, max_heat_color, value).hex();
 	}
 }

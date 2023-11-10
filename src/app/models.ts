@@ -1,6 +1,7 @@
 import {fabric} from "fabric";
 import {Canvas} from "fabric/fabric-impl";
 import { v4 as uuidv4 } from 'uuid';
+import {fill_color, line_color} from "./colors";
 
 export enum DrawingTools {
 	SELECT = 'SELECT',
@@ -24,12 +25,6 @@ export type SimulationResponse = {
 export function isRunCommand(tool: DrawingTools): Boolean {
 	return Object.values([DrawingTools.RUN, DrawingTools.STEP, DrawingTools.STOP, DrawingTools.PAUSE]).includes(tool)
 }
-
-export const line_color = '#282828'
-export const fill_color = '#ffffff'
-export const canvas_color = '#ffffff'
-export const canvas_color_simulating = '#f6f4eb'
-export const max_heat_color = '#ff6a00'
 
 interface Removable {
 	remove(canvas: fabric.Canvas): void
@@ -155,7 +150,7 @@ export class Place extends fabric.Circle implements Removable, Countable {
 	}
 }
 
-const options = {
+const lineOptions = {
 	originX: 'center',
 	originY: 'center',
 	strokeWidth: 1,
@@ -175,7 +170,7 @@ export class Arc extends fabric.Line implements Removable, Countable {
 	arrowArc2: fabric.Line;
 
 	constructor(from: Place | Transition, to: Place | Transition, canvas: fabric.Canvas) {
-		super([from.left!, from.top!, to.left!, to.top!], options);
+		super([from.left!, from.top!, to.left!, to.top!], lineOptions);
 
 		let lineP2 = this.shortenLine({x: from.left!, y: from.top!}, {x: to.left!, y: to.top!}, 30)
 
@@ -190,8 +185,8 @@ export class Arc extends fabric.Line implements Removable, Countable {
 		})
 		this.updateTextPosition({x: from.left!, y: from.top!}, lineP2)
 
-		this.arrowArc1 = new fabric.Line([lineP2.x, lineP2.y, a1.x, a1.y], options)
-		this.arrowArc2 = new fabric.Line([lineP2.x, lineP2.y, a2.x, a2.y], options)
+		this.arrowArc1 = new fabric.Line([lineP2.x, lineP2.y, a1.x, a1.y], lineOptions)
+		this.arrowArc2 = new fabric.Line([lineP2.x, lineP2.y, a2.x, a2.y], lineOptions)
 
 		this.from = from;
 		this.to = to;
