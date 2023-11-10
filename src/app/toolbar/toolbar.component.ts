@@ -16,7 +16,7 @@ export class ToolbarComponent {
 
   select(selected: DrawingTools) {
     this.selected = selected;
-    if (selected == DrawingTools.RUN) {
+    if (selected == DrawingTools.RUN || selected == DrawingTools.STEP) {
       this.controlEmitter.emit(selected)
     }
   }

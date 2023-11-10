@@ -15,7 +15,7 @@ export class CanvasComponent implements AfterContentInit {
 	selected?: fabric.Object | undefined;
 	lastSelected?: fabric.Object | undefined;
 
-	isLocked = false;
+	isSimulating = false;
 
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
@@ -46,7 +46,7 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	onClick(event: IEvent<MouseEvent>) {
-		if (this.isLocked) {
+		if (this.isSimulating) {
 			return
 		}
 
@@ -164,13 +164,28 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	controlChanged(command: DrawingTools) {
-		if (!(command in [DrawingTools.RUN, DrawingTools.STEP])) {
+		if (!(command == DrawingTools.RUN || command == DrawingTools.STEP)) {
 			return;
 		}
 
 		let [places, transitions] = this.getPlacesAndTransitions()
 		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
-		this.callSimulate(p, pxt_in, pxt_out, 1);
+		if (command == DrawingTools.STEP) {
+			this.step(p, pxt_in, pxt_out)
+		}
+		if (command == DrawingTools.RUN) {
+			this.run(p, pxt_in, pxt_out)
+		}
+	}
+
+	run(p: number[], pxt_in: number[][], pxt_out: number[][]) {
+		while (true) {
+			this.simulate(p, pxt_in, pxt_out, 1000);
+		}
+	}
+
+	step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
+		this.simulate(p, pxt_in, pxt_out, 1);
 	}
 
 	getPlacesAndTransitions(): [Place[], Transition[]] {
@@ -200,7 +215,6 @@ export class CanvasComponent implements AfterContentInit {
 		const place_to_index = new Map<string, number>(places.map((p, i) => [p.id,i]))
 
 		transitions.forEach(transition => {
-			console.log(transition)
 			let t_in_array = Array(p.length).fill(0);
 			let t_out_array = Array(p.length).fill(0);
 			transition.arcs.arcs_out.forEach(arc => t_out_array[place_to_index.get(arc.to.id)!] = arc.weight)
@@ -209,17 +223,16 @@ export class CanvasComponent implements AfterContentInit {
 			pxt_out.push(t_out_array)
 		})
 
-		console.log(pxt_in, pxt_out)
 		return [p, pxt_in, pxt_out]
 	}
 
-	async callSimulate(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
-		console.log(p, pxt_in, pxt_out, steps)
-		this.isLocked = true
+	async simulate(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
+		// console.log(p, pxt_in, pxt_out, steps)
+		this.isSimulating = true
 		const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps);
 		console.log('Result from simulator:', result);
 		this.setMarking(result)
-		this.isLocked = false
+		this.isSimulating = false
 	}
 
 	setMarking(p: number[]) {
