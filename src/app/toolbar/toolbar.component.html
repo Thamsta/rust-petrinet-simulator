@@ -1,44 +1,46 @@
 <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet"/>
 <mat-toolbar>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Transition" (click)="select(DrawingTools.SELECT)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)">
 		<mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
 	</button>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.GARBAGE)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.GARBAGE ? 'accent' : 'default' }}" (click)="select(DrawingTools.GARBAGE)">
 		<mat-icon fontSet="material-icons-outlined">delete</mat-icon>
 	</button>
 
 	<mat-divider vertical></mat-divider>
 
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Transition" (click)="select(DrawingTools.TRANSITION)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TRANSITION ? 'accent' : 'default' }}" aria-label="Transition" (click)="select(DrawingTools.TRANSITION)">
 		<mat-icon fontSet="material-icons-outlined">rectangle</mat-icon>
 	</button>
 	<span class="example-spacer"></span>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Place" (click)="select(DrawingTools.PLACE)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)">
 		<mat-icon fontSet="material-icons-outlined">circle_outline</mat-icon>
 	</button>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.ARC)">
-		<mat-icon>arrow_forward</mat-icon>
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.ARC ? 'accent' : 'default' }}" (click)="select(DrawingTools.ARC)">
+		<mat-icon>east</mat-icon>
 	</button>
+
 	<mat-divider vertical></mat-divider>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.TOKEN_INC)">
+
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TOKEN_INC ? 'accent' : 'default' }}" (click)="select(DrawingTools.TOKEN_INC)">
 		<mat-icon>add</mat-icon>
 	</button>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.TOKEN_DEC)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TOKEN_DEC ? 'accent' : 'default' }}" (click)="select(DrawingTools.TOKEN_DEC)">
 		<mat-icon>remove</mat-icon>
 	</button>
 	<mat-divider vertical></mat-divider>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.RUN)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.RUN ? 'accent' : 'default' }}"
+			(click)="select(DrawingTools.RUN)">
 		<mat-icon fontSet="material-icons-outlined">play_arrow</mat-icon>
 	</button>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.STEP)">
+	<button mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.STEP)">
 		<mat-icon fontSet="material-icons-outlined">skip_next</mat-icon>
 	</button>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.PAUSE)">
+	<button mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PAUSE ? 'accent' : 'default' }}"
+			(click)="select(DrawingTools.PAUSE)">
 		<mat-icon fontSet="material-icons-outlined">pause</mat-icon>
 	</button>
-	<button mat-icon-button class="material-symbols-outlined" aria-label="Example icon-button with share icon" (click)="select(DrawingTools.STOP)">
+	<button mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.STOP)">
 		<mat-icon fontSet="material-icons-outlined">stop</mat-icon>
 	</button>
-	<mat-divider vertical></mat-divider>
-	<span>{{selected.toLowerCase()}}</span>
 </mat-toolbar>

@@ -18,6 +18,9 @@ export class ToolbarComponent {
     this.selected = selected;
     if (isRunCommand(selected)) {
       this.controlEmitter.emit(selected)
+      if (selected == DrawingTools.STOP || selected == DrawingTools.STEP) {
+        this.selected = DrawingTools.SELECT
+      }
     }
   }
 
