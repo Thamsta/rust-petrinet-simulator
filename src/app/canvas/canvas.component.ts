@@ -2,7 +2,7 @@ import {AfterContentInit, Component, ViewChild} from '@angular/core';
 import {fabric} from 'fabric';
 import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
-import {Arc, DrawingTools, fill_color, isRunCommand, max_heat_color, Place, Transition} from "../models";
+import {Arc, canvas_color, canvas_color_simulating, DrawingTools, fill_color, isRunCommand, max_heat_color, Place, Transition} from "../models";
 import {SimulatorService} from "../simulator.service";
 import * as chroma from "chroma-js";
 
@@ -18,6 +18,7 @@ export class CanvasComponent implements AfterContentInit {
 
 	isSimulating = false;
 	stopRequested = false;
+	startState: number[] | undefined
 
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
@@ -178,6 +179,7 @@ export class CanvasComponent implements AfterContentInit {
 		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
 
 		this.lock()
+		this.startState = p;
 
 		if (command == DrawingTools.STEP) {
 			this.stopRequested = false;
@@ -198,8 +200,7 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-		this.simulateSteps(p, pxt_in, pxt_out, 1);
-		this.unlock()
+		this.simulateSteps(p, pxt_in, pxt_out, 1).then(_ => {});
 	}
 
 	getPlacesAndTransitions(): [Place[], Transition[]] {
@@ -242,10 +243,15 @@ export class CanvasComponent implements AfterContentInit {
 
 	private lock() {
 		this.isSimulating = true;
+		this.canvas.setBackgroundColor(canvas_color_simulating, () => { this.canvas.renderAll() })
 	}
 
 	private unlock() {
+		this.canvas.setBackgroundColor(canvas_color, () => { this.canvas.renderAll() })
 		this.isSimulating = false;
+		if (this.startState) { this.setMarking(this.startState) }
+		this.resetTransitionHeat()
+		this.canvas.renderAll()
 	}
 
 	async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
@@ -253,7 +259,7 @@ export class CanvasComponent implements AfterContentInit {
 		this.setMarking(result.marking)
 		this.setTransitionHeat(result.firings)
 		this.canvas.renderAll()
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, _) => {
 			resolve(result.marking)
 		})
 	}
@@ -265,9 +271,16 @@ export class CanvasComponent implements AfterContentInit {
 		}
 	}
 
+	private resetTransitionHeat() {
+		let [_, transitions] = this.getPlacesAndTransitions();
+		transitions.forEach(transition => {
+			transition.set({fill: fill_color})
+		})
+	}
+
 	private setTransitionHeat(firings: number[]) {
 		let [_, transitions] = this.getPlacesAndTransitions();
-		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 0);
+		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 1);
 
 		firings.map(value => value / sum)
 			.map(value => this.toHeatColor(value))
@@ -279,5 +292,4 @@ export class CanvasComponent implements AfterContentInit {
 	private toHeatColor(value: number): string {
 		return chroma.mix(fill_color, max_heat_color, value).hex();
 	}
-
 }

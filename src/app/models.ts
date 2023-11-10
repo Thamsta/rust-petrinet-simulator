@@ -27,7 +27,9 @@ export function isRunCommand(tool: DrawingTools): Boolean {
 
 export const line_color = '#282828'
 export const fill_color = '#ffffff'
-export const max_heat_color = '#ff8700'
+export const canvas_color = '#ffffff'
+export const canvas_color_simulating = '#f6f4eb'
+export const max_heat_color = '#ff6a00'
 
 interface Removable {
 	remove(canvas: fabric.Canvas): void
@@ -69,10 +71,6 @@ export class Transition extends fabric.Rect implements Removable {
 			lockScalingY: true,
 		});
 		canvas.add(this)
-	}
-
-	setColor(color: string) {
-		this.fill = color
 	}
 
 	remove(canvas: Canvas): void {
