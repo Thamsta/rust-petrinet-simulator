@@ -3,6 +3,7 @@
 
 use rand::Rng;
 use serde::Serialize;
+use ndarray::{Array1, arr1};
 
 fn main() {
   tauri::Builder::default()
@@ -15,19 +16,19 @@ fn main() {
 fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<Response, String> {
   let transition_effects = subtract_two_matrices(&transition_outputs, &transition_inputs);
 
-  let mut state = marking.clone();
+  let mut state_vec = arr1(&marking);
   let mut t_heat: Vec<i32> = Vec::new();
   for _ in 0..transition_inputs.len() {
     t_heat.push(0);
   }
   for step in 0..steps {
-    let active_transitions = find_active_transitions(&state, &transition_inputs);
+    let active_transitions = find_active_transitions(&state_vec, &transition_inputs);
 
     if active_transitions.is_empty() {
-      println!("No active transitions after step {} with state {:?}.", step, state);
+      println!("No active transitions after step {} with state {:?}.", step, state_vec);
 
       return Ok(Response {
-        marking: state,
+        marking: state_vec.to_vec(),
         firings: t_heat,
       })
     }
@@ -44,13 +45,13 @@ fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_
         return Err("Internal Error".to_string())
       }
       Some(e) => {
-        state  = add_two_vectors(&state, &e);
+        state_vec  = &state_vec + &arr1(&e);
       }
     }
   }
 
   return Ok(Response {
-    marking: state,
+    marking: state_vec.to_vec(),
     firings: t_heat,
   })
 }
@@ -61,15 +62,13 @@ struct Response {
   firings: Vec<i32>,
 }
 
-fn find_active_transitions(marking: &Vec<i32>, transition_inputs: &Vec<Vec<i32>>) -> Vec<i32> {
+fn find_active_transitions(marking: &Array1<i32>, transition_inputs: &Vec<Vec<i32>>) -> Vec<i32> {
   let mut active = Vec::new();
   for (index, input) in transition_inputs.iter().enumerate() {
     if is_greater_or_equal(&marking, &input) {
       active.push(index as i32);
-      // println!("{:?} >= {:?}", marking, input)
     }
   }
-
 
   return active;
 }
@@ -98,7 +97,7 @@ fn subtract_two_vectors(vec1: &Vec<i32>, vec2: &Vec<i32>) -> Vec<i32> {
   return sum;
 }
 
-fn is_greater_or_equal(arr1: &[i32], arr2: &[i32]) -> bool {
+fn is_greater_or_equal(arr1: &Array1<i32>, arr2: &[i32]) -> bool {
   for (num1, num2) in arr1.iter().zip(arr2.iter()) {
     if num1 < num2 {
       return false; // If any comparison fails, return false
