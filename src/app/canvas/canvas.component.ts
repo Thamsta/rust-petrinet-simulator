@@ -15,6 +15,8 @@ export class CanvasComponent implements AfterContentInit {
 	selected?: fabric.Object | undefined;
 	lastSelected?: fabric.Object | undefined;
 
+	isLocked = false;
+
 	@ViewChild('toolbar') toolbar!: ToolbarComponent
 
 	constructor(private simulatorService: SimulatorService) {}
@@ -40,19 +42,23 @@ export class CanvasComponent implements AfterContentInit {
 		// extra canvas settings
 		this.canvas.preserveObjectStacking = true;
 		this.canvas.stopContextMenu = true;
-		this.addRect(100, 100)
+		this.addTransition(100, 100)
 	}
 
 	onClick(event: IEvent<MouseEvent>) {
+		if (this.isLocked) {
+			return
+		}
+
 		let x = event.e.offsetX
 		let y = event.e.offsetY
 		switch (this.toolbar.selected) {
 			case DrawingTools.PLACE: {
-				this.addCircle(x, y);
+				this.addPlace(x, y);
 				break;
 			}
 			case DrawingTools.TRANSITION: {
-				this.addRect(x, y);
+				this.addTransition(x, y);
 				break;
 			}
 			case DrawingTools.TOKEN_INC:
@@ -67,11 +73,11 @@ export class CanvasComponent implements AfterContentInit {
 		}
 	}
 
-	addRect = (x: number, y: number) => {
+	addTransition = (x: number, y: number) => {
 		new Transition(x, y, this.canvas)
 	}
 
-	addCircle = (x: number, y: number) => {
+	addPlace = (x: number, y: number) => {
 		new Place(x, y, this.canvas)
 	}
 
@@ -158,16 +164,17 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	controlChanged(command: DrawingTools) {
-		if (command != DrawingTools.RUN) {
+		if (!(command in [DrawingTools.RUN, DrawingTools.STEP])) {
 			return;
 		}
 
-		let [places, transitions] = this.getPlacesAndTransitions(this.canvas.getObjects())
+		let [places, transitions] = this.getPlacesAndTransitions()
 		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
-		this.callSimulate(p, pxt_in, pxt_out, 1000000);
+		this.callSimulate(p, pxt_in, pxt_out, 1);
 	}
 
-	getPlacesAndTransitions(objects: fabric.Object[]): [Place[], Transition[]] {
+	getPlacesAndTransitions(): [Place[], Transition[]] {
+		let objects = this.canvas.getObjects()
 		let places: Place[] = [];
 		let transitions: Transition[] = [];
 
@@ -208,9 +215,18 @@ export class CanvasComponent implements AfterContentInit {
 
 	async callSimulate(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
 		console.log(p, pxt_in, pxt_out, steps)
-		// TODO: lock UI.
+		this.isLocked = true
 		const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps);
-		// TODO: update markings
 		console.log('Result from simulator:', result);
+		this.setMarking(result)
+		this.isLocked = false
+	}
+
+	setMarking(p: number[]) {
+		let [places, _] = this.getPlacesAndTransitions()
+		for (let i = 0; i < places.length; i++) {
+			places[i].setTokens(p[i]);
+		}
+		this.canvas.renderAll()
 	}
 }

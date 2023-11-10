@@ -11,6 +11,7 @@ export enum DrawingTools {
 	TOKEN_INC = 'TOKEN_INC',
 	TOKEN_DEC = 'TOKEN_DEC',
 	RUN = 'RUN',
+	STEP = 'STEP',
 }
 
 const line_color = '#282828'
@@ -124,7 +125,12 @@ export class Place extends fabric.Circle implements Removable {
 		this.updateText()
 	}
 
-	updateText() {
+	setTokens(tokens: number) {
+		this.tokens = tokens;
+		this.updateText()
+	}
+
+	private updateText() {
 		this.tokenText.set({text: String(this.tokens)})
 	}
 }
