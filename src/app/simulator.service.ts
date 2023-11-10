@@ -11,7 +11,7 @@ export class SimulatorService {
   async sendToSimulator(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
     try {
       const start = performance.now();
-      const data = await invoke<SimulationResponse>('process_data', { marking: vector, transitionInputs: in_matrix, transitionOutputs: out_matrix, steps: steps });
+      const data = await invoke<SimulationResponse>('simulate', { marking: vector, transitionInputs: in_matrix, transitionOutputs: out_matrix, steps: steps });
       const end = performance.now();
       console.log(`Simulating ${steps} steps took ${end - start} milliseconds`);
       return data;

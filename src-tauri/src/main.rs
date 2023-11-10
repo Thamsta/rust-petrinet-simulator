@@ -7,13 +7,13 @@ use ndarray::{Array1, arr1};
 
 fn main() {
   tauri::Builder::default()
-    .invoke_handler(tauri::generate_handler![process_data])
+    .invoke_handler(tauri::generate_handler![simulate])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn process_data(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<Response, String> {
+fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<Response, String> {
   let transition_effects = subtract_two_matrices(&transition_outputs, &transition_inputs);
 
   let mut state_vec = arr1(&marking);
