@@ -4,8 +4,7 @@ import {IEvent} from "fabric/fabric-impl";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
 import {Arc, DrawingTools, isRunCommand, Place, Transition} from "../models";
 import {SimulatorService} from "../simulator.service";
-import * as chroma from "chroma-js";
-import {canvas_color, canvas_color_simulating, fill_color, max_heat_color, toHeatColor} from "../colors";
+import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors";
 
 @Component({
 	selector: 'app-canvas',
@@ -171,7 +170,7 @@ export class CanvasComponent implements AfterContentInit {
 	}
 
 	controlChanged(command: DrawingTools) {
-		if (!isRunCommand(command)) {
+		if (!isRunCommand(command) && !(command == DrawingTools.RG)) {
 			return;
 		}
 		if (command == DrawingTools.STOP || command == DrawingTools.PAUSE) {
@@ -182,8 +181,13 @@ export class CanvasComponent implements AfterContentInit {
 		let [places, transitions] = this.getPlacesAndTransitions();
 		let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions);
 
-		this.lock()
+		if (command == DrawingTools.RG) {
+			this.rg(p, pxt_in, pxt_out)
+			return // dont lock
+		}
+
 		this.startState = p;
+		this.lock()
 
 		if (command == DrawingTools.STEP) {
 			this.stopRequested = false;
@@ -195,7 +199,7 @@ export class CanvasComponent implements AfterContentInit {
 		}
 	}
 
-	run(p: number[], pxt_in: number[][], pxt_out: number[][]) {
+	private run(p: number[], pxt_in: number[][], pxt_out: number[][]) {
 		if (this.stopRequested) {
 			this.unlock()
 			return
@@ -203,8 +207,12 @@ export class CanvasComponent implements AfterContentInit {
 		this.simulateSteps(p, pxt_in, pxt_out, 10000).then(marking => this.run(marking, pxt_in, pxt_out));
 	}
 
-	step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
+	private step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
 		this.simulateSteps(p, pxt_in, pxt_out, 1).then(_ => {});
+	}
+
+	private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
+		this.simulatorService.createRG(p, pxt_in, pxt_out).then(_ => {});
 	}
 
 	getPlacesAndTransitions(): [Place[], Transition[]] {

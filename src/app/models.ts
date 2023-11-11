@@ -15,11 +15,16 @@ export enum DrawingTools {
 	STEP = 'STEP',
 	STOP = 'STOP',
 	PAUSE = 'PAUSE',
+	RG = 'RG',
 }
 
 export type SimulationResponse = {
 	marking: number[],
 	firings: number[],
+}
+
+export type RGResponse = {
+	success: boolean,
 }
 
 export function isRunCommand(tool: DrawingTools): Boolean {

@@ -1,20 +1,23 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use ndarray::{arr1, arr2, Array, Array2, Axis};
 use rand::Rng;
 use serde::Serialize;
-use ndarray::{Array1, arr1};
+
+mod common;
 
 fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![simulate])
+    .invoke_handler(tauri::generate_handler![create_rg])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<Response, String> {
-  let transition_effects = subtract_two_matrices(&transition_outputs, &transition_inputs);
+fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<SimulationResponse, String> {
+  let transition_effects = common::subtract_two_matrices(&transition_outputs, &transition_inputs);
 
   let mut state_vec = arr1(&marking);
   let mut t_heat: Vec<i32> = Vec::new();
@@ -22,12 +25,12 @@ fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outp
     t_heat.push(0);
   }
   for step in 0..steps {
-    let active_transitions = find_active_transitions(&state_vec, &transition_inputs);
+    let active_transitions = common::find_active_transitions(&state_vec, &transition_inputs);
 
     if active_transitions.is_empty() {
       println!("No active transitions after step {} with state {:?}.", step, state_vec);
 
-      return Ok(Response {
+      return Ok(SimulationResponse {
         marking: state_vec.to_vec(),
         firings: t_heat,
       })
@@ -50,59 +53,44 @@ fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outp
     }
   }
 
-  return Ok(Response {
+  return Ok(SimulationResponse {
     marking: state_vec.to_vec(),
     firings: t_heat,
   })
 }
 
 #[derive(Serialize)]
-struct Response {
+struct SimulationResponse {
   marking: Vec<i32>,
   firings: Vec<i32>,
 }
 
-fn find_active_transitions(marking: &Array1<i32>, transition_inputs: &Vec<Vec<i32>>) -> Vec<i32> {
-  let mut active = Vec::new();
-  for (index, input) in transition_inputs.iter().enumerate() {
-    if is_greater_or_equal(&marking, &input) {
-      active.push(index as i32);
+#[tauri::command]
+fn create_rg(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<RGResponse, String> {
+  let t = &transition_inputs.len(); // rows
+  let p = &transition_inputs.get(0).expect("empty array").len(); // columns
+  let t_in: Array2<i32> = vec_vec_to_array2(&transition_inputs, &t, &p);
+  let t_out: Array2<i32> = vec_vec_to_array2(&transition_outputs, &t, &p);
+  let t_effect: Array2<i32> = &t_out - &t_in;
+
+  let mut state_vec = arr1(&marking);
+
+  return Ok(RGResponse{ success: true })
+}
+
+fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Array2<i32> {
+  let mut result = Array2::zeros((*rows, *columns));
+  for (i, mut row) in result.axis_iter_mut(Axis(0)).enumerate() {
+    for (j, col) in row.iter_mut().enumerate() {
+      *col = input[i][j];
     }
   }
 
-  return active;
+  return result;
 }
 
-fn subtract_two_matrices(mat1: &Vec<Vec<i32>>, mat2: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
-  let mut sum = Vec::new();
-  for (c1, c2) in mat1.iter().zip(mat2.iter()) {
-    sum.push(subtract_two_vectors(&c1, &c2));
-  }
-  return sum;
-}
 
-fn add_two_vectors(vec1: &Vec<i32>, vec2: &Vec<i32>) -> Vec<i32> {
-  let mut sum = Vec::new();
-  for (c1, c2) in vec1.iter().zip(vec2.iter()) {
-    sum.push(c1 + c2);
-  }
-  return sum;
-}
-
-fn subtract_two_vectors(vec1: &Vec<i32>, vec2: &Vec<i32>) -> Vec<i32> {
-  let mut sum = Vec::new();
-  for (c1, c2) in vec1.iter().zip(vec2.iter()) {
-    sum.push(c1 - c2);
-  }
-  return sum;
-}
-
-fn is_greater_or_equal(arr1: &Array1<i32>, arr2: &[i32]) -> bool {
-  for (num1, num2) in arr1.iter().zip(arr2.iter()) {
-    if num1 < num2 {
-      return false; // If any comparison fails, return false
-    }
-  }
-
-  true // All comparisons succeeded, return true
+#[derive(Serialize)]
+struct RGResponse {
+  success: bool
 }
