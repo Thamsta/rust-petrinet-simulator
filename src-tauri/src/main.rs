@@ -81,9 +81,9 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     // new:
     let mut all_states: Vec<Array1<i32>> = Vec::new();
     let mut all_states_rev: HashMap<Array1<i32>, u32> = HashMap::new();
+    let mut edges: HashMap<u32, Vec<u32>> = HashMap::new();
 
     let active = common::find_active_transitions_arr(&state_vec, &t_in);
-    println!("{} active transitions", active.len());
 
     let id = all_states.len().clone();
     all_states_rev.insert(state_vec.clone(), all_states.len() as u32);
@@ -92,35 +92,33 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     let next: Vec<u32> = active.iter()
         .map(| &inx| {
             let new_state: Array1<i32> = &state_vec + &t_effect.slice(s![inx as usize, ..]);
-            let existing = all_states_rev.get(&new_state);
-            match existing {
-                None => {
-                    all_states_rev.insert(new_state.clone(), all_states.len() as u32);
-                    all_states.push(new_state.clone());
-                    queue.insert(new_state.clone());
-                }
-                Some(actual) => {
-                    return Some(actual.clone());
-                }
-            }
-            return None
+            return insert_next_state(new_state, &mut all_states, &mut all_states_rev, &mut queue);
         })
         .filter_map(|option| option)
         //.map(|&value| value)
         .collect();
 
-    /*
-    let state_node = Node {
-        id: id.clone() as u32,
-        state: state_vec,
-        next: next,
-    };*/
-
+    edges.insert(id as u32, next);
 
     println!("{:?} states after 1 step", all_states_rev.keys().len());
     //println!("{:?} init state", state_node);
 
     return Ok(RGResponse { success: true });
+}
+
+fn insert_next_state(new_state: Array1<i32>, all_states: &mut Vec<Array1<i32>>, all_states_rev: &mut HashMap<Array1<i32>, u32>, queue: &mut HashSet<Array1<i32>>) -> Option<u32> {
+    let existing = all_states_rev.get(&new_state);
+    match existing {
+        None => {
+            all_states_rev.insert(new_state.clone(), all_states.len() as u32);
+            all_states.push(new_state.clone());
+            queue.insert(new_state.clone());
+        }
+        Some(actual) => {
+            return Some(actual.clone());
+        }
+    }
+    return None
 }
 
 fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Array2<i32> {
