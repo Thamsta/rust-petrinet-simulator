@@ -1,7 +1,10 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use ndarray::{arr1, Array2, Axis};
+use std::collections::HashMap;
+use std::time::Instant;
+
+use ndarray::{arr1, Array1, Array2, Axis, s};
 use rand::Rng;
 use serde::Serialize;
 
@@ -66,18 +69,66 @@ struct SimulationResponse {
 }
 
 #[tauri::command]
-fn create_rg(marking: Vec<u32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<RGResponse, String> {
+fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<RGResponse, String> {
+    let start_time = Instant::now();
     let t = &transition_inputs.len(); // rows
     let p = &transition_inputs.get(0).expect("empty array").len(); // columns
+
     let t_in: Array2<i32> = vec_vec_to_array2(&transition_inputs, &t, &p);
     let t_out: Array2<i32> = vec_vec_to_array2(&transition_outputs, &t, &p);
     let t_effect: Array2<i32> = &t_out - &t_in;
 
-    let mut state_vec = arr1(&marking);
+    let state_vec = arr1(&marking);
+    let mut queue: Vec<Array1<i32>> = Vec::new();
+    // new:
+    let mut all_states: Vec<Array1<i32>> = Vec::new();
+    let mut all_states_rev: HashMap<Array1<i32>, u32> = HashMap::new();
+    let mut edges: HashMap<u32, Vec<u32>> = HashMap::new();
 
-    common::find_active_transitions_arr(&state_vec, &t_in);
+
+    //let id = all_states.len().clone();
+    all_states_rev.insert(state_vec.clone(), all_states.len() as u32);
+    all_states.push(state_vec.clone());
+    queue.push(state_vec);
+
+    while !queue.is_empty() {
+        let cur_state = queue.pop().unwrap();
+        let id = all_states_rev.get(&cur_state).unwrap().clone();
+        let active = common::find_active_transitions_arr(&cur_state, &t_in);
+        let next: Vec<u32> = active.iter()
+            .map(| &inx| {
+                let new_state: Array1<i32> = &cur_state + &t_effect.slice(s![inx as usize, ..]);
+                return insert_next_state(new_state, &mut all_states, &mut all_states_rev, &mut queue);
+            })
+            .filter_map(|option| option)
+            .collect();
+        edges.insert(id, next);
+    }
+
+    let end_time = Instant::now();
+    let elapsed_time = end_time - start_time;
+
+    let total_states = all_states_rev.keys().len();
+    let states_per_second = total_states as f64 / elapsed_time.as_secs_f64() / 1000f64;
+
+    println!("RG with {:?} states took {}ms ({}k states/s)", total_states, elapsed_time.as_millis(), states_per_second.round());
 
     return Ok(RGResponse { success: true });
+}
+
+fn insert_next_state(new_state: Array1<i32>, all_states: &mut Vec<Array1<i32>>, all_states_rev: &mut HashMap<Array1<i32>, u32>, queue: &mut Vec<Array1<i32>>) -> Option<u32> {
+    let existing = all_states_rev.get(&new_state);
+    match existing {
+        None => {
+            all_states_rev.insert(new_state.clone(), all_states.len() as u32);
+            all_states.push(new_state.clone());
+            queue.push(new_state.clone());
+        }
+        Some(actual) => {
+            return Some(actual.clone());
+        }
+    }
+    return None
 }
 
 fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Array2<i32> {
@@ -89,6 +140,13 @@ fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Ar
     }
 
     return result;
+}
+
+#[derive(Debug)]
+struct Node {
+    id: u32,
+    state: Array1<i32>,
+    next: Vec<u32>
 }
 
 
