@@ -85,6 +85,8 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     let mut all_states_rev: HashMap<Array1<i32>, u32> = HashMap::new();
     let mut edges: HashMap<u32, Vec<u32>> = HashMap::new();
 
+    let mut step_counter = 0;
+
 
     //let id = all_states.len().clone();
     all_states_rev.insert(state_vec.clone(), all_states.len() as u32);
@@ -92,6 +94,10 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     queue.push(state_vec);
 
     while !queue.is_empty() {
+        if step_counter > 50000 {
+            println!("Aborting after {} steps.", step_counter);
+            return Err("RG is unbounded or too large!".to_string());
+        }
         let cur_state = queue.pop().unwrap();
         let id = all_states_rev.get(&cur_state).unwrap().clone();
         let active = common::find_active_transitions_arr(&cur_state, &t_in);
@@ -103,6 +109,7 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
             .filter_map(|option| option)
             .collect();
         edges.insert(id, next);
+        step_counter += 1;
     }
 
     let end_time = Instant::now();
