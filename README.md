@@ -1,7 +1,9 @@
 # Petrinets
 A P/T net simulator using Rust & Angular.
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 16.1.8.
+## Requirements
+
+Needed: [Rust](https://www.rust-lang.org/tools/install) (tested with 1.73.0), [npm](https://www.npmjs.com/package/npm) (tested with npm 10.2.3 and node 20.9.0), [Angular CLI](https://angular.io/cli)
 
 ## Development server
 
