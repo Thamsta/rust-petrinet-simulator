@@ -34,14 +34,6 @@ pub fn subtract_two_matrices(mat1: &Vec<Vec<i32>>, mat2: &Vec<Vec<i32>>) -> Vec<
     return sum;
 }
 
-fn add_two_vectors(vec1: &Vec<i32>, vec2: &Vec<i32>) -> Vec<i32> {
-    let mut sum = Vec::new();
-    for (c1, c2) in vec1.iter().zip(vec2.iter()) {
-        sum.push(c1 + c2);
-    }
-    return sum;
-}
-
 fn subtract_two_vectors(vec1: &Vec<i32>, vec2: &Vec<i32>) -> Vec<i32> {
     let mut sum = Vec::new();
     for (c1, c2) in vec1.iter().zip(vec2.iter()) {
