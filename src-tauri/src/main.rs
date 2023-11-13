@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use ndarray::{arr1, Array1, Array2, Axis, s};
 use rand::Rng;
@@ -77,42 +77,45 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     let t_effect: Array2<i32> = &t_out - &t_in;
 
     let state_vec = arr1(&marking);
-    let mut queue: HashSet<Array1<i32>> = HashSet::new();
+    let mut queue: Vec<Array1<i32>> = Vec::new();
     // new:
     let mut all_states: Vec<Array1<i32>> = Vec::new();
     let mut all_states_rev: HashMap<Array1<i32>, u32> = HashMap::new();
     let mut edges: HashMap<u32, Vec<u32>> = HashMap::new();
 
-    let active = common::find_active_transitions_arr(&state_vec, &t_in);
 
-    let id = all_states.len().clone();
+    //let id = all_states.len().clone();
     all_states_rev.insert(state_vec.clone(), all_states.len() as u32);
     all_states.push(state_vec.clone());
+    queue.push(state_vec);
 
-    let next: Vec<u32> = active.iter()
-        .map(| &inx| {
-            let new_state: Array1<i32> = &state_vec + &t_effect.slice(s![inx as usize, ..]);
-            return insert_next_state(new_state, &mut all_states, &mut all_states_rev, &mut queue);
-        })
-        .filter_map(|option| option)
-        //.map(|&value| value)
-        .collect();
+    while !queue.is_empty() {
+        let cur_state = queue.pop().unwrap();
+        let id = all_states_rev.get(&cur_state).unwrap().clone();
+        let active = common::find_active_transitions_arr(&cur_state, &t_in);
+        let next: Vec<u32> = active.iter()
+            .map(| &inx| {
+                let new_state: Array1<i32> = &cur_state + &t_effect.slice(s![inx as usize, ..]);
+                return insert_next_state(new_state, &mut all_states, &mut all_states_rev, &mut queue);
+            })
+            .filter_map(|option| option)
+            .collect();
+        edges.insert(id, next);
+    }
 
-    edges.insert(id as u32, next);
-
-    println!("{:?} states after 1 step", all_states_rev.keys().len());
-    //println!("{:?} init state", state_node);
+    println!("{:?} states", all_states_rev.keys().len());
 
     return Ok(RGResponse { success: true });
 }
 
-fn insert_next_state(new_state: Array1<i32>, all_states: &mut Vec<Array1<i32>>, all_states_rev: &mut HashMap<Array1<i32>, u32>, queue: &mut HashSet<Array1<i32>>) -> Option<u32> {
+fn insert_next_state(new_state: Array1<i32>, all_states: &mut Vec<Array1<i32>>, all_states_rev: &mut HashMap<Array1<i32>, u32>, queue: &mut Vec<Array1<i32>>) -> Option<u32> {
     let existing = all_states_rev.get(&new_state);
+    println!("Checking {:?}, is already existing: {}: {:?}", new_state, all_states_rev.contains_key(&new_state), existing);
     match existing {
         None => {
             all_states_rev.insert(new_state.clone(), all_states.len() as u32);
             all_states.push(new_state.clone());
-            queue.insert(new_state.clone());
+            queue.push(new_state.clone());
         }
         Some(actual) => {
             return Some(actual.clone());
