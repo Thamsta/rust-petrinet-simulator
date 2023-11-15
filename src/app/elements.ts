@@ -61,7 +61,7 @@ export class Place extends fabric.Circle implements Removable, Countable {
     id = uuidv4();
 
     tokens= 0
-    tokenText: fabric.Text
+    tokenText: Text
     arcs: Connectable = new Connectable()
 
     textDx = -11;
@@ -81,11 +81,7 @@ export class Place extends fabric.Circle implements Removable, Countable {
             lockScalingX: true,
             lockScalingY: true,
         })
-        this.tokenText = new fabric.Text("0", {
-            textAlign: 'center',
-            selectable: false,
-            lockRotation: true,
-        })
+        this.tokenText = new Text("0", this)
         this.moveText()
         canvas.add(this.tokenText)
         canvas.bringToFront(this.tokenText)
@@ -153,13 +149,7 @@ export class Arc extends fabric.Line implements Removable, Countable {
 
         let [a1, a2] = this.calculateArrowhead({x: from.left!, y:from.top!}, lineP2, 20)
 
-        this.weightText = new fabric.Text(this.weight.toString(), {
-            top: a1.y,
-            left: a2.x,
-            textAlign: 'center',
-            selectable: false,
-            lockRotation: true,
-        })
+        this.weightText = new Text(this.weight.toString(), this)
         this.updateTextPosition({x: from.left!, y: from.top!}, lineP2)
 
         this.arrowArc1 = new fabric.Line([lineP2.x, lineP2.y, a1.x, a1.y], lineOptions)
@@ -257,5 +247,18 @@ export class Arc extends fabric.Line implements Removable, Countable {
 
     private updateText() {
         this.weightText.set({text: String(this.weight)});
+    }
+}
+
+export class Text extends fabric.Text {
+    parent: fabric.Object;
+
+    constructor(text: string, parent: fabric.Object) {
+        super(text, {
+            textAlign: 'center',
+            selectable: false,
+            lockRotation: true,
+        });
+        this.parent = parent;
     }
 }
