@@ -1,4 +1,6 @@
-use ndarray::{Array1, Array2};
+use derive_new::new;
+use ndarray::{Array1, Array2, Axis};
+use serde::Serialize;
 
 pub(crate) fn find_active_transitions(marking: &Array1<i32>, transition_inputs: &Vec<Vec<i32>>) -> Vec<i32> {
     let mut active = Vec::new();
@@ -26,12 +28,23 @@ pub(crate) fn find_active_transitions_arr(marking: &Array1<i32>, transition_inpu
     return active_transitions;
 }
 
-pub fn subtract_two_matrices(mat1: &Vec<Vec<i32>>, mat2: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+pub(crate) fn subtract_two_matrices(mat1: &Vec<Vec<i32>>, mat2: &Vec<Vec<i32>>) -> Vec<Vec<i32>> {
     let mut sum = Vec::new();
     for (c1, c2) in mat1.iter().zip(mat2.iter()) {
         sum.push(subtract_two_vectors(&c1, &c2));
     }
     return sum;
+}
+
+pub(crate) fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Array2<i32> {
+    let mut result = Array2::zeros((*rows, *columns));
+    for (i, mut row) in result.axis_iter_mut(Axis(0)).enumerate() {
+        for (j, col) in row.iter_mut().enumerate() {
+            *col = input[i][j];
+        }
+    }
+
+    return result;
 }
 
 fn subtract_two_vectors(vec1: &Vec<i32>, vec2: &Vec<i32>) -> Vec<i32> {
@@ -50,4 +63,15 @@ fn is_greater_or_equal(arr1: &Array1<i32>, arr2: &[i32]) -> bool {
     }
 
     true // All comparisons succeeded, return true
+}
+
+#[derive(Serialize, new)]
+pub(crate) struct SimulationResponse {
+    marking: Vec<i32>,
+    firings: Vec<i32>,
+}
+
+#[derive(Serialize, new)]
+pub(crate) struct RGResponse {
+    success: bool,
 }
