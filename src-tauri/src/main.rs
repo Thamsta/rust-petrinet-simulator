@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use ndarray::{arr1, Array1, Array2, Axis, s};
+use petgraph::Graph;
+use petgraph::graph::{DiGraph, NodeIndex};
 use rand::Rng;
 use serde::Serialize;
 
@@ -79,59 +81,58 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     let t_effect: Array2<i32> = &t_out - &t_in;
 
     let state_vec = arr1(&marking);
-    let mut queue: Vec<Array1<i32>> = Vec::new();
-    // new:
-    let mut all_states: Vec<Array1<i32>> = Vec::new();
-    let mut all_states_rev: HashMap<Array1<i32>, u32> = HashMap::new();
-    let mut edges: HashMap<u32, Vec<u32>> = HashMap::new();
+    let mut queue: Vec<NodeIndex> = Vec::new();
+    let mut graph = DiGraph::<Array1<i32>, ()>::new();
+    let mut all_states_rev: HashMap<Array1<i32>, NodeIndex> = HashMap::new();
 
     let mut step_counter = 0;
 
 
-    //let id = all_states.len().clone();
-    all_states_rev.insert(state_vec.clone(), all_states.len() as u32);
-    all_states.push(state_vec.clone());
-    queue.push(state_vec);
+    let nd = graph.add_node(state_vec.clone());
+    all_states_rev.insert(state_vec.clone(), nd);
+    queue.push(nd);
 
     while !queue.is_empty() {
         if step_counter > 50000 {
-            println!("Aborting after {} steps.", step_counter);
+            println!("Aborting after {} steps.", step_counter - 1);
             return Err("RG is unbounded or too large!".to_string());
         }
-        let cur_state = queue.pop().unwrap();
-        let id = all_states_rev.get(&cur_state).unwrap().clone();
+        let cur_state_idx = queue.pop().unwrap();
+        let cur_state = graph.node_weight(cur_state_idx).cloned().unwrap();
         let active = common::find_active_transitions_arr(&cur_state, &t_in);
-        let next: Vec<u32> = active.iter()
-            .map(| &inx| {
+
+        let _: Vec<_> = active.iter()
+            .flat_map(| &inx| {
                 let new_state: Array1<i32> = &cur_state + &t_effect.slice(s![inx as usize, ..]);
-                return insert_next_state(new_state, &mut all_states, &mut all_states_rev, &mut queue);
+                insert_next_state(cur_state_idx, new_state, &mut all_states_rev, &mut graph, &mut queue)
             })
-            .filter_map(|option| option)
             .collect();
-        edges.insert(id, next);
         step_counter += 1;
     }
 
     let end_time = Instant::now();
     let elapsed_time = end_time - start_time;
 
-    let total_states = all_states_rev.keys().len();
-    let states_per_second = total_states as f64 / elapsed_time.as_secs_f64() / 1000f64;
+    let total_states = graph.node_count();
+    let total_edges = graph.edge_count();
+    let elements_per_second = (total_states + total_edges) as f64 / elapsed_time.as_secs_f64() / 1000f64;
 
-    println!("RG with {:?} states took {}ms ({}k states/s)", total_states, elapsed_time.as_millis(), states_per_second.round());
+    println!("RG with {:?} states and {} edges took {}ms ({}k elem/s)", total_states, total_edges, elapsed_time.as_millis(), elements_per_second.round());
 
     return Ok(RGResponse { success: true });
 }
 
-fn insert_next_state(new_state: Array1<i32>, all_states: &mut Vec<Array1<i32>>, all_states_rev: &mut HashMap<Array1<i32>, u32>, queue: &mut Vec<Array1<i32>>) -> Option<u32> {
+fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i32>, all_states_rev: &mut HashMap<Array1<i32>, NodeIndex>, graph: &mut Graph<Array1<i32>, ()>, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {
     let existing = all_states_rev.get(&new_state);
     match existing {
         None => {
-            all_states_rev.insert(new_state.clone(), all_states.len() as u32);
-            all_states.push(new_state.clone());
-            queue.push(new_state.clone());
+            let new_state_idx = graph.add_node(new_state.clone());
+            all_states_rev.insert(new_state.clone(), new_state_idx);
+            queue.push(new_state_idx);
+            graph.add_edge(old_state_idx, new_state_idx, ());
         }
         Some(actual) => {
+            graph.add_edge(old_state_idx, actual.clone(), ());
             return Some(actual.clone());
         }
     }
@@ -148,14 +149,6 @@ fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Ar
 
     return result;
 }
-
-#[derive(Debug)]
-struct Node {
-    id: u32,
-    state: Array1<i32>,
-    next: Vec<u32>
-}
-
 
 #[derive(Serialize)]
 struct RGResponse {
