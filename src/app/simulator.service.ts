@@ -10,7 +10,7 @@ export class SimulatorService {
     async sendToSimulator(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
         try {
             const start = performance.now();
-            const data = await invoke<SimulationResponse>('simulate', {
+            const data = await invoke<SimulationResponse>('simulate_steps', {
                 marking: vector,
                 transitionInputs: in_matrix,
                 transitionOutputs: out_matrix,

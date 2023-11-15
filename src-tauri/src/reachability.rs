@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use ndarray::{arr1, Array1, Array2, s};
+use ndarray::{arr1, Array1, Array2};
 use petgraph::Graph;
 use petgraph::graph::{DiGraph, NodeIndex};
 
@@ -23,7 +23,7 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 
     let mut step_counter = 0;
 
-
+    // create & insert start node
     let nd = graph.add_node(state_vec.clone());
     all_states_rev.insert(state_vec.clone(), nd);
     queue.push(nd);
@@ -35,14 +35,13 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
         }
         let cur_state_idx = queue.pop().unwrap();
         let cur_state = graph.node_weight(cur_state_idx).cloned().unwrap();
-        let active = find_active_transitions_arr(&cur_state, &t_in);
+        let active = find_active_transitions(&cur_state, &t_in);
 
-        let _: Vec<_> = active.iter()
-            .flat_map(|&inx| {
-                let new_state: Array1<i32> = &cur_state + &t_effect.slice(s![inx as usize, ..]);
-                insert_next_state(cur_state_idx, new_state, &mut all_states_rev, &mut graph, &mut queue)
-            })
-            .collect();
+        active.iter()
+            .for_each(|&inx| {
+                let new_state: Array1<i32> = fire_transition(&cur_state, &t_effect, inx as usize);
+                insert_next_state(cur_state_idx, new_state, &mut all_states_rev, &mut graph, &mut queue);
+            });
         step_counter += 1;
     }
 
