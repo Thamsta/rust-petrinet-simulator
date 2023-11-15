@@ -104,8 +104,7 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
         let _: Vec<_> = active.iter()
             .flat_map(| &inx| {
                 let new_state: Array1<i32> = &cur_state + &t_effect.slice(s![inx as usize, ..]);
-
-                insert_next_state(new_state, &mut all_states_rev, &mut graph, &mut queue)
+                insert_next_state(cur_state_idx, new_state, &mut all_states_rev, &mut graph, &mut queue)
             })
             .collect();
         step_counter += 1;
@@ -115,22 +114,25 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     let elapsed_time = end_time - start_time;
 
     let total_states = graph.node_count();
-    let states_per_second = total_states as f64 / elapsed_time.as_secs_f64() / 1000f64;
+    let total_edges = graph.edge_count();
+    let elements_per_second = (total_states + total_edges) as f64 / elapsed_time.as_secs_f64() / 1000f64;
 
-    println!("RG with {:?} states took {}ms ({}k states/s)", total_states, elapsed_time.as_millis(), states_per_second.round());
+    println!("RG with {:?} states and {} edges took {}ms ({}k elem/s)", total_states, total_edges, elapsed_time.as_millis(), elements_per_second.round());
 
     return Ok(RGResponse { success: true });
 }
 
-fn insert_next_state(new_state: Array1<i32>, all_states_rev: &mut HashMap<Array1<i32>, NodeIndex>, graph: &mut Graph<Array1<i32>, ()>, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {
+fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i32>, all_states_rev: &mut HashMap<Array1<i32>, NodeIndex>, graph: &mut Graph<Array1<i32>, ()>, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {
     let existing = all_states_rev.get(&new_state);
     match existing {
         None => {
-            let idx = graph.add_node(new_state.clone());
-            all_states_rev.insert(new_state.clone(), idx);
-            queue.push(idx);
+            let new_state_idx = graph.add_node(new_state.clone());
+            all_states_rev.insert(new_state.clone(), new_state_idx);
+            queue.push(new_state_idx);
+            graph.add_edge(old_state_idx, new_state_idx, ());
         }
         Some(actual) => {
+            graph.add_edge(old_state_idx, actual.clone(), ());
             return Some(actual.clone());
         }
     }
