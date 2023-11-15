@@ -83,15 +83,13 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
     let state_vec = arr1(&marking);
     let mut queue: Vec<NodeIndex> = Vec::new();
     let mut graph = DiGraph::<Array1<i32>, ()>::new();
-    let mut all_states: Vec<Array1<i32>> = Vec::new();
-    let mut all_states_rev: HashMap<Array1<i32>, u32> = HashMap::new();
-    let mut edges: HashMap<u32, Vec<u32>> = HashMap::new();
+    let mut all_states_rev: HashMap<Array1<i32>, NodeIndex> = HashMap::new();
 
     let mut step_counter = 0;
 
 
-    all_states_rev.insert(state_vec.clone(), all_states.len() as u32);
-    let nd = graph.add_node(state_vec);
+    let nd = graph.add_node(state_vec.clone());
+    all_states_rev.insert(state_vec.clone(), nd);
     queue.push(nd);
 
     while !queue.is_empty() {
@@ -103,36 +101,33 @@ fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition
         let cur_state = graph.node_weight(cur_state_idx).cloned().unwrap();
         let active = common::find_active_transitions_arr(&cur_state, &t_in);
 
-        let _next: Vec<u32> = active.iter()
+        let _: Vec<_> = active.iter()
             .flat_map(| &inx| {
                 let new_state: Array1<i32> = &cur_state + &t_effect.slice(s![inx as usize, ..]);
 
-                insert_next_state(new_state, &mut all_states, &mut all_states_rev, &mut graph, &mut queue)
+                insert_next_state(new_state, &mut all_states_rev, &mut graph, &mut queue)
             })
             .collect();
-        //edges.insert(id, next);
         step_counter += 1;
     }
 
     let end_time = Instant::now();
     let elapsed_time = end_time - start_time;
 
-    ;
-    let total_states = all_states_rev.keys().len();
+    let total_states = graph.node_count();
     let states_per_second = total_states as f64 / elapsed_time.as_secs_f64() / 1000f64;
 
-    println!("RG with {:?} ({}) states took {}ms ({}k states/s)", total_states, graph.node_count(), elapsed_time.as_millis(), states_per_second.round());
+    println!("RG with {:?} states took {}ms ({}k states/s)", total_states, elapsed_time.as_millis(), states_per_second.round());
 
     return Ok(RGResponse { success: true });
 }
 
-fn insert_next_state(new_state: Array1<i32>, all_states: &mut Vec<Array1<i32>>, all_states_rev: &mut HashMap<Array1<i32>, u32>, graph: &mut Graph<Array1<i32>, ()>, queue: &mut Vec<NodeIndex>) -> Option<u32> {
+fn insert_next_state(new_state: Array1<i32>, all_states_rev: &mut HashMap<Array1<i32>, NodeIndex>, graph: &mut Graph<Array1<i32>, ()>, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {
     let existing = all_states_rev.get(&new_state);
     match existing {
         None => {
-            all_states_rev.insert(new_state.clone(), all_states.len() as u32);
-            all_states.push(new_state.clone());
-            let idx = graph.add_node(new_state);
+            let idx = graph.add_node(new_state.clone());
+            all_states_rev.insert(new_state.clone(), idx);
             queue.push(idx);
         }
         Some(actual) => {
@@ -152,14 +147,6 @@ fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &usize) -> Ar
 
     return result;
 }
-
-#[derive(Debug)]
-struct Node {
-    id: u32,
-    state: Array1<i32>,
-    next: Vec<u32>
-}
-
 
 #[derive(Serialize)]
 struct RGResponse {
