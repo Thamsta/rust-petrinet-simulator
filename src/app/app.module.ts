@@ -11,20 +11,21 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDividerModule} from "@angular/material/divider";
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    CanvasComponent,
-    ToolbarComponent
-  ],
-  imports: [
-    BrowserModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatButtonModule,
-    BrowserAnimationsModule,
-    MatDividerModule
-  ],
-  providers: [],
-  bootstrap: [AppComponent]
+    declarations: [
+        AppComponent,
+        CanvasComponent,
+        ToolbarComponent
+    ],
+    imports: [
+        BrowserModule,
+        MatToolbarModule,
+        MatIconModule,
+        MatButtonModule,
+        BrowserAnimationsModule,
+        MatDividerModule
+    ],
+    providers: [],
+    bootstrap: [AppComponent]
 })
-export class AppModule { }
+export class AppModule {
+}
