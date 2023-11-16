@@ -22,7 +22,7 @@ fn simulate_steps(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transitio
 #[tauri::command]
 fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<RGResponse, String> {
     return match reachability::create_rg(marking, transition_inputs, transition_outputs) {
-        Ok(_) => { Ok(RGResponse::new(true)) }
+        Ok(graph) => { Ok(RGResponse::new(graph.node_count(), graph.edge_count())) }
         Err(msg) => { Err(msg) }
     };
 }

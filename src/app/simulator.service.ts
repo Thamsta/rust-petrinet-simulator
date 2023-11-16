@@ -32,7 +32,7 @@ export class SimulatorService {
             const end = performance.now();
             const total = end - start;
             console.log(data, "took", total, "ms")
-            return data.success
+            return data
         } catch (error) {
             console.error('Error calling the simulator:', error);
             return Promise.reject();

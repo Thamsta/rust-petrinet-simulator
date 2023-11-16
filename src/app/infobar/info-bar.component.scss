@@ -1,0 +1,11 @@
+.mat-toolbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 2; /* Adjust the z-index as needed to ensure it appears above the main content */
+
+    height: 40px; // Adjust the height as needed
+    font-weight: normal; // Remove bold font
+    font-size: 13px; // Adjust the font size as needed
+
+}

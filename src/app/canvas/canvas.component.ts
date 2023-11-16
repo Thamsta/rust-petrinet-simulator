@@ -6,6 +6,7 @@ import {DrawingTools, isRunCommand} from "../models"
 import {Arc, Place, Transition, Text} from "../elements"
 import {SimulatorService} from "../simulator.service"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
+import {InfoBarComponent} from "../infobar/info-bar.component";
 
 @Component({
     selector: 'app-canvas',
@@ -22,6 +23,7 @@ export class CanvasComponent implements AfterContentInit {
     startState: number[] | undefined
 
     @ViewChild('toolbar') toolbar!: ToolbarComponent
+    @ViewChild('infobar') infobar!: InfoBarComponent
 
     constructor(private simulatorService: SimulatorService) {
     }
@@ -183,7 +185,7 @@ export class CanvasComponent implements AfterContentInit {
         }
 
         let [places, transitions] = this.getPlacesAndTransitions()
-        let [p, pxt_in, pxt_out] = this.toMatrix(places, transitions)
+        let [p, pxt_in, pxt_out] = this.getNetAsMatrix(places, transitions)
 
         if (command == DrawingTools.RG) {
             this.rg(p, pxt_in, pxt_out)
@@ -212,12 +214,12 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-        this.simulateSteps(p, pxt_in, pxt_out, 1).then(_ => {
-        })
+        this.simulateSteps(p, pxt_in, pxt_out, 1).then(_ => { })
     }
 
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-        this.simulatorService.createRG(p, pxt_in, pxt_out).then(_ => {
+        this.simulatorService.createRG(p, pxt_in, pxt_out).then(response => {
+            this.infobar.updateRGInfos(response)
         })
     }
 
@@ -240,7 +242,7 @@ export class CanvasComponent implements AfterContentInit {
         return [places, transitions]
     }
 
-    toMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
+    getNetAsMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
         let pxt_in: number[][] = []
         let pxt_out: number[][] = []
 

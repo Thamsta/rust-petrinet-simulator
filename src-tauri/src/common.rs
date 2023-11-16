@@ -40,5 +40,6 @@ pub(crate) struct SimulationResponse {
 
 #[derive(Serialize, new)]
 pub(crate) struct RGResponse {
-    success: bool,
+    states: usize,
+    edges: usize,
 }
