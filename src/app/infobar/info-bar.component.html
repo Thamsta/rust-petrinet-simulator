@@ -1,8 +1,12 @@
-<mat-toolbar>
-    <mat-toolbar-row>
-            <span>Nodes: </span> {{ states }}
-    </mat-toolbar-row>
-    <mat-toolbar-row>
-            <span>Edges: </span> {{ edges }}
-    </mat-toolbar-row>
-</mat-toolbar>
+<div class="info-table">
+    <div class="info-row">
+        <div class="info-cell" style="width: 50px">States:</div>
+        <div class="info-cell, number">{{states}}</div>
+        <div class="info-cell">Reversibility</div>
+        <div class="info-cell">Liveness</div>
+    </div>
+    <div class="info-row">
+        <div class="info-cell" style="width: 50px">Edges:</div>
+        <div class="info-cell, number">{{edges}}</div>
+    </div>
+</div>
