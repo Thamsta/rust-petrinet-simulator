@@ -12,11 +12,18 @@ export class InfoBarComponent {
     reversible: string = "";
     live: string = "";
 
-    public updateRGInfos(infos: RGResponse) {
+    updateRGInfos(infos: RGResponse) {
         console.log("updating with", infos)
         this.states = this.formatNumber(infos.states)
         this.edges = this.formatNumber(infos.edges)
         this.reversible = String(infos.reversible)
+    }
+
+    error(_: any) {
+        this.states = ""
+        this.edges = ""
+        this.reversible = ""
+        this.live = ""
     }
 
     private formatNumber(num: number): string {
@@ -28,5 +35,4 @@ export class InfoBarComponent {
         // Format the number with spaces every three digits
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     }
-
 }

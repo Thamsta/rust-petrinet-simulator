@@ -220,6 +220,8 @@ export class CanvasComponent implements AfterContentInit {
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.simulatorService.createRG(p, pxt_in, pxt_out).then(response => {
             this.infobar.updateRGInfos(response)
+        }, (error) => {
+            this.infobar.error(error)
         })
     }
 
