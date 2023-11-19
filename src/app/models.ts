@@ -25,4 +25,5 @@ export type SimulationResponse = {
 export type RGResponse = {
 	states: number,
     edges: number,
+	reversible: boolean,
 }
