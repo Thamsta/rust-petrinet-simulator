@@ -2,12 +2,13 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use ndarray::{arr1, Array1, Array2};
+use petgraph::algo::tarjan_scc;
 use petgraph::Graph;
 use petgraph::graph::{DiGraph, NodeIndex};
 
 use crate::common::*;
 
-pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<DiGraph<Array1<i32>, ()>, String> {
+pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<RGResponse, String> {
     let start_time = Instant::now();
     let t = &transition_inputs.len(); // rows
     let p = &transition_inputs.get(0).expect("empty array").len(); // columns
@@ -54,8 +55,15 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 
     println!("RG with {:?} states and {} edges took {}ms ({}k elem/s)", total_states, total_edges, elapsed_time.as_millis(), elements_per_second.round());
 
+    let reversible = check_properties(&graph);
 
-    return Ok(graph);
+    return Ok(RGResponse::new(graph.node_count(), graph.edge_count(), reversible))
+}
+
+pub fn check_properties(rg: &DiGraph<Array1<i32>, ()>) -> bool {
+    let sccs = tarjan_scc(rg);
+
+    return sccs.len() == 1 && rg.edge_count() > 0;
 }
 
 fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i32>, all_states_rev: &mut HashMap<Array1<i32>, NodeIndex>, graph: &mut Graph<Array1<i32>, ()>, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {

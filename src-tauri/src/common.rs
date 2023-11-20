@@ -33,12 +33,14 @@ pub(crate) fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &u
 }
 
 #[derive(Serialize, new)]
-pub(crate) struct SimulationResponse {
+pub struct SimulationResponse {
     marking: Vec<i32>,
     firings: Vec<i32>,
 }
 
 #[derive(Serialize, new)]
-pub(crate) struct RGResponse {
-    success: bool,
+pub struct RGResponse {
+    states: usize,
+    edges: usize,
+    reversible: bool,
 }

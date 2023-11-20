@@ -1,0 +1,38 @@
+.mat-toolbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 2; /* Adjust the z-index as needed to ensure it appears above the main content */
+
+    height: 40px; // Adjust the height as needed
+    font-weight: normal; // Remove bold font
+    font-size: 13px; // Adjust the font size as needed
+}
+
+.info-table {
+    /* Add styling for your table-like structure */
+    display: table;
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    background-color: #efefef;
+}
+
+.info-row {
+    display: table-row;
+}
+
+.info-cell {
+    display: table-cell;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 4px;
+    padding-right: 0;
+    text-align: left;
+    width: 100px;
+}
+
+.number {
+    text-align: right;
+    width: 65px;
+}
