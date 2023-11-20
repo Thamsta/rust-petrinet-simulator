@@ -19,7 +19,7 @@ export class InfoBarComponent {
         this.reversible = String(infos.reversible)
     }
 
-    error(_: any) {
+    updateOnError(_: any) {
         this.states = ""
         this.edges = ""
         this.reversible = ""

@@ -221,7 +221,7 @@ export class CanvasComponent implements AfterContentInit {
         this.simulatorService.createRG(p, pxt_in, pxt_out).then(response => {
             this.infobar.updateRGInfos(response)
         }, (error) => {
-            this.infobar.error(error)
+            this.infobar.updateOnError(error)
         })
     }
 
