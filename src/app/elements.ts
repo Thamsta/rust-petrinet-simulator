@@ -47,6 +47,9 @@ export class Transition extends fabric.Rect implements Removable {
             lockRotation: true,
             lockScalingX: true,
             lockScalingY: true,
+            hasControls: false,
+            borderScaleFactor: 1,
+            borderColor: '#bbbbbb'
         });
         canvas.add(this)
     }
@@ -80,6 +83,9 @@ export class Place extends fabric.Circle implements Removable, Countable {
             lockRotation: true,
             lockScalingX: true,
             lockScalingY: true,
+            hasControls: false,
+            borderScaleFactor: 1,
+            borderColor: '#bbbbbb'
         })
         this.tokenText = new Text("0", this)
         this.moveText()
@@ -133,6 +139,8 @@ const lineOptions = {
     lockMovementY: true,
     lockScalingX: true,
     lockScalingY: true,
+    hasControls: false,
+    hasBorders: false,
 }
 
 export class Arc extends fabric.Line implements Removable, Countable {

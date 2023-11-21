@@ -157,15 +157,11 @@ export class CanvasComponent implements AfterContentInit {
     private selectClear(_: IEvent<MouseEvent>) {
         this.lastSelected = undefined
         this.selected = undefined
-        this.canvas.forEachObject(obj => console.log(obj))
-        this.canvas.renderAll()
     }
 
     private objectMoving(e: IEvent<MouseEvent>) {
         let target = e.target!
         if (target instanceof fabric.Group) {
-            console.log(target)
-            let group = target
             target.forEachObject(obj => this.moveObj(obj))
         } else {
             this.moveObj(target)
