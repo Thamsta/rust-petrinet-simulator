@@ -38,6 +38,14 @@ export class CanvasComponent implements AfterContentInit {
         window.addEventListener('resize', this.onWindowResize)
     }
 
+    onWindowResize = () => {
+        this.canvas.setDimensions({
+            width: window.innerWidth,
+            height: window.innerHeight
+        })
+    }
+
+
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
         let target = event.target
         return target instanceof Text ? target.parent : target
@@ -95,20 +103,14 @@ export class CanvasComponent implements AfterContentInit {
         }
     }
 
-    addTransition = (x: number, y: number) => {
+    private addTransition = (x: number, y: number) => {
         return new Transition(x, y, this.canvas)
     }
 
-    addPlace = (x: number, y: number) => {
+    private addPlace = (x: number, y: number) => {
         return new Place(x, y, this.canvas)
     }
 
-    onWindowResize = () => {
-        this.canvas.setDimensions({
-            width: window.innerWidth,
-            height: window.innerHeight
-        })
-    }
 
     private deleteObject(obj: fabric.Object) {
         if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
@@ -155,10 +157,23 @@ export class CanvasComponent implements AfterContentInit {
     private selectClear(_: IEvent<MouseEvent>) {
         this.lastSelected = undefined
         this.selected = undefined
+        this.canvas.forEachObject(obj => console.log(obj))
+        this.canvas.renderAll()
     }
 
     private objectMoving(e: IEvent<MouseEvent>) {
-        let obj = this.getTarget(e)!
+        let target = e.target!
+        if (target instanceof fabric.Group) {
+            console.log(target)
+            let group = target
+            target.forEachObject(obj => this.moveObj(obj))
+        } else {
+            this.moveObj(target)
+        }
+        this.canvas.renderAll()
+    }
+
+    private moveObj(obj: fabric.Object) {
         if (obj instanceof Place || obj instanceof Transition) {
             obj.arcs.arcs_out.forEach(arc => {
                 arc.set({x1: obj.left, y1: obj.top})
@@ -172,7 +187,6 @@ export class CanvasComponent implements AfterContentInit {
         if (obj instanceof Place) {
             obj.moveText()
         }
-        this.canvas.renderAll()
     }
 
     controlChanged(command: DrawingTools) {

@@ -13,6 +13,11 @@ interface Countable {
     setAmount(amount: number): void
 }
 
+interface Point {
+    x: number;
+    y: number;
+}
+
 class Connectable implements Removable {
     arcs_in: Arc[] = []
     arcs_out: Arc[] = []
@@ -21,11 +26,6 @@ class Connectable implements Removable {
         this.arcs_in.forEach(arc => arc.remove(canvas))
         this.arcs_out.forEach(arc => arc.remove(canvas))
     }
-}
-
-interface Point {
-    x: number;
-    y: number;
 }
 
 export class Transition extends fabric.Rect implements Removable {
@@ -128,7 +128,11 @@ const lineOptions = {
     originY: 'center',
     strokeWidth: 1,
     stroke: line_color,
-    selectable: false,
+    lockRotation: true,
+    lockMovementX: true,
+    lockMovementY: true,
+    lockScalingX: true,
+    lockScalingY: true,
 }
 
 export class Arc extends fabric.Line implements Removable, Countable {
@@ -184,8 +188,9 @@ export class Arc extends fabric.Line implements Removable, Countable {
         let target: Point = {x: this.to.left!, y: this.to.top!}
         let lineEnd: Point = this.shortenLine(lineStart, target, 30)
         let [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
-        //super.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})
         this.updateTextPosition(lineStart, lineEnd)
+        // @ts-ignore: this works.
+        this.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})
         this.arrowArc1.set({x1: lineEnd.x, y1: lineEnd.y, x2: a1.x, y2: a1.y})
         this.arrowArc2.set({x1: lineEnd.x, y1: lineEnd.y, x2: a2.x, y2: a2.y})
         this.arrowArc1.setCoords()
@@ -256,8 +261,12 @@ export class Text extends fabric.Text {
     constructor(text: string, parent: fabric.Object) {
         super(text, {
             textAlign: 'center',
-            selectable: false,
+            // selectable: false,
             lockRotation: true,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockScalingX: true,
+            lockScalingY: true,
         });
         this.parent = parent;
     }
