@@ -114,8 +114,9 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     }
 
     moveText() {
+        let tokenLength = this.tokens.toString().length - 1;
         this.tokenText.set({
-            left: this.left! + this.textDx,
+            left: this.left! + this.textDx - (tokenLength * 11),
             top: this.top! + this.textDy,
         })
     }
@@ -139,6 +140,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
 
     private updateText() {
         this.tokenText.set({text: String(this.tokens)})
+        this.moveText()
     }
 }
 

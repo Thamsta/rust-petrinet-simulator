@@ -46,7 +46,6 @@ export class CanvasComponent implements AfterContentInit {
         })
     }
 
-
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
         let target = event.target
         return target instanceof Text ? target.parent : target
@@ -111,7 +110,6 @@ export class CanvasComponent implements AfterContentInit {
     private addPlace = (x: number, y: number) => {
         return new Place(x, y, this.canvas)
     }
-
 
     private deleteObject(obj: fabric.Object) {
         if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
