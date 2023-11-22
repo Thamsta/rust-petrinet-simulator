@@ -51,7 +51,7 @@ export class CanvasComponent implements AfterContentInit {
         return target instanceof Text ? target.parent : target
     }
 
-    setupCanvas = () => {
+    private setupCanvas = () => {
         this.canvas.setDimensions({
             width: window.innerWidth,
             height: window.innerHeight
@@ -66,7 +66,7 @@ export class CanvasComponent implements AfterContentInit {
         this.addTransition(350, 200)
     }
 
-    onClick(event: IEvent<MouseEvent>) {
+    private onClick(event: IEvent<MouseEvent>) {
         if (this.isSimulating) {
             return
         }
@@ -235,7 +235,7 @@ export class CanvasComponent implements AfterContentInit {
         })
     }
 
-    getPlacesAndTransitions(): [Place[], Transition[]] {
+    public getPlacesAndTransitions(): [Place[], Transition[]] {
         let objects = this.canvas.getObjects()
         let places: Place[] = []
         let transitions: Transition[] = []
@@ -254,7 +254,7 @@ export class CanvasComponent implements AfterContentInit {
         return [places, transitions]
     }
 
-    getNetAsMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
+    public getNetAsMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
         let pxt_in: number[][] = []
         let pxt_out: number[][] = []
 
@@ -292,7 +292,7 @@ export class CanvasComponent implements AfterContentInit {
         this.canvas.renderAll()
     }
 
-    async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
+    private async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
         const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps)
         this.setMarking(result.marking)
         this.setTransitionHeat(result.firings)
