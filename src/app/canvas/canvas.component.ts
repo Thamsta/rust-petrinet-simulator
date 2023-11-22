@@ -32,10 +32,18 @@ export class CanvasComponent implements AfterContentInit {
         this.canvas = new fabric.Canvas('canvas')
         this.setupCanvas()
         this.canvas.on('mouse:down', (event) => this.onClick(event))
+        this.canvas.on('selection:created', (e) => this.selectCreate(e))
         this.canvas.on('selection:updated', (e) => this.selectUpdate(e))
         this.canvas.on('selection:cleared', (e) => this.selectClear(e))
         this.canvas.on('object:moving', (e) => this.objectMoving(e))
         window.addEventListener('resize', this.onWindowResize)
+    }
+
+    onWindowResize = () => {
+        this.canvas.setDimensions({
+            width: window.innerWidth,
+            height: window.innerHeight
+        })
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
@@ -43,7 +51,7 @@ export class CanvasComponent implements AfterContentInit {
         return target instanceof Text ? target.parent : target
     }
 
-    setupCanvas = () => {
+    private setupCanvas = () => {
         this.canvas.setDimensions({
             width: window.innerWidth,
             height: window.innerHeight
@@ -58,7 +66,7 @@ export class CanvasComponent implements AfterContentInit {
         this.addTransition(350, 200)
     }
 
-    onClick(event: IEvent<MouseEvent>) {
+    private onClick(event: IEvent<MouseEvent>) {
         if (this.isSimulating) {
             return
         }
@@ -95,19 +103,12 @@ export class CanvasComponent implements AfterContentInit {
         }
     }
 
-    addTransition = (x: number, y: number) => {
+    private addTransition = (x: number, y: number) => {
         return new Transition(x, y, this.canvas)
     }
 
-    addPlace = (x: number, y: number) => {
+    private addPlace = (x: number, y: number) => {
         return new Place(x, y, this.canvas)
-    }
-
-    onWindowResize = () => {
-        this.canvas.setDimensions({
-            width: window.innerWidth,
-            height: window.innerHeight
-        })
     }
 
     private deleteObject(obj: fabric.Object) {
@@ -123,6 +124,7 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private selectUpdate(e: IEvent<MouseEvent>) {
+        console.log("select updated: ", e)
         let obj = e.selected!![0]
         let lastObj = e.deselected!![0]
         switch (this.toolbar.selected) {
@@ -158,7 +160,16 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private objectMoving(e: IEvent<MouseEvent>) {
-        let obj = this.getTarget(e)!
+        let target = e.target!
+        if (target instanceof fabric.Group) {
+            target.forEachObject(obj => this.moveObj(obj))
+        } else {
+            this.moveObj(target)
+        }
+        this.canvas.renderAll()
+    }
+
+    private moveObj(obj: fabric.Object) {
         if (obj instanceof Place || obj instanceof Transition) {
             obj.arcs.arcs_out.forEach(arc => {
                 arc.set({x1: obj.left, y1: obj.top})
@@ -172,7 +183,6 @@ export class CanvasComponent implements AfterContentInit {
         if (obj instanceof Place) {
             obj.moveText()
         }
-        this.canvas.renderAll()
     }
 
     controlChanged(command: DrawingTools) {
@@ -225,7 +235,7 @@ export class CanvasComponent implements AfterContentInit {
         })
     }
 
-    getPlacesAndTransitions(): [Place[], Transition[]] {
+    public getPlacesAndTransitions(): [Place[], Transition[]] {
         let objects = this.canvas.getObjects()
         let places: Place[] = []
         let transitions: Transition[] = []
@@ -244,7 +254,7 @@ export class CanvasComponent implements AfterContentInit {
         return [places, transitions]
     }
 
-    getNetAsMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
+    public getNetAsMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
         let pxt_in: number[][] = []
         let pxt_out: number[][] = []
 
@@ -282,7 +292,7 @@ export class CanvasComponent implements AfterContentInit {
         this.canvas.renderAll()
     }
 
-    async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
+    private async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
         const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps)
         this.setMarking(result.marking)
         this.setTransitionHeat(result.firings)
@@ -313,5 +323,20 @@ export class CanvasComponent implements AfterContentInit {
             .forEach((value, index) => {
                 transitions[index].set({fill: value})
             })
+    }
+
+    private selectCreate(e: IEvent<MouseEvent>) {
+        console.log("select created:", e)
+        let group = e.selected![0]!.group
+        if (group != undefined) {
+            group.getObjects().forEach(obj => {
+                if (obj instanceof Arc) {
+                    obj.removeFromGroup(group!)
+                }
+                if (obj instanceof Place) {
+                    obj.addToGroup(group!)
+                }
+            })
+        }
     }
 }

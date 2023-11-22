@@ -3,6 +3,14 @@ import {v4 as uuidv4} from "uuid";
 import {fill_color, line_color} from "./colors";
 import {Canvas} from "fabric/fabric-impl";
 
+interface Ungroupable {
+    removeFromGroup(group: fabric.Group): void
+}
+
+interface Groupable {
+    addToGroup(group: fabric.Group): void
+}
+
 interface Removable {
     remove(canvas: fabric.Canvas): void
 }
@@ -13,6 +21,11 @@ interface Countable {
     setAmount(amount: number): void
 }
 
+interface Point {
+    x: number;
+    y: number;
+}
+
 class Connectable implements Removable {
     arcs_in: Arc[] = []
     arcs_out: Arc[] = []
@@ -21,11 +34,6 @@ class Connectable implements Removable {
         this.arcs_in.forEach(arc => arc.remove(canvas))
         this.arcs_out.forEach(arc => arc.remove(canvas))
     }
-}
-
-interface Point {
-    x: number;
-    y: number;
 }
 
 export class Transition extends fabric.Rect implements Removable {
@@ -47,6 +55,9 @@ export class Transition extends fabric.Rect implements Removable {
             lockRotation: true,
             lockScalingX: true,
             lockScalingY: true,
+            hasControls: false,
+            borderScaleFactor: 1,
+            borderColor: '#bbbbbb'
         });
         canvas.add(this)
     }
@@ -57,7 +68,7 @@ export class Transition extends fabric.Rect implements Removable {
     }
 }
 
-export class Place extends fabric.Circle implements Removable, Countable {
+export class Place extends fabric.Circle implements Removable, Countable, Groupable {
     id = uuidv4();
 
     tokens= 0
@@ -80,6 +91,9 @@ export class Place extends fabric.Circle implements Removable, Countable {
             lockRotation: true,
             lockScalingX: true,
             lockScalingY: true,
+            hasControls: false,
+            borderScaleFactor: 1,
+            borderColor: '#bbbbbb'
         })
         this.tokenText = new Text("0", this)
         this.moveText()
@@ -89,14 +103,20 @@ export class Place extends fabric.Circle implements Removable, Countable {
         canvas.sendBackwards(this)
     }
 
+    addToGroup(group: fabric.Group): void {
+        group.add(this.tokenText)
+        this.moveText() // recalculate text so it uses the relative coordinates of the group
+    }
+
     remove(canvas: fabric.Canvas): void {
         canvas.remove(this, this.tokenText)
         this.arcs.remove(canvas)
     }
 
     moveText() {
+        let tokenLength = this.tokens.toString().length - 1;
         this.tokenText.set({
-            left: this.left! + this.textDx,
+            left: this.left! + this.textDx - (tokenLength * 11),
             top: this.top! + this.textDy,
         })
     }
@@ -120,18 +140,11 @@ export class Place extends fabric.Circle implements Removable, Countable {
 
     private updateText() {
         this.tokenText.set({text: String(this.tokens)})
+        this.moveText()
     }
 }
 
-const lineOptions = {
-    originX: 'center',
-    originY: 'center',
-    strokeWidth: 1,
-    stroke: line_color,
-    selectable: false,
-}
-
-export class Arc extends fabric.Line implements Removable, Countable {
+export class Arc extends fabric.Line implements Removable, Countable, Ungroupable {
     id = uuidv4();
 
     from: Place | Transition;
@@ -161,6 +174,11 @@ export class Arc extends fabric.Line implements Removable, Countable {
         canvas.sendToBack(this);
     }
 
+    removeFromGroup(group: fabric.Group): void {
+        group.remove(this, this.arrowArc1, this.arrowArc2, this.weightText)
+        this.updateLinePoints()
+    }
+
     remove(canvas: fabric.Canvas): void {
         let in_index = this.from.arcs.arcs_out.indexOf(this)
         if (in_index >= 0) {
@@ -180,12 +198,30 @@ export class Arc extends fabric.Line implements Removable, Countable {
     }
 
     updateLinePoints() {
-        let lineStart: Point = {x: this.from.left!, y: this.from.top!}
-        let target: Point = {x: this.to.left!, y: this.to.top!}
+        let fromGroup = this.from.group
+        let toGroup = this.to.group
+        console.log(fromGroup, toGroup)
+        let lineStart;
+        if (fromGroup) {
+            // from is in group and arc is not
+            lineStart = {x: this.from.left! + fromGroup.left! + (fromGroup.width! / 2), y: this.from.top! + fromGroup.top! + (fromGroup.height! / 2)}
+        } else {
+            // no group
+            lineStart = {x: this.from.left!, y: this.from.top!}
+        }
+
+        let target: Point
+        if (toGroup) {
+            // from is in group and arc is not
+            target = {x: this.to.left! + toGroup.left! + (toGroup.width! / 2), y: this.to.top! + toGroup.top! + (toGroup.height! / 2)}
+        } else {
+            target = {x: this.to.left!, y: this.to.top!}
+        }
         let lineEnd: Point = this.shortenLine(lineStart, target, 30)
         let [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
-        //super.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})
         this.updateTextPosition(lineStart, lineEnd)
+        // @ts-ignore: this works.
+        this.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})
         this.arrowArc1.set({x1: lineEnd.x, y1: lineEnd.y, x2: a1.x, y2: a1.y})
         this.arrowArc2.set({x1: lineEnd.x, y1: lineEnd.y, x2: a2.x, y2: a2.y})
         this.arrowArc1.setCoords()
@@ -256,9 +292,29 @@ export class Text extends fabric.Text {
     constructor(text: string, parent: fabric.Object) {
         super(text, {
             textAlign: 'center',
-            selectable: false,
+            selectable: true,
             lockRotation: true,
+            lockMovementX: true,
+            lockMovementY: true,
+            lockScalingX: true,
+            lockScalingY: true,
+            hasControls: false,
+            hasBorders: false,
         });
         this.parent = parent;
     }
+}
+
+const lineOptions = {
+    originX: 'center',
+    originY: 'center',
+    strokeWidth: 1,
+    stroke: line_color,
+    lockRotation: true,
+    lockMovementX: true,
+    lockMovementY: true,
+    lockScalingX: true,
+    lockScalingY: true,
+    hasControls: false,
+    hasBorders: false,
 }
