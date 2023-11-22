@@ -32,6 +32,7 @@ export class CanvasComponent implements AfterContentInit {
         this.canvas = new fabric.Canvas('canvas')
         this.setupCanvas()
         this.canvas.on('mouse:down', (event) => this.onClick(event))
+        this.canvas.on('selection:created', (e) => this.selectCreate(e))
         this.canvas.on('selection:updated', (e) => this.selectUpdate(e))
         this.canvas.on('selection:cleared', (e) => this.selectClear(e))
         this.canvas.on('object:moving', (e) => this.objectMoving(e))
@@ -125,6 +126,7 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private selectUpdate(e: IEvent<MouseEvent>) {
+        console.log("select updated: ", e)
         let obj = e.selected!![0]
         let lastObj = e.deselected!![0]
         switch (this.toolbar.selected) {
@@ -323,5 +325,20 @@ export class CanvasComponent implements AfterContentInit {
             .forEach((value, index) => {
                 transitions[index].set({fill: value})
             })
+    }
+
+    private selectCreate(e: IEvent<MouseEvent>) {
+        console.log("select created:", e)
+        let group = e.selected![0]!.group
+        if (group != undefined) {
+            group.getObjects().forEach(obj => {
+                if (obj instanceof Arc) {
+                    obj.removeFromGroup(group!)
+                }
+                if (obj instanceof Place) {
+                    obj.addToGroup(group!)
+                }
+            })
+        }
     }
 }
