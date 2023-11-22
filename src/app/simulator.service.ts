@@ -10,7 +10,7 @@ export class SimulatorService {
     async sendToSimulator(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
         try {
             const start = performance.now();
-            const data = await invoke<SimulationResponse>('simulate_steps', {
+            const data = await invoke<SimulationResponse>('simulate_start', {
                 marking: vector,
                 transitionInputs: in_matrix,
                 transitionOutputs: out_matrix,
@@ -22,6 +22,21 @@ export class SimulatorService {
         } catch (error) {
             console.error('Error calling the simulator:', error);
             return Promise.reject();
+        }
+    }
+
+    async continueSimulation(steps: number): Promise<SimulationResponse> {
+        try {
+            const start = performance.now();
+            const data = await invoke<SimulationResponse>('simulate_continue', {
+                steps: steps,
+            });
+            const end = performance.now();
+            console.log(`Simulating ${steps} steps took ${end - start} milliseconds`);
+            return data;
+        } catch (error) {
+            console.error('Error calling the simulator:', error);
+            return Promise.reject()
         }
     }
 
