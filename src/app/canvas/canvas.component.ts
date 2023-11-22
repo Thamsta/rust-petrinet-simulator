@@ -3,7 +3,7 @@ import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {ToolbarComponent} from "../toolbar/toolbar.component"
 import {DrawingTools, isRunCommand} from "../models"
-import {Arc, Place, Transition, Text} from "../elements"
+import {Arc, Place, Transition, Text, basicOptions} from "../elements"
 import {SimulatorService} from "../simulator.service"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {InfoBarComponent} from "../infobar/info-bar.component";
@@ -155,6 +155,12 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private selectClear(_: IEvent<MouseEvent>) {
+        // after a group was disbanded, update text position of places.
+        this.canvas.getObjects("circle").forEach(obj => {
+            if (obj instanceof Place) {
+                obj.updateTextPosition()
+            }
+        })
         this.lastSelected = undefined
         this.selected = undefined
     }
@@ -181,7 +187,7 @@ export class CanvasComponent implements AfterContentInit {
             })
         }
         if (obj instanceof Place) {
-            obj.moveText()
+            obj.updateTextPosition()
         }
     }
 
@@ -329,6 +335,7 @@ export class CanvasComponent implements AfterContentInit {
         console.log("select created:", e)
         let group = e.selected![0]!.group
         if (group != undefined) {
+            group.set(basicOptions)
             group.getObjects().forEach(obj => {
                 if (obj instanceof Arc) {
                     obj.removeFromGroup(group!)

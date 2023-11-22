@@ -3,29 +3,59 @@ import {v4 as uuidv4} from "uuid";
 import {fill_color, line_color} from "./colors";
 import {Canvas} from "fabric/fabric-impl";
 
+/**
+ * Represents an element that should not be included in a group selection.
+ * Always call this interface's method to remove it from a group.
+ * @interface
+ */
 interface Ungroupable {
     removeFromGroup(group: fabric.Group): void
 }
 
+/**
+ * Represents an element that can be included in a group selection and
+ * has special behaviour that needs to be considered when it is added
+ * to a group.
+ * @interface
+ */
 interface Groupable {
     addToGroup(group: fabric.Group): void
 }
 
+/**
+ * Represents an element which has special behaviour that needs to be
+ * considered when it is removed.
+ * @interface
+ */
 interface Removable {
     remove(canvas: fabric.Canvas): void
 }
 
+/**
+ * Represents an element which has a countable element that can be in- and
+ * decremented.
+ * @interface
+ */
 interface Countable {
     increment(): void
     decrement(): void
     setAmount(amount: number): void
 }
 
+/**
+ * A point of cartesian coordinates.
+ * @interface
+ */
 interface Point {
     x: number;
     y: number;
 }
 
+/**
+ * Class that contains ingoing and outgoing arc, to be added to connectable elements
+ * @class
+ * @implements Removable
+ */
 class Connectable implements Removable {
     arcs_in: Arc[] = []
     arcs_out: Arc[] = []
@@ -36,6 +66,65 @@ class Connectable implements Removable {
     }
 }
 
+// Options that are shared amongst all elements
+export const basicOptions = {
+	lockScalingY: true,
+	lockScalingX: true,
+	lockRotation: true,
+	hasControls: false,
+    borderScaleFactor: 1,
+    borderColor: '#bbbbbb',
+	strokeWidth: 1,
+	stroke: line_color,
+}
+
+// Options for elements that are not movable by the user
+const immovableOptions = {
+	hasBorders: false,
+	lockMovementX: true,
+	lockMovementY: true,
+}
+
+// Options for transitions
+const transitionOptions = {
+	fill: fill_color,
+	width: 80,
+	height: 50,
+	originX: 'center',
+	originY: 'center',
+	...basicOptions
+}
+
+// Options for places
+const placeOptions = {
+	fill: fill_color,
+	radius: 30,
+	originX: 'center',
+	originY: 'center',
+	...basicOptions
+}
+
+// Options for lines
+const lineOptions = {
+	originX: 'center',
+	originY: 'center',
+	...immovableOptions,
+	...basicOptions,
+}
+
+// Default options for text.
+const textOptions = {
+	textAlign: 'center',
+	...immovableOptions,
+	...basicOptions,
+    strokeWidth: 0
+}
+
+/**
+ * Represents a Transition
+ * @class
+ * @implements Removable
+ */
 export class Transition extends fabric.Rect implements Removable {
     id = uuidv4();
 
@@ -45,19 +134,7 @@ export class Transition extends fabric.Rect implements Removable {
         super({
             left: x,
             top: y,
-            fill: fill_color,
-            width: 80,
-            height: 50,
-            originX: 'center',
-            originY: 'center',
-            strokeWidth: 1,
-            stroke: line_color,
-            lockRotation: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            hasControls: false,
-            borderScaleFactor: 1,
-            borderColor: '#bbbbbb'
+            ...transitionOptions,
         });
         canvas.add(this)
     }
@@ -68,6 +145,11 @@ export class Transition extends fabric.Rect implements Removable {
     }
 }
 
+/**
+ * Represents a Place. Has a number of tokens which can be changed.
+ * @class
+ * @implements {Removable, Countable, Groupable}
+ */
 export class Place extends fabric.Circle implements Removable, Countable, Groupable {
     id = uuidv4();
 
@@ -82,21 +164,10 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         super({
             left: x,
             top: y,
-            fill: fill_color,
-            radius: 30,
-            originX: 'center',
-            originY: 'center',
-            strokeWidth: 1,
-            stroke: line_color,
-            lockRotation: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            hasControls: false,
-            borderScaleFactor: 1,
-            borderColor: '#bbbbbb'
+            ...placeOptions
         })
         this.tokenText = new Text("0", this)
-        this.moveText()
+        this.updateTextPosition()
         canvas.add(this.tokenText)
         canvas.bringToFront(this.tokenText)
         canvas.add(this)
@@ -105,7 +176,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
 
     addToGroup(group: fabric.Group): void {
         group.add(this.tokenText)
-        this.moveText() // recalculate text so it uses the relative coordinates of the group
+        this.updateTextPosition() // recalculate text so it uses the relative coordinates of the group
     }
 
     remove(canvas: fabric.Canvas): void {
@@ -113,7 +184,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         this.arcs.remove(canvas)
     }
 
-    moveText() {
+    updateTextPosition() {
         let tokenLength = this.tokens.toString().length - 1;
         this.tokenText.set({
             left: this.left! + this.textDx - (tokenLength * 11),
@@ -140,10 +211,15 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
 
     private updateText() {
         this.tokenText.set({text: String(this.tokens)})
-        this.moveText()
+        this.updateTextPosition()
     }
 }
 
+/**
+ * Represents an Arc that connects a Place and a Transition
+ * @class
+ * @implements {Removable, Countable, Ungroupable}
+ */
 export class Arc extends fabric.Line implements Removable, Countable, Ungroupable {
     id = uuidv4();
 
@@ -286,35 +362,15 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     }
 }
 
+/**
+ * Model class for any kind of Text. Knows its parent.
+ * @class
+ */
 export class Text extends fabric.Text {
     parent: fabric.Object;
 
     constructor(text: string, parent: fabric.Object) {
-        super(text, {
-            textAlign: 'center',
-            selectable: true,
-            lockRotation: true,
-            lockMovementX: true,
-            lockMovementY: true,
-            lockScalingX: true,
-            lockScalingY: true,
-            hasControls: false,
-            hasBorders: false,
-        });
+        super(text, textOptions);
         this.parent = parent;
     }
-}
-
-const lineOptions = {
-    originX: 'center',
-    originY: 'center',
-    strokeWidth: 1,
-    stroke: line_color,
-    lockRotation: true,
-    lockMovementX: true,
-    lockMovementY: true,
-    lockScalingX: true,
-    lockScalingY: true,
-    hasControls: false,
-    hasBorders: false,
 }
