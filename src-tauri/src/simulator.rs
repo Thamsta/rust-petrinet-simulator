@@ -1,7 +1,8 @@
+use std::sync::Mutex;
+
+use lazy_static::lazy_static;
 use ndarray::{arr1, Array1, Array2};
 use rand::Rng;
-use lazy_static::lazy_static;
-use std::sync::Mutex;
 
 use crate::common::*;
 
@@ -47,7 +48,14 @@ pub(crate) fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, tran
         state_vec = fire_transition(&state_vec, &t_effect, t);
     }
 
-    SIMULATOR_STATE.lock().unwrap().state_vec = state_vec.clone();
+    match SIMULATOR_STATE.lock() {
+        Ok(mut state) => {
+            state.state_vec = state_vec.clone();
+            state.t_in = t_in.clone();
+            state.t_effect = t_effect.clone();
+        }
+        Err(e) => { println!("Could not save state: {:?}", e)}
+    }
 
     return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat));
 }
