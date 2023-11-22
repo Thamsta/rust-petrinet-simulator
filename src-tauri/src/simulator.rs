@@ -1,7 +1,23 @@
-use ndarray::{arr1, Array2};
+use ndarray::{arr1, Array1, Array2};
 use rand::Rng;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
 
 use crate::common::*;
+
+struct State {
+    state_vec: Array1<i32>,
+    t_in: Array2<i32>,
+    t_effect: Array2<i32>,
+}
+
+lazy_static! {
+    static ref SIMULATOR_STATE: Mutex<State> = Mutex::new(State{
+        state_vec: Array1::zeros(0),
+        t_in: Array2::zeros((0,0)),
+        t_effect: Array2::zeros((0,0)),
+    });
+}
 
 pub(crate) fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<SimulationResponse, String> {
     let t = &transition_inputs.len(); // rows
@@ -30,6 +46,8 @@ pub(crate) fn simulate(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, tran
         t_heat[t] += 1;
         state_vec = fire_transition(&state_vec, &t_effect, t);
     }
+
+    SIMULATOR_STATE.lock().unwrap().state_vec = state_vec.clone();
 
     return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat));
 }
