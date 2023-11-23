@@ -16,7 +16,7 @@ import {InfoBarComponent} from './infobar/info-bar.component';
         AppComponent,
         CanvasComponent,
         ToolbarComponent,
-        InfoBarComponent
+        InfoBarComponent,
     ],
     imports: [
         BrowserModule,
