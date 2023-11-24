@@ -18,24 +18,20 @@ export class CanvasComponent implements AfterContentInit {
     selected?: fabric.Object
     lastSelected?: fabric.Object
 
-    isSimulating = false
-    stopRequested = false
-    startState: number[] | undefined
+    isLocked = false
 
     @ViewChild('toolbar') toolbar!: ToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
 
     constructor(private simulatorService: SimulatorService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
+            this.setMarking(event.marking)
             if (event.state == States.Stopped) {
                 this.unlock()
-                this.setMarking(event.marking)
-                this.setTransitionHeat([]) // reset it
             } else {
-                this.setMarking(event.marking)
                 this.setTransitionHeat(event.firings)
-                this.canvas.renderAll()
             }
+            this.canvas.renderAll()
         })
     }
 
@@ -78,7 +74,7 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private onClick(event: IEvent<MouseEvent>) {
-        if (this.isSimulating) {
+        if (this.isLocked) {
             return
         }
 
@@ -204,7 +200,7 @@ export class CanvasComponent implements AfterContentInit {
 
     /**
      * Player.
-     * @deprecated
+     * @deprecated replace with smaller workflow
      * @param command
      */
     async controlChanged(command: DrawingTools) {
@@ -234,7 +230,6 @@ export class CanvasComponent implements AfterContentInit {
             return // dont lock
         }
 
-        this.startState = p
         this.lock()
 
         if (command == DrawingTools.STEP) {
@@ -304,30 +299,16 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private lock() {
-        this.isSimulating = true
+        this.isLocked = true
         this.canvas.setBackgroundColor(canvas_color_simulating, () => {
             this.canvas.renderAll()
         })
     }
 
     private unlock() {
-        this.canvas.setBackgroundColor(canvas_color, () => {
-            this.canvas.renderAll()
-        })
-        this.isSimulating = false
-        if (this.startState) {
-            this.setMarking(this.startState)
-        }
+        this.canvas.setBackgroundColor(canvas_color, () => {})
+        this.isLocked = false
         this.resetTransitionHeat()
-        this.canvas.renderAll()
-    }
-
-    private async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
-        const result = await this.simulatorService.startSimulation(p, pxt_in, pxt_out, steps)
-        this.setMarking(result.marking)
-        this.setTransitionHeat(result.firings)
-        this.canvas.renderAll()
-        return Promise.resolve(result.marking)
     }
 
     private setMarking(p: number[]) {

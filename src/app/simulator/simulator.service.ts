@@ -28,6 +28,10 @@ export class SimulatorService {
 	private startState: number[] = []
 
     async step(vector: number[], in_matrix: number[][], out_matrix: number[][]) {
+		if (this.currentState == States.Running) {
+			// TODO: impl
+			return
+		}
 		this.currentState = States.Running
 		this.startSimulation(vector, in_matrix, out_matrix, 1).then(result => {
 			this.simulationEmitter.emit({

@@ -45,7 +45,6 @@ pub(crate) fn continue_simulation(steps: i32) -> Result<SimulationResponse, Stri
 }
 
 fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, steps: i32, mut lock: MutexGuard<State>) -> Result<SimulationResponse, String> {
-    println!("simulating");
     let mut state_vec = marking.clone();
     let mut t_heat: Vec<i32> = Vec::new();
     for _ in 0..t_in.len() {
@@ -71,6 +70,5 @@ fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, step
     lock.t_in = t_in.clone();
     lock.t_effect = t_effect.clone();
 
-    println!("done simulating");
     return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat));
 }
