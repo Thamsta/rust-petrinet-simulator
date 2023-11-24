@@ -53,8 +53,9 @@ export class SimulatorService {
 		this.currentStepSize = steps
 		this.startState = vector
 
-		await this.startSimulation(vector, in_matrix, out_matrix, steps)
-		await this.continueInternal(steps);
+		this.startSimulation(vector, in_matrix, out_matrix, steps).then(() => {
+			this.continueInternal(steps);
+		})
 	}
 
     async continue() {

@@ -233,18 +233,16 @@ export class CanvasComponent implements AfterContentInit {
         this.lock()
 
         if (command == DrawingTools.STEP) {
-            await this.simulatorService.step(p, pxt_in, pxt_out)
-            return
+            this.simulatorService.step(p, pxt_in, pxt_out)
         }
         if (command == DrawingTools.RUN) {
-            this.startSimulationAsync(p, pxt_in, pxt_out, 1000).then()
-            return
+            this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
         }
     }
 
     async startSimulationAsync(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
         try {
-            await this.ngZone.runOutsideAngular(async () => {
+            this.ngZone.runOutsideAngular(async () => {
                 this.simulatorService.start(p, pxt_in, pxt_out, steps).then(_ => {});
             });
         } catch (error) {
