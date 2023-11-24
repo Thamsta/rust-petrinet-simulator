@@ -27,9 +27,14 @@ export class CanvasComponent implements AfterContentInit {
 
     constructor(private simulatorService: SimulatorService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
-            console.log(event)
             if (event.state == States.Stopped) {
                 this.unlock()
+                this.setMarking(event.marking)
+                this.setTransitionHeat([]) // reset it
+            } else {
+                this.setMarking(event.marking)
+                this.setTransitionHeat(event.firings)
+                this.canvas.renderAll()
             }
         })
     }
@@ -212,6 +217,12 @@ export class CanvasComponent implements AfterContentInit {
         }
         if (command == DrawingTools.PAUSE) {
             this.simulatorService.pause()
+            return
+        }
+
+        if (command == DrawingTools.RUN && this.simulatorService.isPaused()) {
+            // before doing the net calculations, check if the simulation was paused and then continue
+            await this.simulatorService.continue()
             return
         }
 

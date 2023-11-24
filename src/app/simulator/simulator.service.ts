@@ -41,11 +41,13 @@ export class SimulatorService {
 
 	async start(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number) {
         if (![States.Stopped, States.Paused].includes(this.currentState)) {
+			// only start the simulation if it is currently stopped or paused
             return
         }
 
 		this.currentState = States.Running
 		this.currentStepSize = steps
+		this.startState = vector
 
 		await this.startSimulation(vector, in_matrix, out_matrix, steps)
 		await this.continueInternal(steps);
@@ -65,16 +67,20 @@ export class SimulatorService {
 	}
 
 	stop() {
-		console.log("stopping")
 		if (this.currentState == States.Running) {
 			this.currentState = States.StopRequested
 		} else if (this.currentState == States.Paused) {
+			this.currentState = States.Stopped
 			this.simulationEmitter.emit({
-				marking: [], // TODO: initial value?
+				marking: this.startState,
 				firings: [],
 				state: States.Stopped,
 			})
 		}
+	}
+
+	isPaused() {
+		return this.currentState == States.Paused
 	}
 
 	private async continueInternal(steps: number) {
@@ -85,11 +91,21 @@ export class SimulatorService {
 			firings: result.firings,
 			state: nextState,
 		})
-		if ([States.PauseRequested, States.StopRequested].includes(nextState)) {
+		if (nextState == States.StopRequested) {
+			this.currentState = States.Stopped
 			this.simulationEmitter.emit({
-				marking: [], // TODO: initial value?
+				marking: this.startState,
 				firings: [],
 				state: States.Stopped,
+			})
+			return
+		}
+		if (nextState == States.PauseRequested) {
+			this.currentState = States.Paused
+			this.simulationEmitter.emit({
+				marking: result.marking,
+				firings: result.firings,
+				state: States.Paused,
 			})
 			return
 		}
@@ -98,35 +114,28 @@ export class SimulatorService {
 
     async startSimulation(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
         try {
-            const start = performance.now();
-            const data = await invoke<SimulationResponse>('simulate_start', {
+            return await invoke<SimulationResponse>('simulate_start', {
                 marking: vector,
                 transitionInputs: in_matrix,
                 transitionOutputs: out_matrix,
                 steps: steps
             });
-            const end = performance.now();
-            console.log(`Simulating ${steps} steps took ${end - start} milliseconds`);
-            return data;
         } catch (error) {
             console.error('Error calling the simulator:', error);
             return Promise.reject();
         }
     }
 
-    async continueSimulation(steps: number): Promise<SimulationResponse> {
+    private async continueSimulation(steps: number): Promise<SimulationResponse> {
         try {
-            const start = performance.now();
-            const data = await invoke<SimulationResponse>('simulate_continue', {steps: steps});
-            const end = performance.now();
-            console.log(`Simulating ${steps} steps took ${end - start} milliseconds`);
-            return data;
+            return await invoke<SimulationResponse>('simulate_continue', {steps: steps});
         } catch (error) {
             console.error('Error calling the simulator:', error);
             return Promise.reject()
         }
     }
 
+	// TODO: move to other service
     async createRG(marking: number[], pxt_in: number[][], pxt_out: number[][]) {
         try {
             const start = performance.now();
