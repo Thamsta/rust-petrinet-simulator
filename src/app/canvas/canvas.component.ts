@@ -1,10 +1,10 @@
-import {AfterContentInit, Component, ViewChild} from '@angular/core'
+import {AfterContentInit, Component, NgZone, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {ToolbarComponent} from "../toolbar/toolbar.component"
 import {DrawingTools, isRunCommand} from "../models"
-import {Arc, Place, Transition, Text, basicOptions} from "../elements"
-import {SimulatorService} from "../simulator.service"
+import {Arc, basicOptions, Place, Text, Transition} from "../elements"
+import {SimulatorService, States} from "../simulator/simulator.service"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {InfoBarComponent} from "../infobar/info-bar.component";
 
@@ -18,14 +18,21 @@ export class CanvasComponent implements AfterContentInit {
     selected?: fabric.Object
     lastSelected?: fabric.Object
 
-    isSimulating = false
-    stopRequested = false
-    startState: number[] | undefined
+    isLocked = false
 
     @ViewChild('toolbar') toolbar!: ToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
 
-    constructor(private simulatorService: SimulatorService) {
+    constructor(private simulatorService: SimulatorService, private ngZone: NgZone) {
+        simulatorService.simulationEmitter.subscribe(event => {
+            this.setMarking(event.marking)
+            if (event.state == States.Stopped) {
+                this.unlock()
+            } else {
+                this.setTransitionHeat(event.firings)
+            }
+            this.canvas.renderAll()
+        })
     }
 
     ngAfterContentInit() {
@@ -67,7 +74,7 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private onClick(event: IEvent<MouseEvent>) {
-        if (this.isSimulating) {
+        if (this.isLocked) {
             return
         }
 
@@ -191,12 +198,27 @@ export class CanvasComponent implements AfterContentInit {
         }
     }
 
-    controlChanged(command: DrawingTools) {
+    /**
+     * Player.
+     * @deprecated replace with smaller workflow
+     * @param command
+     */
+    async controlChanged(command: DrawingTools) {
         if (!isRunCommand(command) && command != DrawingTools.RG) {
             return
         }
-        if (command == DrawingTools.STOP || command == DrawingTools.PAUSE) {
-            this.stopRequested = true
+        if (command == DrawingTools.STOP) {
+            this.simulatorService.stop()
+            return
+        }
+        if (command == DrawingTools.PAUSE) {
+            this.simulatorService.pause()
+            return
+        }
+
+        if (command == DrawingTools.RUN && this.simulatorService.isPaused()) {
+            // before doing the net calculations, check if the simulation was paused and then continue
+            await this.simulatorService.continue()
             return
         }
 
@@ -208,29 +230,24 @@ export class CanvasComponent implements AfterContentInit {
             return // dont lock
         }
 
-        this.startState = p
         this.lock()
 
         if (command == DrawingTools.STEP) {
-            this.stopRequested = false
-            this.step(p, pxt_in, pxt_out)
+            this.simulatorService.step(p, pxt_in, pxt_out)
         }
         if (command == DrawingTools.RUN) {
-            this.stopRequested = false
-            this.run(p, pxt_in, pxt_out)
+            this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
         }
     }
 
-    private run(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-        if (this.stopRequested) {
-            this.unlock()
-            return
+    async startSimulationAsync(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
+        try {
+            this.ngZone.runOutsideAngular(async () => {
+                this.simulatorService.start(p, pxt_in, pxt_out, steps).then(_ => {});
+            });
+        } catch (error) {
+            console.error('Error during simulation:', error);
         }
-        this.simulateSteps(p, pxt_in, pxt_out, 10000).then(marking => this.run(marking, pxt_in, pxt_out))
-    }
-
-    private step(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-        this.simulateSteps(p, pxt_in, pxt_out, 1).then(_ => { })
     }
 
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
@@ -280,30 +297,16 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private lock() {
-        this.isSimulating = true
+        this.isLocked = true
         this.canvas.setBackgroundColor(canvas_color_simulating, () => {
             this.canvas.renderAll()
         })
     }
 
     private unlock() {
-        this.canvas.setBackgroundColor(canvas_color, () => {
-            this.canvas.renderAll()
-        })
-        this.isSimulating = false
-        if (this.startState) {
-            this.setMarking(this.startState)
-        }
+        this.canvas.setBackgroundColor(canvas_color, () => {})
+        this.isLocked = false
         this.resetTransitionHeat()
-        this.canvas.renderAll()
-    }
-
-    private async simulateSteps(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number): Promise<number[]> {
-        const result = await this.simulatorService.sendToSimulator(p, pxt_in, pxt_out, steps)
-        this.setMarking(result.marking)
-        this.setTransitionHeat(result.firings)
-        this.canvas.renderAll()
-        return Promise.resolve(result.marking)
     }
 
     private setMarking(p: number[]) {

@@ -67,6 +67,7 @@ name = "app"
 version = "0.1.0"
 dependencies = [
  "derive-new",
+ "lazy_static",
  "ndarray",
  "petgraph",
  "rand 0.8.5",

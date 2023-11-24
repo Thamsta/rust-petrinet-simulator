@@ -9,14 +9,14 @@ import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDividerModule} from "@angular/material/divider";
-import { InfoBarComponent } from './infobar/info-bar.component';
+import {InfoBarComponent} from './infobar/info-bar.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         CanvasComponent,
         ToolbarComponent,
-        InfoBarComponent
+        InfoBarComponent,
     ],
     imports: [
         BrowserModule,
