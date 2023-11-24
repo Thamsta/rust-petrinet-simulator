@@ -237,7 +237,7 @@ export class CanvasComponent implements AfterContentInit {
             return
         }
         if (command == DrawingTools.RUN) {
-            await this.startSimulationAsync(p, pxt_in, pxt_out, 10000)
+            this.startSimulationAsync(p, pxt_in, pxt_out, 1000).then()
             return
         }
     }
