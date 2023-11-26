@@ -29,7 +29,7 @@ export class SimulatorService {
 
     async step(vector: number[], in_matrix: number[][], out_matrix: number[][]) {
 		if (this.currentState == States.Running) {
-			// TODO: impl
+			this.pause() // while running, the step command is essentially the same as pausing.
 			return
 		}
 		this.currentState = States.Running

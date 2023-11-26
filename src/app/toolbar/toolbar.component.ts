@@ -18,8 +18,10 @@ export class ToolbarComponent {
         this.selected = selected;
         if (isRunCommand(selected) || selected == DrawingTools.RG) {
             this.controlEmitter.emit(selected)
-            if (selected == DrawingTools.STOP || selected == DrawingTools.STEP || selected == DrawingTools.RG) {
+            if (selected == DrawingTools.STOP || selected == DrawingTools.RG) {
                 this.selected = DrawingTools.SELECT
+            } else if (selected == DrawingTools.STEP) {
+                this.selected = DrawingTools.PAUSE
             }
         }
     }
