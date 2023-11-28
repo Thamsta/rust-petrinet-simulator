@@ -4,7 +4,6 @@ use std::time::Instant;
 use ndarray::{arr1, Array1, Array2};
 use petgraph::{Direction, Graph};
 use petgraph::algo::tarjan_scc;
-use petgraph::dot::Dot;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::{EdgeRef, IntoNodeIdentifiers};
 
@@ -57,7 +56,7 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 
     println!("RG with {:?} states and {} edges took {}ms ({}k elem/s)", total_states, total_edges, elapsed_time.as_millis(), elements_per_second.round());
 
-    let properties = check_properties(&graph, &start_node, *t);
+    let properties = check_properties(&graph, *t);
 
     println!("Properties: {:?}", properties);
 
@@ -67,7 +66,6 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 fn check_properties(rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> RgProperties {
     let sccs = tarjan_scc(rg);
     let scc_graph = create_scc_graph(&sccs, rg);
-    println!("{:?}", Dot::new(&scc_graph));
 
     let reversible = sccs.len() == 1 && rg.edge_count() > 0;
     let liveness = check_liveness(&scc_graph, transitions);

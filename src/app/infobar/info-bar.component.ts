@@ -17,6 +17,7 @@ export class InfoBarComponent {
         this.states = this.formatNumber(infos.states)
         this.edges = this.formatNumber(infos.edges)
         this.reversible = String(infos.reversible)
+        this.live = String(infos.liveness)
     }
 
     updateOnError(_: any) {
