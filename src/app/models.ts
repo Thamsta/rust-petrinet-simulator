@@ -26,4 +26,7 @@ export type RGResponse = {
 	states: number,
     edges: number,
 	reversible: boolean,
+    liveness: boolean,
+    bounded: boolean,
+    message: string,
 }

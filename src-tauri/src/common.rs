@@ -43,4 +43,7 @@ pub struct RGResponse {
     states: usize,
     edges: usize,
     reversible: bool,
+    liveness: bool,
+    bounded: bool,
+    message: String,
 }
