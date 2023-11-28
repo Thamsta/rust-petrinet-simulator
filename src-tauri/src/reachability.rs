@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use ndarray::{arr1, Array1, Array2};
+use petgraph::{Direction, Graph};
 use petgraph::algo::tarjan_scc;
 use petgraph::dot::Dot;
-use petgraph::Graph;
 use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::visit::{EdgeRef};
+use petgraph::visit::{EdgeRef, IntoNodeIdentifiers};
 
 use crate::common::*;
 
@@ -27,9 +27,9 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
     let mut step_counter = 0;
 
     // create & insert start node
-    let nd = graph.add_node(state_vec.clone());
-    all_states_rev.insert(state_vec.clone(), nd);
-    queue.push(nd);
+    let start_node = graph.add_node(state_vec.clone());
+    all_states_rev.insert(state_vec.clone(), start_node);
+    queue.push(start_node);
 
     while !queue.is_empty() {
         if step_counter > 50000 {
@@ -57,17 +57,37 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 
     println!("RG with {:?} states and {} edges took {}ms ({}k elem/s)", total_states, total_edges, elapsed_time.as_millis(), elements_per_second.round());
 
-    let reversible = check_properties(&graph);
+    let properties = check_properties(&graph, &start_node, *t);
 
-    return Ok(RGResponse::new(graph.node_count(), graph.edge_count(), reversible, false, true, "".to_string()));
+    println!("Properties: {:?}", properties);
+
+    return Ok(RGResponse::new(graph.node_count(), graph.edge_count(), properties.reversible, properties.liveness, true, "".to_string()));
 }
 
-pub fn check_properties(rg: &DiGraph<Array1<i32>, i32>) -> bool {
+fn check_properties(rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> RgProperties {
     let sccs = tarjan_scc(rg);
     let scc_graph = create_scc_graph(&sccs, rg);
     println!("{:?}", Dot::new(&scc_graph));
 
-    return sccs.len() == 1 && rg.edge_count() > 0;
+    let reversible = sccs.len() == 1 && rg.edge_count() > 0;
+    let liveness = check_liveness(&scc_graph, transitions);
+
+    return RgProperties { liveness, reversible };
+}
+
+fn check_liveness(scc_graph: &DiGraph<Vec<i32>, ()>, transitions: usize) -> bool {
+    let mut liveness = true;
+    scc_graph.node_identifiers().for_each(|inx| {
+        let outgoing_edges = scc_graph.edges_directed(inx, Direction::Outgoing);
+        if outgoing_edges.count() == 0 {
+            // this is a terminal SCC
+            let active_transitions = scc_graph.node_weight(inx).unwrap();
+            if active_transitions.len() < transitions {
+                liveness = false;
+            }
+        };
+    });
+    return liveness;
 }
 
 fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i32>, i32>) -> DiGraph<Vec<i32>, ()> {
@@ -127,4 +147,10 @@ fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i32>, all_state
         }
     }
     return None;
+}
+
+#[derive(Debug)]
+struct RgProperties {
+    liveness: bool,
+    reversible: bool,
 }
