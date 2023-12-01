@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Output} from '@angular/core';
-import {DrawingTools, isRunCommand} from '../models';
+import {DrawingTools, isPlayerCommand} from '../models';
 
 @Component({
     selector: 'app-toolbar',
@@ -16,7 +16,7 @@ export class ToolbarComponent {
 
     select(selected: DrawingTools) {
         this.selected = selected;
-        if (isRunCommand(selected) || selected == DrawingTools.RG) {
+        if (isPlayerCommand(selected) || selected == DrawingTools.RG) {
             this.controlEmitter.emit(selected)
             if (selected == DrawingTools.STOP || selected == DrawingTools.RG) {
                 this.selected = DrawingTools.SELECT
