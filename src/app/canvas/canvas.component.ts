@@ -2,7 +2,7 @@ import {AfterContentInit, Component, NgZone, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {ToolbarComponent} from "../toolbar/toolbar.component"
-import {DrawingTools, isRunCommand} from "../models"
+import {DrawingTools, isPlayerCommand} from "../models"
 import {Arc, basicOptions, Place, Text, Transition} from "../elements"
 import {SimulatorService, States} from "../simulator/simulator.service"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
@@ -15,10 +15,12 @@ import {InfoBarComponent} from "../infobar/info-bar.component";
 })
 export class CanvasComponent implements AfterContentInit {
     canvas: fabric.Canvas = new fabric.Canvas('canvas')
-    selected?: fabric.Object
     lastSelected?: fabric.Object
 
     isLocked = false
+
+    gridSize = 20
+    gridEnabled = false
 
     @ViewChild('toolbar') toolbar!: ToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
@@ -26,6 +28,7 @@ export class CanvasComponent implements AfterContentInit {
     constructor(private simulatorService: SimulatorService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
             this.setMarking(event.marking)
+            this.canvas.renderAll()
             if (event.state == States.Stopped) {
                 this.unlock()
             } else {
@@ -40,7 +43,6 @@ export class CanvasComponent implements AfterContentInit {
         this.setupCanvas()
         this.canvas.on('mouse:down', (event) => this.onClick(event))
         this.canvas.on('selection:created', (e) => this.selectCreate(e))
-        this.canvas.on('selection:updated', (e) => this.selectUpdate(e))
         this.canvas.on('selection:cleared', (e) => this.selectClear(e))
         this.canvas.on('object:moving', (e) => this.objectMoving(e))
         window.addEventListener('resize', this.onWindowResize)
@@ -81,6 +83,7 @@ export class CanvasComponent implements AfterContentInit {
         let x = event.e.offsetX
         let y = event.e.offsetY
         let target = this.getTarget(event)
+
         switch (this.toolbar.selected) {
             case DrawingTools.PLACE: {
                 if (target == undefined) {
@@ -106,8 +109,19 @@ export class CanvasComponent implements AfterContentInit {
                 if (target) {
                     this.deleteObject(target)
                 }
+                break
             }
+            case DrawingTools.ARC: {
+                if (target instanceof Place && this.lastSelected instanceof Transition
+                    || target instanceof Transition && this.lastSelected instanceof Place) {
+                    let arc = new Arc(this.lastSelected, target, this.canvas)
+                    this.lastSelected.arcs.arcs_out.push(arc)
+                    target.arcs.arcs_in.push(arc)
+                }
+                break
+                }
         }
+        this.lastSelected = target
     }
 
     private addTransition = (x: number, y: number) => {
@@ -125,32 +139,6 @@ export class CanvasComponent implements AfterContentInit {
         if (this.lastSelected == obj) {
             this.lastSelected = undefined
         }
-        if (this.selected == obj) {
-            this.selected = undefined
-        }
-    }
-
-    private selectUpdate(e: IEvent<MouseEvent>) {
-        console.log("select updated: ", e)
-        let obj = e.selected!![0]
-        let lastObj = e.deselected!![0]
-        switch (this.toolbar.selected) {
-            case DrawingTools.GARBAGE: {
-                this.canvas.remove(obj)
-                break
-            }
-            case DrawingTools.ARC: {
-                if (obj instanceof Place && lastObj instanceof Transition
-                    || obj instanceof Transition && lastObj instanceof Place) {
-                    let arc = new Arc(lastObj, obj, this.canvas)
-                    lastObj.arcs.arcs_out.push(arc)
-                    obj.arcs.arcs_in.push(arc)
-                }
-                break
-            }
-        }
-        this.lastSelected = this.selected
-        this.selected = obj
     }
 
     private addOrRemovePlaceToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: Place | Arc) {
@@ -169,12 +157,13 @@ export class CanvasComponent implements AfterContentInit {
             }
         })
         this.lastSelected = undefined
-        this.selected = undefined
+        this.canvas.renderAll()
     }
 
     private objectMoving(e: IEvent<MouseEvent>) {
         let target = e.target!
         if (target instanceof fabric.Group) {
+            // TODO: fix grid placement for groups
             target.forEachObject(obj => this.moveObj(obj))
         } else {
             this.moveObj(target)
@@ -183,6 +172,10 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private moveObj(obj: fabric.Object) {
+        if (this.gridEnabled) {
+            let [left, top] = this.toGridCoordinate(obj.left!, obj.top!)
+            obj.set({top: top, left: left})
+        }
         if (obj instanceof Place || obj instanceof Transition) {
             obj.arcs.arcs_out.forEach(arc => {
                 arc.set({x1: obj.left, y1: obj.top})
@@ -198,45 +191,40 @@ export class CanvasComponent implements AfterContentInit {
         }
     }
 
+    private toGridCoordinate(x: number, y: number) : [number, number] {
+        let xGrid = Math.round(x / this.gridSize) * this.gridSize
+        let yGrid = Math.round(y / this.gridSize) * this.gridSize
+        return [xGrid, yGrid]
+    }
+
     /**
      * Player.
-     * @deprecated replace with smaller workflow
      * @param command
      */
     async controlChanged(command: DrawingTools) {
-        if (!isRunCommand(command) && command != DrawingTools.RG) {
-            return
-        }
-        if (command == DrawingTools.STOP) {
-            this.simulatorService.stop()
-            return
-        }
-        if (command == DrawingTools.PAUSE) {
-            this.simulatorService.pause()
-            return
-        }
-
-        if (command == DrawingTools.RUN && this.simulatorService.isPaused()) {
-            // before doing the net calculations, check if the simulation was paused and then continue
-            await this.simulatorService.continue()
-            return
-        }
-
-        let [places, transitions] = this.getPlacesAndTransitions()
-        let [p, pxt_in, pxt_out] = this.getNetAsMatrix(places, transitions)
-
-        if (command == DrawingTools.RG) {
-            this.rg(p, pxt_in, pxt_out)
-            return // dont lock
-        }
-
-        this.lock()
-
-        if (command == DrawingTools.STEP) {
-            this.simulatorService.step(p, pxt_in, pxt_out)
-        }
-        if (command == DrawingTools.RUN) {
-            this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
+        let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
+        switch (command) {
+            case DrawingTools.RUN:
+                if (this.simulatorService.isPaused()) {
+                    this.simulatorService.continue()
+                } else {
+                    this.lock()
+                    this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
+                }
+                break;
+            case DrawingTools.STEP:
+                this.lock()
+                this.simulatorService.step(p, pxt_in, pxt_out)
+                break;
+            case DrawingTools.STOP:
+                this.simulatorService.stop()
+                break;
+            case DrawingTools.PAUSE:
+                this.simulatorService.pause()
+                break;
+            case DrawingTools.RG:
+                this.rg(p, pxt_in, pxt_out)
+                break;
         }
     }
 
@@ -277,7 +265,8 @@ export class CanvasComponent implements AfterContentInit {
         return [places, transitions]
     }
 
-    public getNetAsMatrix(places: Place[], transitions: Transition[]): [number[], number[][], number[][]] {
+    public getNetAsMatrix(): [number[], number[][], number[][]] {
+        let [places, transitions] = this.getPlacesAndTransitions()
         let pxt_in: number[][] = []
         let pxt_out: number[][] = []
 
@@ -335,18 +324,19 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private selectCreate(e: IEvent<MouseEvent>) {
-        console.log("select created:", e)
         let group = e.selected![0]!.group
-        if (group != undefined) {
-            group.set(basicOptions)
-            group.getObjects().forEach(obj => {
-                if (obj instanceof Arc) {
-                    obj.removeFromGroup(group!)
-                }
-                if (obj instanceof Place) {
-                    obj.addToGroup(group!)
-                }
-            })
+        if (group == undefined) {
+            return
         }
+
+        group.set(basicOptions)
+        group.getObjects().forEach(obj => {
+            if (obj instanceof Arc) {
+                obj.removeFromGroup(group!)
+            }
+            if (obj instanceof Place) {
+                obj.addToGroup(group!)
+            }
+        })
     }
 }

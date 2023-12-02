@@ -13,7 +13,7 @@ export enum DrawingTools {
 	RG = 'RG',
 }
 
-export function isRunCommand(tool: DrawingTools): boolean {
+export function isPlayerCommand(tool: DrawingTools): boolean {
 	return Object.values([DrawingTools.RUN, DrawingTools.STEP, DrawingTools.STOP, DrawingTools.PAUSE]).includes(tool)
 }
 
