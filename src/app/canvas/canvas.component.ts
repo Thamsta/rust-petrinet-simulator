@@ -19,6 +19,9 @@ export class CanvasComponent implements AfterContentInit {
 
     isLocked = false
 
+    gridSize = 20
+    gridEnabled = false
+
     @ViewChild('toolbar') toolbar!: ToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
 
@@ -160,6 +163,7 @@ export class CanvasComponent implements AfterContentInit {
     private objectMoving(e: IEvent<MouseEvent>) {
         let target = e.target!
         if (target instanceof fabric.Group) {
+            // TODO: fix grid placement for groups
             target.forEachObject(obj => this.moveObj(obj))
         } else {
             this.moveObj(target)
@@ -168,6 +172,10 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private moveObj(obj: fabric.Object) {
+        if (this.gridEnabled) {
+            let [left, top] = this.toGridCoordinate(obj.left!, obj.top!)
+            obj.set({top: top, left: left})
+        }
         if (obj instanceof Place || obj instanceof Transition) {
             obj.arcs.arcs_out.forEach(arc => {
                 arc.set({x1: obj.left, y1: obj.top})
@@ -181,6 +189,12 @@ export class CanvasComponent implements AfterContentInit {
         if (obj instanceof Place) {
             obj.updateTextPosition()
         }
+    }
+
+    private toGridCoordinate(x: number, y: number) : [number, number] {
+        let xGrid = Math.round(x / this.gridSize) * this.gridSize
+        let yGrid = Math.round(y / this.gridSize) * this.gridSize
+        return [xGrid, yGrid]
     }
 
     /**
