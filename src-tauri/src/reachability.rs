@@ -27,7 +27,7 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 
     // create & insert start node
     let start_node = graph.add_node(state_vec.clone());
-    all_states_rev.insert(state_vec.clone(), start_node);
+    all_states_rev.insert(state_vec, start_node);
     queue.push(start_node);
 
     while !queue.is_empty() {
@@ -121,7 +121,7 @@ fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i32>, i32>, 
             graph.add_edge(NodeIndex::new(source_scc), NodeIndex::new(target_scc), ());
         } else if source_scc == target_scc {
             let entry = scc_transitions.entry(source_scc).or_insert_with(HashSet::new);
-            entry.insert(rg.edge_weight(edge).unwrap().clone());
+            entry.insert(*rg.edge_weight(edge).unwrap());
         }
     }
 
@@ -141,13 +141,13 @@ fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i32>, all_state
     match existing {
         None => {
             let new_state_idx = graph.add_node(new_state.clone());
-            all_states_rev.insert(new_state.clone(), new_state_idx);
+            all_states_rev.insert(new_state, new_state_idx);
             queue.push(new_state_idx);
             graph.add_edge(old_state_idx, new_state_idx, inx);
         }
         Some(actual) => {
             graph.add_edge(old_state_idx, actual.clone(), inx);
-            return Some(actual.clone());
+            return Some(*actual);
         }
     }
     return None;

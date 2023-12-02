@@ -36,6 +36,7 @@ pub(crate) fn vec_vec_to_array2(input: &Vec<Vec<i32>>, rows: &usize, columns: &u
 pub struct SimulationResponse {
     marking: Vec<i32>,
     firings: Vec<i32>,
+    deadlocked: bool,
 }
 
 #[derive(Serialize, new)]

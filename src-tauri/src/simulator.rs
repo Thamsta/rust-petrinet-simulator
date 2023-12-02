@@ -56,7 +56,7 @@ fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, step
         if active_transitions.is_empty() {
             println!("No active transitions after step {} with state {:?}.", step, state_vec);
 
-            return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat));
+            return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat, true));
         }
 
         let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
@@ -66,9 +66,10 @@ fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, step
         state_vec = fire_transition(&state_vec, &t_effect, t);
     }
 
-    lock.state_vec = state_vec.clone();
-    lock.t_in = t_in.clone();
-    lock.t_effect = t_effect.clone();
+    let result_marking = state_vec.to_vec();
+    lock.state_vec = state_vec;
+    lock.t_in = t_in;
+    lock.t_effect = t_effect;
 
-    return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat));
+    return Ok(SimulationResponse::new(result_marking, t_heat, false));
 }
