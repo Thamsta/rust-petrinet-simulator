@@ -14,6 +14,7 @@ type SimulationEvent = {
 	marking: number[],
 	firings: number[],
     state: States,
+    deadlocked: boolean,
 }
 
 @Injectable({
@@ -38,6 +39,7 @@ export class SimulatorService {
 				marking: result.marking,
 				firings: result.firings,
 				state: States.Paused,
+                deadlocked: result.deadlocked,
 			})
 			this.currentState = States.Paused
 		})
@@ -80,7 +82,8 @@ export class SimulatorService {
 				marking: this.startState,
 				firings: [],
 				state: States.Stopped,
-			})
+                deadlocked: false,
+            })
 		}
 	}
 
@@ -90,11 +93,14 @@ export class SimulatorService {
 
 	private async continueInternal(steps: number) {
         const result = await this.continueSimulation(steps)
-		let nextState = this.currentState
+        // if we know that the simulation is deadlock, we request a pause
+		let nextState = result.deadlocked ? States.PauseRequested : this.currentState
+
 		this.simulationEmitter.emit({
 			marking: result.marking,
 			firings: result.firings,
 			state: nextState,
+            deadlocked: result.deadlocked,
 		})
 		if (nextState == States.StopRequested) {
 			this.currentState = States.Stopped
@@ -102,7 +108,8 @@ export class SimulatorService {
 				marking: this.startState,
 				firings: [],
 				state: States.Stopped,
-			})
+                deadlocked: result.deadlocked,
+            })
 			return
 		}
 		if (nextState == States.PauseRequested) {
@@ -111,7 +118,8 @@ export class SimulatorService {
 				marking: result.marking,
 				firings: result.firings,
 				state: States.Paused,
-			})
+                deadlocked: result.deadlocked,
+            })
 			return
 		}
 		await this.continueInternal(steps)

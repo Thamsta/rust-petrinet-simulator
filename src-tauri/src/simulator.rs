@@ -2,6 +2,7 @@ use std::sync::{Mutex, MutexGuard};
 
 use lazy_static::lazy_static;
 use ndarray::{arr1, Array1, Array2};
+use petgraph::matrix_graph::Zero;
 use rand::Rng;
 
 use crate::common::*;
@@ -10,6 +11,7 @@ struct State {
     state_vec: Array1<i32>,
     t_in: Array2<i32>,
     t_effect: Array2<i32>,
+    deadlocked: bool,
 }
 
 lazy_static! {
@@ -17,27 +19,50 @@ lazy_static! {
         state_vec: Array1::zeros(0),
         t_in: Array2::zeros((0,0)),
         t_effect: Array2::zeros((0,0)),
+        deadlocked: false,
     });
 }
 
 pub(crate) fn start_simulation(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<SimulationResponse, String> {
-    let t = &transition_inputs.len(); // rows
-    let p = &transition_inputs.get(0).expect("empty array").len(); // columns
+    let t = &transition_inputs.len(); // rows: number of transitions
+    if t.is_zero() { return handle_no_transitions(marking) }
+
+    let p = &transition_inputs.get(0).unwrap().len(); // columns: number of places
+    if p.is_zero() { return handle_no_transitions(marking) } // TODO: correctly handle nets with no places
+
     let t_in: Array2<i32> = vec_vec_to_array2(&transition_inputs, &t, &p);
     let t_out: Array2<i32> = vec_vec_to_array2(&transition_outputs, &t, &p);
     let t_effect: Array2<i32> = &t_out - &t_in;
 
     return match SIMULATOR_STATE.lock() {
-        Ok(state) => {
+        Ok(mut state) => {
+            state.t_in = t_in.clone();
+            state.t_effect = t_effect.clone();
+            state.deadlocked = false;
             simulate(arr1(&marking), t_in, t_effect, steps, state)
         }
         Err(_) => { Err("Could not acquire lock!".to_string()) }
     };
 }
 
+fn handle_no_transitions(marking: Vec<i32>) -> Result<SimulationResponse, String> {
+    match SIMULATOR_STATE.lock() {
+        Ok(mut state) => {
+            state.t_in = Array2::zeros((0,0));
+            state.t_effect = Array2::zeros((0,0));
+            state.deadlocked = true;
+        }
+        Err(_) => { return Err("Could not acquire lock!".to_string()) }
+    };
+    return Ok(SimulationResponse::new(marking, vec![], true));
+}
+
 pub(crate) fn continue_simulation(steps: i32) -> Result<SimulationResponse, String> {
     return match SIMULATOR_STATE.lock() {
         Ok(state) => {
+            if state.deadlocked {
+                return Ok(SimulationResponse::new(state.state_vec.to_vec(), vec!(), true));
+            }
             simulate(state.state_vec.clone(), state.t_in.clone(), state.t_effect.clone(), steps, state)
         }
         Err(_) => { Err("Could not read simulation state: ".to_string()) }
@@ -56,6 +81,7 @@ fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, step
         if active_transitions.is_empty() {
             println!("No active transitions after step {} with state {:?}.", step, state_vec);
 
+            lock.deadlocked = true;
             return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat, true));
         }
 
@@ -68,8 +94,6 @@ fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, step
 
     let result_marking = state_vec.to_vec();
     lock.state_vec = state_vec;
-    lock.t_in = t_in;
-    lock.t_effect = t_effect;
 
     return Ok(SimulationResponse::new(result_marking, t_heat, false));
 }

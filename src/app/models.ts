@@ -20,6 +20,7 @@ export function isPlayerCommand(tool: DrawingTools): boolean {
 export type SimulationResponse = {
 	marking: number[],
 	firings: number[],
+    deadlocked: boolean,
 }
 
 export type RGResponse = {

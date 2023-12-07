@@ -2,7 +2,7 @@ import {AfterContentInit, Component, NgZone, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {ToolbarComponent} from "../toolbar/toolbar.component"
-import {DrawingTools, isPlayerCommand} from "../models"
+import {DrawingTools} from "../models"
 import {Arc, basicOptions, Place, Text, Transition} from "../elements"
 import {SimulatorService, States} from "../simulator/simulator.service"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
@@ -18,6 +18,7 @@ export class CanvasComponent implements AfterContentInit {
     lastSelected?: fabric.Object
 
     isLocked = false
+    isDeadlocked = false // show notice on canvas if deadlocked
 
     gridSize = 20
     gridEnabled = false
@@ -27,12 +28,14 @@ export class CanvasComponent implements AfterContentInit {
 
     constructor(private simulatorService: SimulatorService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
+            console.log(event)
+            this.isDeadlocked = event.deadlocked
             this.setMarking(event.marking)
-            this.canvas.renderAll()
             if (event.state == States.Stopped) {
                 this.unlock()
             } else {
                 this.setTransitionHeat(event.firings)
+                this.canvas.renderAll()
             }
             this.canvas.renderAll()
         })
@@ -65,13 +68,13 @@ export class CanvasComponent implements AfterContentInit {
             width: window.innerWidth,
             height: window.innerHeight
         })
-        this.canvas.setBackgroundColor('#fcfcfc', this.canvas.renderAll.bind(this.canvas))
+        this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
 
         // extra canvas settings
         this.canvas.preserveObjectStacking = true
 
-
-        this.addPlace(100, 200)
+        // add some basic shapes
+        this.addPlace(150, 200)
         this.addTransition(350, 200)
     }
 
@@ -293,12 +296,15 @@ export class CanvasComponent implements AfterContentInit {
     }
 
     private unlock() {
+        this.isDeadlocked = false
+        this.resetTransitionHeat()
         this.canvas.setBackgroundColor(canvas_color, () => {})
         this.isLocked = false
-        this.resetTransitionHeat()
     }
 
     private setMarking(p: number[]) {
+        if (p.length == 0) return
+
         let [places, _] = this.getPlacesAndTransitions()
         for (let i = 0; i < places.length; i++) {
             places[i].setAmount(p[i])
