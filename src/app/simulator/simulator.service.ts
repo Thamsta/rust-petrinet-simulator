@@ -33,19 +33,15 @@ export class SimulatorService {
 			this.pause() // while running, the step command is essentially the same as pausing.
 			return
 		}
+
 		this.currentState = States.Running
-		this.startSimulation(vector, in_matrix, out_matrix, 1).then(result => {
-			this.simulationEmitter.emit({
-				marking: result.marking,
-				firings: result.firings,
-				state: States.Paused,
-                deadlocked: result.deadlocked,
-			})
+		this.invokeSimulationStart(vector, in_matrix, out_matrix, 1).then(result => {
+            this.emitResult(result, States.Paused)
 			this.currentState = States.Paused
 		})
 	}
 
-	async start(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number) {
+	async start(state: number[], in_matrix: number[][], out_matrix: number[][], steps: number) {
         if (![States.Stopped, States.Paused].includes(this.currentState)) {
 			// only start the simulation if it is currently stopped or paused
             return
@@ -53,11 +49,11 @@ export class SimulatorService {
 
 		this.currentState = States.Running
 		this.currentStepSize = steps
-		this.startState = vector
+		this.startState = state
 
-		this.startSimulation(vector, in_matrix, out_matrix, steps).then(() => {
+		this.invokeSimulationStart(state, in_matrix, out_matrix, steps).then(() => {
 			this.continueInternal(steps);
-		})
+		}).catch(e => this.handleError(e))
 	}
 
     async continue() {
@@ -77,13 +73,7 @@ export class SimulatorService {
 		if (this.currentState == States.Running) {
 			this.currentState = States.StopRequested
 		} else if (this.currentState == States.Paused) {
-			this.currentState = States.Stopped
-			this.simulationEmitter.emit({
-				marking: this.startState,
-				firings: [],
-				state: States.Stopped,
-                deadlocked: false,
-            })
+			this.performStop()
 		}
 	}
 
@@ -92,40 +82,24 @@ export class SimulatorService {
 	}
 
 	private async continueInternal(steps: number) {
-        const result = await this.continueSimulation(steps)
+        const result = await this.invokeSimulationContinue(steps)
         // if we know that the simulation is deadlock, we request a pause
 		let nextState = result.deadlocked ? States.PauseRequested : this.currentState
 
-		this.simulationEmitter.emit({
-			marking: result.marking,
-			firings: result.firings,
-			state: nextState,
-            deadlocked: result.deadlocked,
-		})
+        this.emitResult(result, nextState)
 		if (nextState == States.StopRequested) {
-			this.currentState = States.Stopped
-			this.simulationEmitter.emit({
-				marking: this.startState,
-				firings: [],
-				state: States.Stopped,
-                deadlocked: result.deadlocked,
-            })
+			this.performStop();
 			return
 		}
 		if (nextState == States.PauseRequested) {
 			this.currentState = States.Paused
-			this.simulationEmitter.emit({
-				marking: result.marking,
-				firings: result.firings,
-				state: States.Paused,
-                deadlocked: result.deadlocked,
-            })
+            this.emitResult(result, States.Paused)
 			return
 		}
 		await this.continueInternal(steps)
     }
 
-    async startSimulation(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
+	private async invokeSimulationStart(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
         try {
             return await invoke<SimulationResponse>('simulate_start', {
                 marking: vector,
@@ -134,18 +108,42 @@ export class SimulatorService {
                 steps: steps
             });
         } catch (error) {
-            console.error('Error calling the simulator:', error);
+            this.handleError(error)
             return Promise.reject();
         }
     }
 
-    private async continueSimulation(steps: number): Promise<SimulationResponse> {
+    private async invokeSimulationContinue(steps: number): Promise<SimulationResponse> {
         try {
             return await invoke<SimulationResponse>('simulate_continue', {steps: steps});
         } catch (error) {
-            console.error('Error calling the simulator:', error);
+            this.handleError(error)
             return Promise.reject()
         }
+    }
+
+	private handleError(e: any) {
+		console.log('Error calling the simulator:', e)
+		this.performStop();
+	}
+
+	private performStop() {
+		this.currentState = States.Stopped
+		this.simulationEmitter.emit({
+			marking: this.startState,
+			firings: [],
+			state: States.Stopped,
+			deadlocked: false,
+		})
+	}
+
+    private emitResult(result: SimulationResponse, state: States) {
+        this.simulationEmitter.emit({
+            marking: result.marking,
+            firings: result.firings,
+            state: state,
+            deadlocked: result.deadlocked,
+        })
     }
 
 	// TODO: move to other service
