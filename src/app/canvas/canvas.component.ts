@@ -86,8 +86,9 @@ export class CanvasComponent implements AfterContentInit {
         let x = event.e.offsetX
         let y = event.e.offsetY
         let target = this.getTarget(event)
+        let tool = this.toolbar.selected
 
-        switch (this.toolbar.selected) {
+        switch (tool) {
             case DrawingTools.PLACE: {
                 if (target == undefined) {
                     this.addPlace(x, y)
@@ -102,27 +103,17 @@ export class CanvasComponent implements AfterContentInit {
             }
             case DrawingTools.TOKEN_INC:
             case DrawingTools.TOKEN_DEC: {
-                if (target instanceof Place || target instanceof Arc) {
-                    this.addOrRemovePlaceToken(this.toolbar.selected, target)
-                    this.canvas.renderAll()
-                }
+                this.addOrRemoveToken(tool, target)
                 break
             }
             case DrawingTools.GARBAGE: {
-                if (target) {
-                    this.deleteObject(target)
-                }
+                this.deleteObject(target)
                 break
             }
             case DrawingTools.ARC: {
-                if (target instanceof Place && this.lastSelected instanceof Transition
-                    || target instanceof Transition && this.lastSelected instanceof Place) {
-                    let arc = new Arc(this.lastSelected, target, this.canvas)
-                    this.lastSelected.arcs.arcs_out.push(arc)
-                    target.arcs.arcs_in.push(arc)
-                }
+                this.addArc(target)
                 break
-                }
+            }
         }
         this.lastSelected = target
     }
@@ -135,20 +126,34 @@ export class CanvasComponent implements AfterContentInit {
         return new Place(x, y, this.canvas)
     }
 
-    private deleteObject(obj: fabric.Object) {
+    private addArc(target: fabric.Object | undefined) {
+        let other = this.lastSelected
+
+        if (target instanceof Place && other instanceof Transition
+            || target instanceof Transition && other instanceof Place) {
+            let arc = new Arc(other, target, this.canvas)
+            other.arcs.arcs_out.push(arc)
+            target.arcs.arcs_in.push(arc)
+        }
+    }
+
+    private deleteObject(obj: fabric.Object | undefined) {
         if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
             obj.remove(this.canvas)
         }
-        if (this.lastSelected == obj) {
+        if (obj && this.lastSelected == obj) {
             this.lastSelected = undefined
         }
     }
 
-    private addOrRemovePlaceToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: Place | Arc) {
-        if (mode == DrawingTools.TOKEN_INC) {
-            obj.increment()
-        } else {
-            obj.decrement()
+    private addOrRemoveToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: fabric.Object | undefined) {
+        if (obj instanceof Place || obj instanceof Arc) {
+            if (mode == DrawingTools.TOKEN_INC) {
+                obj.increment()
+            } else {
+                obj.decrement()
+            }
+            this.canvas.renderAll()
         }
     }
 
@@ -194,7 +199,7 @@ export class CanvasComponent implements AfterContentInit {
         }
     }
 
-    private toGridCoordinate(x: number, y: number) : [number, number] {
+    private toGridCoordinate(x: number, y: number): [number, number] {
         let xGrid = Math.round(x / this.gridSize) * this.gridSize
         let yGrid = Math.round(y / this.gridSize) * this.gridSize
         return [xGrid, yGrid]
@@ -234,7 +239,7 @@ export class CanvasComponent implements AfterContentInit {
     async startSimulationAsync(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
         try {
             this.ngZone.runOutsideAngular(async () => {
-                this.simulatorService.start(p, pxt_in, pxt_out, steps).then(_ => {});
+                this.simulatorService.start(p, pxt_in, pxt_out, steps).then(_ => { });
             });
         } catch (error) {
             console.error('Error during simulation:', error);
