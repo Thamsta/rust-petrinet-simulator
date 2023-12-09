@@ -67,7 +67,7 @@ class Connectable implements Removable {
 }
 
 // Options that are shared amongst all elements
-export const basicOptions = {
+export const baseOptions = {
 	lockScalingY: true,
 	lockScalingX: true,
 	lockRotation: true,
@@ -92,7 +92,7 @@ const transitionOptions = {
 	height: 50,
 	originX: 'center',
 	originY: 'center',
-	...basicOptions
+	...baseOptions
 }
 
 // Options for places
@@ -101,7 +101,7 @@ const placeOptions = {
 	radius: 30,
 	originX: 'center',
 	originY: 'center',
-	...basicOptions
+	...baseOptions
 }
 
 // Options for lines
@@ -109,14 +109,14 @@ const lineOptions = {
 	originX: 'center',
 	originY: 'center',
 	...immovableOptions,
-	...basicOptions,
+	...baseOptions,
 }
 
 // Default options for text.
 const textOptions = {
 	textAlign: 'center',
 	...immovableOptions,
-	...basicOptions,
+	...baseOptions,
     strokeWidth: 0
 }
 
@@ -234,20 +234,20 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     constructor(from: Place | Transition, to: Place | Transition, canvas: fabric.Canvas) {
         super([from.left!, from.top!, to.left!, to.top!], lineOptions);
 
-        let lineP2 = this.shortenLine({x: from.left!, y: from.top!}, {x: to.left!, y: to.top!}, 30)
-
-        let [a1, a2] = this.calculateArrowhead({x: from.left!, y:from.top!}, lineP2, 20)
-
         this.weightText = new Text(this.weight.toString(), this)
-        this.updateTextPosition({x: from.left!, y: from.top!}, lineP2)
-
-        this.arrowArc1 = new fabric.Line([lineP2.x, lineP2.y, a1.x, a1.y], lineOptions)
-        this.arrowArc2 = new fabric.Line([lineP2.x, lineP2.y, a2.x, a2.y], lineOptions)
+        this.arrowArc1 = new fabric.Line([0,0,0,0], lineOptions) // use any coordinates, will be updated later
+        this.arrowArc2 = new fabric.Line([0,0,0,0], lineOptions)
 
         this.from = from;
         this.to = to;
+
+        this.updateLinePoints()
+        this.updateText()
+
         canvas.add(this, this.arrowArc1, this.arrowArc2, this.weightText);
         canvas.sendToBack(this);
+        canvas.sendToBack(this.arrowArc1);
+        canvas.sendToBack(this.arrowArc2);
     }
 
     removeFromGroup(group: fabric.Group): void {
@@ -276,8 +276,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     updateLinePoints() {
         let fromGroup = this.from.group
         let toGroup = this.to.group
-        console.log(fromGroup, toGroup)
-        let lineStart;
+        let lineStart
         if (fromGroup) {
             // from is in group and arc is not
             lineStart = {x: this.from.left! + fromGroup.left! + (fromGroup.width! / 2), y: this.from.top! + fromGroup.top! + (fromGroup.height! / 2)}
@@ -293,7 +292,8 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
         } else {
             target = {x: this.to.left!, y: this.to.top!}
         }
-        let lineEnd: Point = this.shortenLine(lineStart, target, 30)
+
+        let lineEnd: Point = this.shortenLine(lineStart, target, 30, this.to)
         let [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
         this.updateTextPosition(lineStart, lineEnd)
         // @ts-ignore: this works.
@@ -305,25 +305,49 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
         this.setCoords()
     }
 
-    shortenLine(p1: Point, p2: Point, lengthToShorten: number): Point {
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
+    private shortenLine(from: Point, to: Point, lengthToShorten: number, toElem: Place | Transition): Point {
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
         const lineLength = Math.sqrt(dx * dx + dy * dy);
+
+        if (toElem instanceof Place) {
+            lengthToShorten = toElem.radius!
+        } else {
+            lengthToShorten = this.getLineLengthIntoTransition(from, to, toElem)
+        }
 
         // If line is too short, return p1 as the endpoint
         if (lineLength <= lengthToShorten) {
-            return { x: p1.x, y: p1.y };
+            return { x: from.x, y: from.y };
         }
 
         // Shorten the line by the specified length
         const shortenedLength = lineLength - lengthToShorten;
-        const shortenedX = p1.x + (dx / lineLength) * shortenedLength;
-        const shortenedY = p1.y + (dy / lineLength) * shortenedLength;
+        const shortenedX = from.x + (dx / lineLength) * shortenedLength;
+        const shortenedY = from.y + (dy / lineLength) * shortenedLength;
 
         return { x: shortenedX, y: shortenedY };
     }
 
-    calculateArrowhead(start: Point, end: Point, arrowLength: number = 10, arrowAngle: number = 20): [Point, Point] {
+    private getLineLengthIntoTransition(from: Point, to: Point, transition: Transition): number {
+        // Calculate the vector components of the line
+        const dx = from.x - to.x;
+        const dy = from.y - to.y;
+
+        const angleRadians = Math.atan2(dx, dy)
+        const angleDegrees = (angleRadians * 180) / Math.PI;
+        const clippedAngle = Math.abs(Math.abs(angleDegrees) - 90);
+        const clippedAngleRadians = clippedAngle * Math.PI / 180
+
+        // Calculate the length of the line segment within the rectangle
+        if (clippedAngle < 50 * (transition.height! / transition.width!)) {
+            return ((transition.width! / 2) / Math.cos(clippedAngleRadians))
+        } else {
+            return ((transition.height! / 2) / Math.sin(clippedAngleRadians))
+        }
+    }
+
+    private calculateArrowhead(start: Point, end: Point, arrowLength: number = 10, arrowAngle: number = 20): [Point, Point] {
         const angle = Math.atan2(end.y - start.y, end.x - start.x);
 
         const angleRad = (arrowAngle * Math.PI) / 180;

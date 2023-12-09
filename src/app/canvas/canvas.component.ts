@@ -3,7 +3,7 @@ import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {ToolbarComponent} from "../toolbar/toolbar.component"
 import {DrawingTools} from "../models"
-import {Arc, basicOptions, Place, Text, Transition} from "../elements"
+import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {SimulatorService, States} from "../simulator/simulator.service"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {InfoBarComponent} from "../infobar/info-bar.component";
@@ -340,7 +340,7 @@ export class CanvasComponent implements AfterContentInit {
             return
         }
 
-        group.set(basicOptions)
+        group.set(baseOptions)
         group.getObjects().forEach(obj => {
             if (obj instanceof Arc) {
                 obj.removeFromGroup(group!)
