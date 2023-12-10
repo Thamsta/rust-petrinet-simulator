@@ -45,18 +45,6 @@ pub(crate) fn start_simulation(marking: Vec<i32>, transition_inputs: Vec<Vec<i32
     };
 }
 
-fn handle_no_transitions(marking: Vec<i32>) -> Result<SimulationResponse, String> {
-    match SIMULATOR_STATE.lock() {
-        Ok(mut state) => {
-            state.t_in = Array2::zeros((0,0));
-            state.t_effect = Array2::zeros((0,0));
-            state.deadlocked = true;
-        }
-        Err(_) => { return Err("Could not acquire lock!".to_string()) }
-    };
-    return Ok(SimulationResponse::new(marking, vec![], true));
-}
-
 pub(crate) fn continue_simulation(steps: i32) -> Result<SimulationResponse, String> {
     return match SIMULATOR_STATE.lock() {
         Ok(state) => {
@@ -96,4 +84,16 @@ fn simulate(marking: Array1<i32>, t_in: Array2<i32>, t_effect: Array2<i32>, step
     lock.state_vec = state_vec;
 
     return Ok(SimulationResponse::new(result_marking, t_heat, false));
+}
+
+fn handle_no_transitions(marking: Vec<i32>) -> Result<SimulationResponse, String> {
+    match SIMULATOR_STATE.lock() {
+        Ok(mut state) => {
+            state.t_in = Array2::zeros((0,0));
+            state.t_effect = Array2::zeros((0,0));
+            state.deadlocked = true;
+        }
+        Err(_) => { return Err("Could not acquire lock!".to_string()) }
+    };
+    return Ok(SimulationResponse::new(marking, vec![], true));
 }

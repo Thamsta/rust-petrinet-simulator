@@ -7,9 +7,7 @@ use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
 
-use crate::reachability::RgProperties;
-
-pub fn check_properties(rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> RgProperties {
+pub(super) fn check_properties(rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> RgProperties {
     let sccs = tarjan_scc(rg);
     let start_time_properties = Instant::now();
     let scc_graph = create_scc_graph(&sccs, rg, transitions);
@@ -77,4 +75,10 @@ fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i32>, i32>, 
     }
 
     return graph;
+}
+
+#[derive(Debug)]
+pub(super) struct RgProperties {
+    pub liveness: bool,
+    pub reversible: bool,
 }

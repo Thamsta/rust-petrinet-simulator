@@ -83,9 +83,3 @@ fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i32>, all_state
     }
     return None;
 }
-
-#[derive(Debug)]
-struct RgProperties {
-    liveness: bool,
-    reversible: bool,
-}
