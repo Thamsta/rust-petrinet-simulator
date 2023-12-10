@@ -10,17 +10,17 @@ import {MatButtonModule} from "@angular/material/button";
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDividerModule} from "@angular/material/divider";
 import {InfoBarComponent} from './infobar/info-bar.component';
-import { ShortcutDirective } from './directives/shortcut.directive';
+import {ShortcutDirective} from './directives/shortcut.directive';
 import {MatTooltipModule} from "@angular/material/tooltip";
 
 @NgModule({
-    declarations: [
-        AppComponent,
-        CanvasComponent,
-        ToolbarComponent,
-        InfoBarComponent,
-        ShortcutDirective,
-    ],
+	declarations: [
+		AppComponent,
+		CanvasComponent,
+		ToolbarComponent,
+		InfoBarComponent,
+		ShortcutDirective,
+	],
 	imports: [
 		BrowserModule,
 		MatToolbarModule,
@@ -30,8 +30,8 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 		MatDividerModule,
 		MatTooltipModule
 	],
-    providers: [],
-    bootstrap: [AppComponent]
+	providers: [],
+	bootstrap: [AppComponent]
 })
 export class AppModule {
 }

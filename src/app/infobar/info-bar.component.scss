@@ -1,35 +1,35 @@
 .mat-toolbar {
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    z-index: 2; /* Adjust the z-index as needed to ensure it appears above the main content */
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	z-index: 2; /* Adjust the z-index as needed to ensure it appears above the main content */
 
-    height: 40px; // Adjust the height as needed
-    font-weight: normal; // Remove bold font
-    font-size: 13px; // Adjust the font size as needed
+	height: 40px; // Adjust the height as needed
+	font-weight: normal; // Remove bold font
+	font-size: 13px; // Adjust the font size as needed
 }
 
 .info-table {
-    /* Add styling for your table-like structure */
-    display: table;
-    width: 100%;
-    position: fixed;
-    bottom: 0;
-    background-color: #efefef;
+	/* Add styling for your table-like structure */
+	display: table;
+	width: 100%;
+	position: fixed;
+	bottom: 0;
+	background-color: #efefef;
 }
 
 .info-row {
-    display: table-row;
+	display: table-row;
 }
 
 .info-cell {
-    display: table-cell;
-    padding: 2px 0 2px 4px;
-    text-align: left;
-    width: 100px;
+	display: table-cell;
+	padding: 2px 0 2px 4px;
+	text-align: left;
+	width: 100px;
 }
 
 .number {
-    text-align: right;
-    width: 65px;
+	text-align: right;
+	width: 65px;
 }

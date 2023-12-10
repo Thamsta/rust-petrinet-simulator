@@ -185,7 +185,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     }
 
     updateTextPosition() {
-        let tokenLength = this.tokens.toString().length - 1;
+        const tokenLength = this.tokens.toString().length - 1;
         this.tokenText.set({
             left: this.left! + this.textDx - (tokenLength * 11),
             top: this.top! + this.textDy,
@@ -256,11 +256,11 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     }
 
     remove(canvas: fabric.Canvas): void {
-        let in_index = this.from.arcs.arcs_out.indexOf(this)
+        const in_index = this.from.arcs.arcs_out.indexOf(this)
         if (in_index >= 0) {
             this.from.arcs.arcs_out.splice(in_index, 1)
         }
-        let out_index = this.to.arcs.arcs_in.indexOf(this)
+        const out_index = this.to.arcs.arcs_in.indexOf(this)
         if (out_index >= 0) {
             this.to.arcs.arcs_in.splice(out_index, 1)
         }
@@ -268,14 +268,14 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     }
 
     private updateTextPosition(start: Point, end: Point) {
-        let x = start.x + (end.x - start.x) / 2
-        let y = start.y + (end.y - start.y) / 2
+        const x = start.x + (end.x - start.x) / 2
+        const y = start.y + (end.y - start.y) / 2
         this.weightText.set({top: y, left: x})
     }
 
     updateLinePoints() {
-        let fromGroup = this.from.group
-        let toGroup = this.to.group
+        const fromGroup = this.from.group
+        const toGroup = this.to.group
         let lineStart
         if (fromGroup) {
             // from is in group and arc is not
@@ -293,8 +293,8 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
             target = {x: this.to.left!, y: this.to.top!}
         }
 
-        let lineEnd: Point = this.shortenLine(lineStart, target, 30, this.to)
-        let [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
+        const lineEnd: Point = this.shortenLine(lineStart, target, 30, this.to)
+        const [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
         this.updateTextPosition(lineStart, lineEnd)
         // @ts-ignore: this works.
         this.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})
