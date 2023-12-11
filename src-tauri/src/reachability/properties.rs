@@ -8,13 +8,12 @@ use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
 
 pub(super) fn check_properties(rg: &DiGraph<Array1<i16>, i16>, transitions: usize) -> RgProperties {
-    let sccs = tarjan_scc(rg);
     let start_time_properties = Instant::now();
+    let sccs = tarjan_scc(rg);
     let scc_graph = create_scc_graph(&sccs, rg, transitions);
     let end_time_properties = Instant::now();
     let elapsed_time_properties = end_time_properties - start_time_properties;
-    println!("SCC-Graph with {} states and {} edges took {}ms", scc_graph.node_count(), scc_graph.edge_count(), elapsed_time_properties.as_millis());
-
+    println!("Creating SCC-Graph with {} states and {} edges took {}ms", scc_graph.node_count(), scc_graph.edge_count(), elapsed_time_properties.as_millis());
 
     let reversible = sccs.len() == 1 && rg.edge_count() > 0;
     let liveness = check_liveness(&scc_graph);
