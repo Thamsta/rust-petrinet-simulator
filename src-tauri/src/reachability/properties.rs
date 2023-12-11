@@ -7,7 +7,7 @@ use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
 
-pub(super) fn check_properties(rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> RgProperties {
+pub(super) fn check_properties(rg: &DiGraph<Array1<i16>, i16>, transitions: usize) -> RgProperties {
     let sccs = tarjan_scc(rg);
     let start_time_properties = Instant::now();
     let scc_graph = create_scc_graph(&sccs, rg, transitions);
@@ -37,7 +37,7 @@ fn check_liveness(scc_graph: &DiGraph<bool, ()>) -> bool {
 }
 
 // TODO: compare with petgraph::algo::condensation implementation
-fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> DiGraph<bool, ()> {
+fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i16>, i16>, transitions: usize) -> DiGraph<bool, ()> {
     let mut graph = DiGraph::<bool, ()>::new();
     let mut node_to_scc: Vec<usize> = vec![0; rg.node_count()];
 
@@ -53,7 +53,7 @@ fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i32>, i32>, 
 
     // HashSet to store unique edges
     let mut unique_edges: HashSet<(usize, usize)> = HashSet::new();
-    let mut scc_transitions: HashMap<usize, HashSet<i32>> = HashMap::new();
+    let mut scc_transitions: HashMap<usize, HashSet<i16>> = HashMap::new();
 
     for edge in rg.edge_indices() {
         let (source, target) = rg.edge_endpoints(edge).unwrap();
