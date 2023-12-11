@@ -11,13 +11,27 @@ export class InfoBarComponent {
 	edges: string = "";
 	reversible: string = "";
 	live: string = "";
+	bounded: string = "";
 
 	updateRGInfos(infos: RGResponse) {
 		console.log("updating with", infos)
+		if (!infos.bounded) {
+			this.updateOnUnbounded(infos)
+			return
+		}
 		this.states = this.formatNumber(infos.states)
 		this.edges = this.formatNumber(infos.edges)
 		this.reversible = String(infos.reversible)
 		this.live = String(infos.liveness)
+		this.bounded = "true"
+	}
+
+	updateOnUnbounded(infos: RGResponse) {
+		this.states = "∞"
+		this.edges = "∞"
+		this.reversible = ""
+		this.live = ""
+		this.bounded = "false"
 	}
 
 	updateOnError(_: any) {

@@ -49,8 +49,7 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
                     Some(new_node_index) => { is_covering(&new_node_index, &graph) }
                 };
             });
-        // TODO: return a positive response instead
-        if has_covering { return Err("Graph is unbounded".to_string()); }
+        if has_covering { return Ok(RGResponse::new(0, 0,false, false, false, "Graph is unbounded".to_string())) }
         step_counter += 1;
     }
 
