@@ -26,8 +26,6 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
     let mut graph = DiGraph::<Array1<i16>, i16>::new();
     let mut all_states_rev: HashMap<Array1<i16>, NodeIndex> = HashMap::new();
 
-    let mut step_counter = 0;
-
     // create & insert start node
     let start_node = graph.add_node(state_vec.clone());
     all_states_rev.insert(state_vec, start_node);
@@ -48,7 +46,6 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
                 };
             });
         if has_covering { return Ok(RGResponse::new(0, 0,false, false, false, "Graph is unbounded".to_string())) }
-        step_counter += 1;
     }
 
     let end_time_rg = Instant::now();
