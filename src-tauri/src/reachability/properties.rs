@@ -36,6 +36,7 @@ fn check_liveness(scc_graph: &DiGraph<bool, ()>) -> bool {
     return liveness;
 }
 
+// TODO: compare with petgraph::algo::condensation implementation
 fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i32>, i32>, transitions: usize) -> DiGraph<bool, ()> {
     let mut graph = DiGraph::<bool, ()>::new();
     let mut node_to_scc: Vec<usize> = vec![0; rg.node_count()];
