@@ -64,7 +64,7 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
 
     println!("Determining properties took {}ms ({:?})", elapsed_time_properties.as_millis(), properties);
 
-    return Ok(RGResponse::new(graph.node_count(), graph.edge_count(), properties.reversible, properties.liveness, true, "".to_string()));
+    return Ok(RGResponse::new(graph.node_count(), graph.edge_count(), properties.reversible, properties.liveness, true, format!("took {}ms", elapsed_time_properties.as_millis()).to_string()));
 }
 
 fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i16>, all_states_rev: &mut HashMap<Array1<i16>, NodeIndex>, graph: &mut Graph<Array1<i16>, i16>, inx: i16, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {
