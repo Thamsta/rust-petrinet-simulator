@@ -49,6 +49,7 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
                     Some(new_node_index) => { is_covering(&new_node_index, &graph) }
                 };
             });
+        // TODO: return a positive response instead
         if has_covering { return Err("Graph is unbounded".to_string()); }
         step_counter += 1;
     }
@@ -74,6 +75,7 @@ pub fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transi
 
 fn is_covering(new_node: &NodeIndex, graph: &Graph<Array1<i32>, i32>) -> bool {
     // TODO: check only if transition produces more tokens than it consumes
+    // TODO: do a backwards traversal instead
     let new_node_weight = graph.node_weight(*new_node).unwrap();
     for node in graph.node_indices() {
         let weight_of_node = graph.node_weight(node).unwrap();
