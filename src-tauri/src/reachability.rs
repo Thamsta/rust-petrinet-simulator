@@ -34,10 +34,6 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
     queue.push(start_node);
 
     while !queue.is_empty() {
-        if step_counter > 50000 {
-            println!("Aborting after {} steps.", step_counter - 1);
-            return Err("RG is unbounded or too large!".to_string());
-        }
         let cur_state_idx = queue.pop().unwrap();
         let cur_state = graph.node_weight(cur_state_idx).cloned().unwrap();
         let active = find_active_transitions(&cur_state, &t_in);
