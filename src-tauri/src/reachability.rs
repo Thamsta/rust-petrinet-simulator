@@ -7,8 +7,10 @@ use petgraph::graph::{DiGraph, NodeIndex};
 
 use crate::common::*;
 use crate::reachability::properties::check_properties;
+use crate::reachability::coverability::is_covering;
 
 mod properties;
+mod coverability;
 
 pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>) -> Result<RGResponse, String> {
     let start_time_rg = Instant::now();
@@ -46,7 +48,7 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
                 let new_state: Array1<i16> = fire_transition(&cur_state, &t_effect, inx as usize);
                 has_covering = has_covering || match insert_next_state(cur_state_idx, new_state, &mut all_states_rev, &mut graph, inx, &mut queue) {
                     None => { false }
-                    Some(new_node_index) => { is_covering(&new_node_index, &graph) }
+                    Some(new_node_index) => { is_covering(&new_node_index, &graph, true) }
                 };
             });
         if has_covering { return Ok(RGResponse::new(0, 0,false, false, false, "Graph is unbounded".to_string())) }
@@ -70,38 +72,6 @@ pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transi
     println!("Determining properties took {}ms ({:?})", elapsed_time_properties.as_millis(), properties);
 
     return Ok(RGResponse::new(graph.node_count(), graph.edge_count(), properties.reversible, properties.liveness, true, "".to_string()));
-}
-
-fn is_covering(new_node: &NodeIndex, graph: &Graph<Array1<i16>, i16>) -> bool {
-    // TODO: check only if transition produces more tokens than it consumes
-    // TODO: do a backwards traversal instead
-    let new_node_weight = graph.node_weight(*new_node).unwrap();
-    for node in graph.node_indices() {
-        let weight_of_node = graph.node_weight(node).unwrap();
-        if graph.contains_edge(node, *new_node) {
-            if is_strictly_greater_than(new_node_weight, weight_of_node) {
-                return true;
-            }
-        } else {
-            // Check if there is a path from 'node' to 'new_node'
-            if petgraph::algo::has_path_connecting(&graph, node, *new_node, None) {
-                if is_strictly_greater_than(new_node_weight, weight_of_node) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false
-}
-
-fn is_strictly_greater_than(arr1: &Array1<i16>, arr2: &Array1<i16>) -> bool {
-    let is_greater_than =  arr1.iter().zip(arr2.iter()).all(|(&a, &b)| a >= b) &&
-        arr1.iter().zip(arr2.iter()).any(|(&a, &b)| a > b);
-
-    // println!("{} > {}: {}", arr1, arr2, is_greater_than);
-
-    return is_greater_than;
 }
 
 fn insert_next_state(old_state_idx: NodeIndex, new_state: Array1<i16>, all_states_rev: &mut HashMap<Array1<i16>, NodeIndex>, graph: &mut Graph<Array1<i16>, i16>, inx: i16, queue: &mut Vec<NodeIndex>) -> Option<NodeIndex> {
