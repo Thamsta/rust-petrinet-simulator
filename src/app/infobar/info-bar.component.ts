@@ -11,13 +11,30 @@ export class InfoBarComponent {
 	edges: string = "";
 	reversible: string = "";
 	live: string = "";
+	bounded: string = "";
+	message: string = "";
 
 	updateRGInfos(infos: RGResponse) {
 		console.log("updating with", infos)
+		if (!infos.bounded) {
+			this.updateOnUnbounded(infos)
+			return
+		}
 		this.states = this.formatNumber(infos.states)
 		this.edges = this.formatNumber(infos.edges)
 		this.reversible = String(infos.reversible)
 		this.live = String(infos.liveness)
+		this.bounded = "true"
+		this.message = infos.message
+	}
+
+	updateOnUnbounded(infos: RGResponse) {
+		this.states = "∞"
+		this.edges = "∞"
+		this.reversible = ""
+		this.live = ""
+		this.bounded = "false"
+		this.message = infos.message ? infos.message : "net is unbounded"
 	}
 
 	updateOnError(_: any) {
@@ -25,6 +42,7 @@ export class InfoBarComponent {
 		this.edges = ""
 		this.reversible = ""
 		this.live = ""
+		this.message = ""
 	}
 
 	private formatNumber(num: number): string {

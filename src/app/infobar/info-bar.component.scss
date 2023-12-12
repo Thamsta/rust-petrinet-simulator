@@ -24,12 +24,25 @@
 
 .info-cell {
 	display: table-cell;
-	padding: 2px 0 2px 4px;
+	padding: 2px 0 2px 1px;
 	text-align: left;
-	width: 100px;
+	width: 90px;
+    line-height: 16px;
 }
 
 .number {
 	text-align: right;
 	width: 65px;
+}
+
+.info-button {
+    height: 16px;
+    width: 24px;
+    padding: 2px 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.info-button mat-icon {
+    transform: scale(0.8);
 }

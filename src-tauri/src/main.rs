@@ -15,16 +15,16 @@ fn main() {
 }
 
 #[tauri::command]
-fn simulate_start(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>, steps: i32) -> Result<SimulationResponse, String> {
+fn simulate_start(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>, steps: i16) -> Result<SimulationResponse, String> {
     return simulator::start_simulation(marking, transition_inputs, transition_outputs, steps);
 }
 
 #[tauri::command]
-fn simulate_continue(steps: i32) -> Result<SimulationResponse, String> {
+fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
     return simulator::continue_simulation(steps);
 }
 
 #[tauri::command]
-fn create_rg<'a>(marking: Vec<i32>, transition_inputs: Vec<Vec<i32>>, transition_outputs: Vec<Vec<i32>>) -> Result<RGResponse, String> {
+fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>) -> Result<RGResponse, String> {
     return reachability::create_rg(marking, transition_inputs, transition_outputs);
 }
