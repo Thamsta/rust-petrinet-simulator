@@ -17,6 +17,6 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Build
-      run: cargo tauri build --verbose
+      run: cargo install tauri-cli && cargo tauri build --verbose
     - name: Run tests
-      run: cargo tauri test --verbose
+      run: cargo install tauri-cli && cargo tauri test --verbose
