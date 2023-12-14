@@ -1,11 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use crate::common::{RGResponse, SimulationResponse};
+use crate::common::{Matrix, RGResponse, SimulationResponse};
 
 mod common;
-mod reachability;
 mod simulator;
+mod reachability;
 
 fn main() {
     tauri::Builder::default()
@@ -15,7 +15,7 @@ fn main() {
 }
 
 #[tauri::command]
-fn simulate_start(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>, steps: i16) -> Result<SimulationResponse, String> {
+fn simulate_start(marking: Vec<i16>, transition_inputs: Matrix, transition_outputs: Matrix, steps: i16) -> Result<SimulationResponse, String> {
     return simulator::start_simulation(marking, transition_inputs, transition_outputs, steps);
 }
 
@@ -25,6 +25,6 @@ fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
 }
 
 #[tauri::command]
-fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>) -> Result<RGResponse, String> {
+fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Matrix, transition_outputs: Matrix) -> Result<RGResponse, String> {
     return reachability::create_rg(marking, transition_inputs, transition_outputs);
 }

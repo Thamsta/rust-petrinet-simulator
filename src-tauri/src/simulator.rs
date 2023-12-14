@@ -23,7 +23,7 @@ lazy_static! {
     });
 }
 
-pub(crate) fn start_simulation(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>, steps: i16) -> Result<SimulationResponse, String> {
+pub(crate) fn start_simulation(marking: Vec<i16>, transition_inputs: Matrix, transition_outputs: Matrix, steps: i16) -> Result<SimulationResponse, String> {
     let t = &transition_inputs.len(); // rows: number of transitions
     if t.is_zero() { return handle_no_transitions(marking) }
 

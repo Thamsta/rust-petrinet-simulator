@@ -12,7 +12,7 @@ use crate::reachability::coverability::is_covering;
 mod properties;
 mod coverability;
 
-pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Vec<Vec<i16>>, transition_outputs: Vec<Vec<i16>>) -> Result<RGResponse, String> {
+pub fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Matrix, transition_outputs: Matrix) -> Result<RGResponse, String> {
     let start_time_rg = Instant::now();
     let t = &transition_inputs.len(); // rows
     let p = &transition_inputs.get(0).expect("empty array").len(); // columns
