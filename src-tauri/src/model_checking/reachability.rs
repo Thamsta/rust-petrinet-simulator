@@ -3,19 +3,16 @@ use std::time::Instant;
 
 use ndarray::{arr1, Array1, Array2};
 use petgraph::graph::{DiGraph, NodeIndex};
+use petgraph::Graph;
 
 use crate::common::*;
-use crate::reachability::coverability::is_covering;
-use crate::reachability::properties::check_properties;
+use crate::model_checking::coverability::is_covering;
 
-mod coverability;
-mod properties;
-
-pub fn create_rg<'a>(
+pub(super) fn create_rg(
     marking: Vec<i16>,
     transition_inputs: Matrix,
     transition_outputs: Matrix,
-) -> Result<RGResponse, String> {
+) -> Result<Graph<Array1<i16>, i16>, String> {
     let start_time_rg = Instant::now();
     let t = &transition_inputs.len(); // rows
     let p = &transition_inputs.get(0).expect("empty array").len(); // columns
@@ -49,7 +46,7 @@ pub fn create_rg<'a>(
                     all_states_rev.insert(new_state, new_state_idx);
                     queue.push(new_state_idx);
                     if is_covering(&new_state_idx, &graph, true) {
-                        return Ok(RGResponse::unbounded());
+                        return Err("Net is unbounded".to_string());
                     }
                 }
                 Some(existing_node_index) => {
@@ -75,23 +72,5 @@ pub fn create_rg<'a>(
         elements_per_second.round()
     );
 
-    let start_time_properties = Instant::now();
-    let properties = check_properties(&graph, *t);
-    let end_time_properties = Instant::now();
-    let elapsed_time_properties = end_time_properties - start_time_properties;
-
-    println!(
-        "Determining properties took {}ms ({:?})",
-        elapsed_time_properties.as_millis(),
-        properties
-    );
-
-    return Ok(RGResponse {
-        states: graph.node_count(),
-        edges: graph.edge_count(),
-        reversible: properties.reversible,
-        liveness: properties.liveness,
-        bounded: true,
-        message: format!("took {}ms", elapsed_time_properties.as_millis()).to_string(),
-    });
+    return Ok(graph);
 }

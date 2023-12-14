@@ -1,5 +1,7 @@
 use derive_new::new;
 use ndarray::{s, Array1, Array2, Axis};
+use petgraph::visit::EdgeCount;
+use petgraph::Graph;
 use serde::Serialize;
 
 pub(crate) fn fire_transition(
@@ -58,6 +60,12 @@ pub struct RGResponse {
     pub message: String,
 }
 
+#[derive(Debug)]
+pub struct RgProperties {
+    pub liveness: bool,
+    pub reversible: bool,
+}
+
 impl RGResponse {
     pub(crate) fn unbounded() -> Self {
         RGResponse {
@@ -67,6 +75,21 @@ impl RGResponse {
             liveness: false,
             bounded: false,
             message: "Graph is unbounded".to_string(),
+        }
+    }
+
+    pub(crate) fn success(
+        graph: &Graph<Array1<i16>, i16>,
+        properties: &RgProperties,
+        msg: String,
+    ) -> Self {
+        RGResponse {
+            states: graph.node_count(),
+            edges: graph.edge_count(),
+            reversible: properties.reversible,
+            liveness: properties.liveness,
+            bounded: true,
+            message: msg,
         }
     }
 }

@@ -4,7 +4,7 @@
 use crate::common::{Matrix, RGResponse, SimulationResponse};
 
 mod common;
-mod reachability;
+mod model_checking;
 mod simulator;
 
 fn main() {
@@ -39,5 +39,5 @@ fn create_rg<'a>(
     transition_inputs: Matrix,
     transition_outputs: Matrix,
 ) -> Result<RGResponse, String> {
-    return reachability::create_rg(marking, transition_inputs, transition_outputs);
+    return model_checking::check_properties(marking, transition_inputs, transition_outputs);
 }

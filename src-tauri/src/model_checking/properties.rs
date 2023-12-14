@@ -1,6 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
+use crate::common::RgProperties;
 use ndarray::Array1;
 use petgraph::algo::tarjan_scc;
 use petgraph::graph::{DiGraph, NodeIndex};
@@ -91,10 +92,4 @@ fn create_scc_graph(
     }
 
     return graph;
-}
-
-#[derive(Debug)]
-pub(super) struct RgProperties {
-    pub liveness: bool,
-    pub reversible: bool,
 }
