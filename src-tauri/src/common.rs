@@ -1,12 +1,19 @@
 use derive_new::new;
-use ndarray::{Array1, Array2, Axis, s};
+use ndarray::{s, Array1, Array2, Axis};
 use serde::Serialize;
 
-pub(crate) fn fire_transition(state: &Array1<i16>, effect_matrix: &Array2<i16>, t: usize) -> Array1<i16> {
+pub(crate) fn fire_transition(
+    state: &Array1<i16>,
+    effect_matrix: &Array2<i16>,
+    t: usize,
+) -> Array1<i16> {
     state + &effect_matrix.slice(s![t, ..])
 }
 
-pub(crate) fn find_active_transitions(marking: &Array1<i16>, transition_inputs: &Array2<i16>) -> Vec<i16> {
+pub(crate) fn find_active_transitions(
+    marking: &Array1<i16>,
+    transition_inputs: &Array2<i16>,
+) -> Vec<i16> {
     let mut active_transitions = Vec::new();
 
     // Compare each row of the matrix to the reference array
@@ -36,17 +43,30 @@ pub type Matrix = Vec<Vec<i16>>;
 
 #[derive(Serialize, new)]
 pub struct SimulationResponse {
-    marking: Vec<i16>,
-    firings: Vec<i16>,
-    deadlocked: bool,
+    pub marking: Vec<i16>,
+    pub firings: Vec<i16>,
+    pub deadlocked: bool,
 }
 
-#[derive(Serialize, new)]
+#[derive(Serialize)]
 pub struct RGResponse {
-    states: usize,
-    edges: usize,
-    reversible: bool,
-    liveness: bool,
-    bounded: bool,
-    message: String,
+    pub states: usize,
+    pub edges: usize,
+    pub reversible: bool,
+    pub liveness: bool,
+    pub bounded: bool,
+    pub message: String,
+}
+
+impl RGResponse {
+    pub(crate) fn unbounded() -> Self {
+        RGResponse {
+            states: 0,
+            edges: 0,
+            reversible: false,
+            liveness: false,
+            bounded: false,
+            message: "Graph is unbounded".to_string(),
+        }
+    }
 }

@@ -4,18 +4,27 @@
 use crate::common::{Matrix, RGResponse, SimulationResponse};
 
 mod common;
-mod simulator;
 mod reachability;
+mod simulator;
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![simulate_start, simulate_continue, create_rg])
+        .invoke_handler(tauri::generate_handler![
+            simulate_start,
+            simulate_continue,
+            create_rg
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
 
 #[tauri::command]
-fn simulate_start(marking: Vec<i16>, transition_inputs: Matrix, transition_outputs: Matrix, steps: i16) -> Result<SimulationResponse, String> {
+fn simulate_start(
+    marking: Vec<i16>,
+    transition_inputs: Matrix,
+    transition_outputs: Matrix,
+    steps: i16,
+) -> Result<SimulationResponse, String> {
     return simulator::start_simulation(marking, transition_inputs, transition_outputs, steps);
 }
 
@@ -25,6 +34,10 @@ fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
 }
 
 #[tauri::command]
-fn create_rg<'a>(marking: Vec<i16>, transition_inputs: Matrix, transition_outputs: Matrix) -> Result<RGResponse, String> {
+fn create_rg<'a>(
+    marking: Vec<i16>,
+    transition_inputs: Matrix,
+    transition_outputs: Matrix,
+) -> Result<RGResponse, String> {
     return reachability::create_rg(marking, transition_inputs, transition_outputs);
 }

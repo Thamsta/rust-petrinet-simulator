@@ -3,9 +3,9 @@ use std::time::Instant;
 
 use ndarray::Array1;
 use petgraph::algo::tarjan_scc;
-use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
+use petgraph::Direction;
 
 pub(super) fn check_properties(rg: &DiGraph<Array1<i16>, i16>, transitions: usize) -> RgProperties {
     let start_time_properties = Instant::now();
@@ -13,12 +13,20 @@ pub(super) fn check_properties(rg: &DiGraph<Array1<i16>, i16>, transitions: usiz
     let scc_graph = create_scc_graph(&sccs, rg, transitions);
     let end_time_properties = Instant::now();
     let elapsed_time_properties = end_time_properties - start_time_properties;
-    println!("Creating SCC-Graph with {} states and {} edges took {}ms", scc_graph.node_count(), scc_graph.edge_count(), elapsed_time_properties.as_millis());
+    println!(
+        "Creating SCC-Graph with {} states and {} edges took {}ms",
+        scc_graph.node_count(),
+        scc_graph.edge_count(),
+        elapsed_time_properties.as_millis()
+    );
 
     let reversible = sccs.len() == 1 && rg.edge_count() > 0;
     let liveness = check_liveness(&scc_graph);
 
-    return RgProperties { liveness, reversible };
+    return RgProperties {
+        liveness,
+        reversible,
+    };
 }
 
 fn check_liveness(scc_graph: &DiGraph<bool, ()>) -> bool {
@@ -36,7 +44,11 @@ fn check_liveness(scc_graph: &DiGraph<bool, ()>) -> bool {
 }
 
 // TODO: compare with petgraph::algo::condensation implementation
-fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i16>, i16>, transitions: usize) -> DiGraph<bool, ()> {
+fn create_scc_graph(
+    sccs: &Vec<Vec<NodeIndex>>,
+    rg: &DiGraph<Array1<i16>, i16>,
+    transitions: usize,
+) -> DiGraph<bool, ()> {
     let mut graph = DiGraph::<bool, ()>::new();
     let mut node_to_scc: Vec<usize> = vec![0; rg.node_count()];
 
@@ -61,7 +73,9 @@ fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i16>, i16>, 
         if source_scc != target_scc && unique_edges.insert((source_scc, target_scc)) {
             graph.add_edge(NodeIndex::new(source_scc), NodeIndex::new(target_scc), ());
         } else if source_scc == target_scc {
-            let entry = scc_transitions.entry(source_scc).or_insert_with(HashSet::new);
+            let entry = scc_transitions
+                .entry(source_scc)
+                .or_insert_with(HashSet::new);
             entry.insert(*rg.edge_weight(edge).unwrap());
         }
     }
@@ -69,7 +83,9 @@ fn create_scc_graph(sccs: &Vec<Vec<NodeIndex>>, rg: &DiGraph<Array1<i16>, i16>, 
     // Label nodes based on the presence of internal edges with each label
     for (_, node) in graph.node_indices().enumerate() {
         match scc_transitions.get(&(node.index())) {
-            Some(labels) => { graph[node] = labels.len() == transitions; }
+            Some(labels) => {
+                graph[node] = labels.len() == transitions;
+            }
             None => {}
         }
     }
