@@ -1,21 +1,13 @@
 use derive_new::new;
 use ndarray::{s, Array1, Array2, Axis};
-use petgraph::visit::EdgeCount;
-use petgraph::Graph;
+use petgraph::graph::DiGraph;
 use serde::Serialize;
 
-pub(crate) fn fire_transition(
-    state: &Array1<i16>,
-    effect_matrix: &Array2<i16>,
-    t: usize,
-) -> Array1<i16> {
+pub(crate) fn fire_transition(state: &State, effect_matrix: &Matrix, t: usize) -> State {
     state + &effect_matrix.slice(s![t, ..])
 }
 
-pub(crate) fn find_active_transitions(
-    marking: &Array1<i16>,
-    transition_inputs: &Array2<i16>,
-) -> Vec<i16> {
+pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matrix) -> Vec<i16> {
     let mut active_transitions = Vec::new();
 
     // Compare each row of the matrix to the reference array
@@ -30,7 +22,7 @@ pub(crate) fn find_active_transitions(
     return active_transitions;
 }
 
-pub(crate) fn vec_vec_to_array2(input: &Matrix, rows: &usize, columns: &usize) -> Array2<i16> {
+pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns: &usize) -> Matrix {
     let mut result = Array2::zeros((*rows, *columns));
     for (i, mut row) in result.axis_iter_mut(Axis(0)).enumerate() {
         for (j, col) in row.iter_mut().enumerate() {
@@ -41,7 +33,11 @@ pub(crate) fn vec_vec_to_array2(input: &Matrix, rows: &usize, columns: &usize) -
     return result;
 }
 
-pub type Matrix = Vec<Vec<i16>>;
+pub type InputState = Vec<i16>;
+pub type InputMatrix = Vec<Vec<i16>>;
+pub type State = Array1<i16>;
+pub type Matrix = Array2<i16>;
+pub type ReachabilityGraph = DiGraph<State, i16>;
 
 #[derive(Serialize, new)]
 pub struct SimulationResponse {
@@ -79,7 +75,7 @@ impl RGResponse {
     }
 
     pub(crate) fn success(
-        graph: &Graph<Array1<i16>, i16>,
+        graph: &ReachabilityGraph,
         properties: &RgProperties,
         msg: String,
     ) -> Self {

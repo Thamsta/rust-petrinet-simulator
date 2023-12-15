@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use crate::common::{Matrix, RGResponse, SimulationResponse};
+use crate::common::{InputMatrix, InputState, RGResponse, SimulationResponse};
 
 mod common;
 mod model_checking;
@@ -20,9 +20,9 @@ fn main() {
 
 #[tauri::command]
 fn simulate_start(
-    marking: Vec<i16>,
-    transition_inputs: Matrix,
-    transition_outputs: Matrix,
+    marking: InputState,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
     steps: i16,
 ) -> Result<SimulationResponse, String> {
     return simulator::start_simulation(marking, transition_inputs, transition_outputs, steps);
@@ -35,9 +35,9 @@ fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
 
 #[tauri::command]
 fn create_rg<'a>(
-    marking: Vec<i16>,
-    transition_inputs: Matrix,
-    transition_outputs: Matrix,
+    marking: InputState,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
 ) -> Result<RGResponse, String> {
     return model_checking::check_properties(marking, transition_inputs, transition_outputs);
 }

@@ -1,14 +1,15 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
-use crate::common::RgProperties;
-use ndarray::Array1;
 use petgraph::algo::tarjan_scc;
+use petgraph::data::DataMap;
 use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::visit::IntoNodeIdentifiers;
+use petgraph::visit::{IntoNodeIdentifiers, NodeCount};
 use petgraph::Direction;
 
-pub(super) fn check_properties(rg: &DiGraph<Array1<i16>, i16>, transitions: usize) -> RgProperties {
+use crate::common::{ReachabilityGraph, RgProperties};
+
+pub(super) fn check_properties(rg: &ReachabilityGraph, transitions: usize) -> RgProperties {
     let start_time_properties = Instant::now();
     let sccs = tarjan_scc(rg);
     let scc_graph = create_scc_graph(&sccs, rg, transitions);
@@ -47,7 +48,7 @@ fn check_liveness(scc_graph: &DiGraph<bool, ()>) -> bool {
 // TODO: compare with petgraph::algo::condensation implementation
 fn create_scc_graph(
     sccs: &Vec<Vec<NodeIndex>>,
-    rg: &DiGraph<Array1<i16>, i16>,
+    rg: &ReachabilityGraph,
     transitions: usize,
 ) -> DiGraph<bool, ()> {
     let mut graph = DiGraph::<bool, ()>::new();

@@ -8,8 +8,8 @@ mod reachability;
 
 pub fn check_properties(
     marking: Vec<i16>,
-    transition_inputs: Matrix,
-    transition_outputs: Matrix,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
 ) -> Result<RGResponse, String> {
     let t = transition_inputs.len();
     let start_time_rg = Instant::now();

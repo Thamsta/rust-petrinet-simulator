@@ -1,30 +1,29 @@
 use std::collections::HashMap;
 use std::time::Instant;
 
-use ndarray::{arr1, Array1, Array2};
+use ndarray::arr1;
 use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::Graph;
 
 use crate::common::*;
 use crate::model_checking::coverability::is_covering;
 
 pub(super) fn create_rg(
     marking: Vec<i16>,
-    transition_inputs: Matrix,
-    transition_outputs: Matrix,
-) -> Result<Graph<Array1<i16>, i16>, String> {
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
+) -> Result<ReachabilityGraph, String> {
     let start_time_rg = Instant::now();
     let t = &transition_inputs.len(); // rows
     let p = &transition_inputs.get(0).expect("empty array").len(); // columns
 
-    let t_in: Array2<i16> = vec_vec_to_array2(&transition_inputs, &t, &p);
-    let t_out: Array2<i16> = vec_vec_to_array2(&transition_outputs, &t, &p);
-    let t_effect: Array2<i16> = &t_out - &t_in;
+    let t_in: Matrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
+    let t_out: Matrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
+    let t_effect: Matrix = &t_out - &t_in;
 
     let state_vec = arr1(&marking);
     let mut queue: Vec<NodeIndex> = Vec::new();
-    let mut graph = DiGraph::<Array1<i16>, i16>::new();
-    let mut all_states_rev: HashMap<Array1<i16>, NodeIndex> = HashMap::new();
+    let mut graph = DiGraph::<State, i16>::new();
+    let mut all_states_rev: HashMap<State, NodeIndex> = HashMap::new();
 
     // create & insert start node
     let start_node = graph.add_node(state_vec.clone());
@@ -37,7 +36,7 @@ pub(super) fn create_rg(
         let active = find_active_transitions(&cur_state, &t_in);
 
         for inx in active {
-            let new_state: Array1<i16> = fire_transition(&cur_state, &t_effect, inx as usize);
+            let new_state: State = fire_transition(&cur_state, &t_effect, inx as usize);
             match all_states_rev.get(&new_state) {
                 None => {
                     let new_state_idx = graph.add_node(new_state.clone());

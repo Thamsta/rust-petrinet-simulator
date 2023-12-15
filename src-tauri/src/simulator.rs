@@ -7,16 +7,16 @@ use rand::Rng;
 
 use crate::common::*;
 
-struct State {
-    state_vec: Array1<i16>,
-    t_in: Array2<i16>,
-    t_effect: Array2<i16>,
+struct SimulatorState {
+    state: State,
+    t_in: Matrix,
+    t_effect: Matrix,
     deadlocked: bool,
 }
 
 lazy_static! {
-    static ref SIMULATOR_STATE: Mutex<State> = Mutex::new(State {
-        state_vec: Array1::zeros(0),
+    static ref SIMULATOR_STATE: Mutex<SimulatorState> = Mutex::new(SimulatorState {
+        state: Array1::zeros(0),
         t_in: Array2::zeros((0, 0)),
         t_effect: Array2::zeros((0, 0)),
         deadlocked: false,
@@ -24,9 +24,9 @@ lazy_static! {
 }
 
 pub(crate) fn start_simulation(
-    marking: Vec<i16>,
-    transition_inputs: Matrix,
-    transition_outputs: Matrix,
+    marking: InputState,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
     steps: i16,
 ) -> Result<SimulationResponse, String> {
     let t = &transition_inputs.len(); // rows: number of transitions
@@ -39,9 +39,9 @@ pub(crate) fn start_simulation(
         return handle_no_transitions(marking);
     } // TODO: correctly handle nets with no places
 
-    let t_in: Array2<i16> = vec_vec_to_array2(&transition_inputs, &t, &p);
-    let t_out: Array2<i16> = vec_vec_to_array2(&transition_outputs, &t, &p);
-    let t_effect: Array2<i16> = &t_out - &t_in;
+    let t_in: Matrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
+    let t_out: Matrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
+    let t_effect: Matrix = &t_out - &t_in;
 
     return match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
@@ -58,14 +58,10 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
     return match SIMULATOR_STATE.lock() {
         Ok(state) => {
             if state.deadlocked {
-                return Ok(SimulationResponse::new(
-                    state.state_vec.to_vec(),
-                    vec![],
-                    true,
-                ));
+                return Ok(SimulationResponse::new(state.state.to_vec(), vec![], true));
             }
             simulate(
-                state.state_vec.clone(),
+                state.state.clone(),
                 state.t_in.clone(),
                 state.t_effect.clone(),
                 steps,
@@ -77,11 +73,11 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
 }
 
 fn simulate(
-    marking: Array1<i16>,
-    t_in: Array2<i16>,
-    t_effect: Array2<i16>,
+    marking: State,
+    t_in: Matrix,
+    t_effect: Matrix,
     steps: i16,
-    mut lock: MutexGuard<State>,
+    mut lock: MutexGuard<SimulatorState>,
 ) -> Result<SimulationResponse, String> {
     let mut state_vec = marking.clone();
     let mut t_heat: Vec<i16> = Vec::new();
@@ -109,7 +105,7 @@ fn simulate(
     }
 
     let result_marking = state_vec.to_vec();
-    lock.state_vec = state_vec;
+    lock.state = state_vec;
 
     return Ok(SimulationResponse::new(result_marking, t_heat, false));
 }

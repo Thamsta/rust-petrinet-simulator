@@ -1,12 +1,8 @@
-use ndarray::Array1;
 use petgraph::graph::NodeIndex;
-use petgraph::Graph;
 
-pub(super) fn is_covering(
-    new_node: &NodeIndex,
-    graph: &Graph<Array1<i16>, i16>,
-    pseudo: bool,
-) -> bool {
+use crate::common::{ReachabilityGraph, State};
+
+pub(super) fn is_covering(new_node: &NodeIndex, graph: &ReachabilityGraph, pseudo: bool) -> bool {
     let new_node_weight = graph.node_weight(*new_node).unwrap();
 
     if pseudo {
@@ -33,7 +29,7 @@ pub(super) fn is_covering(
     return false;
 }
 
-fn is_strictly_greater_than(arr1: &Array1<i16>, arr2: &Array1<i16>) -> bool {
+fn is_strictly_greater_than(arr1: &State, arr2: &State) -> bool {
     let mut found_strictly_greater = false;
     let mut found_less = false;
     arr1.iter().zip(arr2.iter()).for_each(|(&a, &b)| {
