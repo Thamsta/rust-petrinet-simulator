@@ -10,7 +10,7 @@ export class ReachabilityGraphService {
     async createRG(marking: number[], pxt_in: number[][], pxt_out: number[][]) {
         try {
             const start = performance.now();
-            const data = await invoke<RGResponse>('create_rg', {marking: marking, transitionInputs: pxt_in, transitionOutputs: pxt_out});
+            const data = await invoke<RGResponse>('check_properties', {marking: marking, transitionInputs: pxt_in, transitionOutputs: pxt_out});
             const end = performance.now();
             const total = end - start;
             console.log(data, "took", total, "ms")

@@ -12,7 +12,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             simulate_start,
             simulate_continue,
-            create_rg
+            check_properties
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
@@ -34,7 +34,7 @@ fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
 }
 
 #[tauri::command]
-fn create_rg<'a>(
+fn check_properties<'a>(
     marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,

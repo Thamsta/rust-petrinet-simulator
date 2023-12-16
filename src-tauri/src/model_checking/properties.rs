@@ -2,9 +2,8 @@ use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
 use petgraph::algo::tarjan_scc;
-use petgraph::data::DataMap;
 use petgraph::graph::{DiGraph, NodeIndex};
-use petgraph::visit::{IntoNodeIdentifiers, NodeCount};
+use petgraph::visit::IntoNodeIdentifiers;
 use petgraph::Direction;
 
 use crate::common::{ReachabilityGraph, RgProperties};

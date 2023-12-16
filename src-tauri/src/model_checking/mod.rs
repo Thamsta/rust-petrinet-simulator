@@ -7,7 +7,7 @@ mod properties;
 mod reachability;
 
 pub fn check_properties(
-    marking: Vec<i16>,
+    marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
 ) -> Result<RGResponse, String> {
