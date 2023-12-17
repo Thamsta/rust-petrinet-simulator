@@ -1,6 +1,11 @@
 import {Component, Input} from '@angular/core';
 import {save} from "@tauri-apps/api/dialog";
 import {writeTextFile} from "@tauri-apps/api/fs";
+import {NetCanvas} from "../canvas/canvas.component";
+import {v4 as uuidv4} from "uuid";
+
+import {Arc, Place, Transition} from "../elements";
+import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 
 @Component({
     selector: 'app-export',
@@ -9,18 +14,30 @@ import {writeTextFile} from "@tauri-apps/api/fs";
 })
 export class ExportComponent {
 
-    @Input() getNet: (() => any) | undefined;
+    @Input() canvas: NetCanvas | undefined; // for exporting the net
 
     async downloadCustomFile() {
-        if (this.getNet) {
-            this.getNet()
+        if (!this.canvas) {
+            return
         }
+
+        const netElements = this.canvas.getNet()
+
+        const places = netElements.filter(obj => obj instanceof Place)
+            .map(t => new PlaceDTO(t as Place))
+        const transitions = netElements.filter(obj => obj instanceof Transition)
+            .map(t => new TransitionDTO(t as Transition))
+        const arcs = netElements.filter(obj => obj instanceof Arc)
+            .map(t => new ArcDTO(t as Arc))
+
+        const net = new NetDTO(uuidv4(), "pt-net", "net-name", places, transitions, arcs)
+
         const filePath = await save({
             title: "Save Net",
-            filters: [{name: "", extensions: ["xml", "json"]}],
+            filters: [{name: "", extensions: ["json"]}],
         });
         if (filePath == null) return;
 
-        await writeTextFile(filePath, "content");
+        await writeTextFile(filePath, JSON.stringify(net));
     };
 }

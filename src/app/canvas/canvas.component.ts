@@ -9,12 +9,16 @@ import {ReachabilityGraphService} from "../reachability-graph/reachability-graph
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {InfoBarComponent} from "../infobar/info-bar.component";
 
+export interface NetCanvas {
+	getNet(): Object[]
+}
+
 @Component({
 	selector: 'app-canvas',
 	templateUrl: './canvas.component.html',
 	styleUrls: ['./canvas.component.scss']
 })
-export class CanvasComponent implements AfterContentInit {
+export class CanvasComponent implements AfterContentInit, NetCanvas {
 	canvas: fabric.Canvas = new fabric.Canvas('canvas')
 	lastSelected?: fabric.Object
 
@@ -354,7 +358,8 @@ export class CanvasComponent implements AfterContentInit {
 		})
 	}
 
-    getNet(): void {
-        console.log("get net called")
+    getNet(): Object[] {
+        return this.canvas.getObjects()
+            .filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
     }
 }
