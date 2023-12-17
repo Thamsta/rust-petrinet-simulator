@@ -41,12 +41,12 @@ export class TransitionDTO {
 export class PlaceDTO {
 	id: string
 	position: Position
-	initialMarking: string
+	initialMarking: number
 
 	constructor(place: Place) {
 		this.id = place.id
 		this.position = new Position(place.left!, place.top!)
-		this.initialMarking = place.tokenText.text!
+		this.initialMarking = place.tokens
 	}
 
 }
