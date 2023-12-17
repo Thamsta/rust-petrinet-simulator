@@ -63,7 +63,7 @@
                 "fullscreen": false,
                 "height": 600,
                 "resizable": true,
-                "title": "Petri Netz Simulator",
+                "title": "Petri Net Simulator",
                 "width": 800
             }
         ]
