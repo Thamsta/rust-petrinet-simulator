@@ -364,6 +364,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 				obj.addToGroup(group!)
 			}
 		})
+		this.canvas.renderAll()
 	}
 
     getAllElements(): Object[] {
