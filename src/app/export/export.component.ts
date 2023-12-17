@@ -9,7 +9,10 @@ import {writeTextFile} from "@tauri-apps/api/fs";
 })
 export class ExportComponent {
     async downloadCustomFile() {
-        const filePath = await save();
+        const filePath = await save({
+            title: "Save Net",
+            filters: [{name: "", extensions: ["xml", "json"]}],
+        });
         if (filePath == null) return;
 
         await writeTextFile(filePath, "content");
