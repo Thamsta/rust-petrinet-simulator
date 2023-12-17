@@ -1,3 +1,5 @@
+![release](https://github.com/Thamsta/rust-petrinet-simulator/actions/workflows/rust.yml/badge.svg)
+
 # RustNet Simulator
 A P/T net editor, simulator and property checker running on Rust and an Angular frontend.
 
