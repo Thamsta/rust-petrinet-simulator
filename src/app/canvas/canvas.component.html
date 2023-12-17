@@ -1,4 +1,4 @@
-<app-toolbar #toolbar (controlEmitter)="controlChanged($event)"></app-toolbar>
+<app-toolbar #toolbar (controlEmitter)="controlChanged($event)" [getNet]="getNet"></app-toolbar>
 <mat-divider></mat-divider>
 <div>
 	<canvas id="canvas"></canvas>

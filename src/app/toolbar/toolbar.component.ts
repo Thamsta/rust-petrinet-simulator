@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DrawingTools, isPlayerCommand} from '../models';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 
@@ -20,6 +20,7 @@ export class ToolbarComponent {
 
     @Output()
     controlEmitter = new EventEmitter<DrawingTools>
+    @Input() getNet: (() => any) | undefined; // for exporting the net
 
 
     select(selected: DrawingTools) {

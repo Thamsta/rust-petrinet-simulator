@@ -353,4 +353,8 @@ export class CanvasComponent implements AfterContentInit {
 			}
 		})
 	}
+
+    getNet(): void {
+        console.log("get net called")
+    }
 }
