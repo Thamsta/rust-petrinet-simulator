@@ -21,7 +21,7 @@ export class ExportComponent {
             return
         }
 
-        const netElements = this.canvas.getNet()
+        const netElements = this.canvas.getAllElements()
 
         const places = netElements.filter(obj => obj instanceof Place)
             .map(t => new PlaceDTO(t as Place))
@@ -34,7 +34,7 @@ export class ExportComponent {
 
         const filePath = await save({
             title: "Save Net",
-            filters: [{name: "", extensions: ["json"]}],
+            filters: [{name: "", extensions: ["pnon"]}],
         });
         if (filePath == null) return;
 

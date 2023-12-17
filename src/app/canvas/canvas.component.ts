@@ -8,9 +8,12 @@ import {SimulatorService, States} from "../simulator/simulator.service"
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {InfoBarComponent} from "../infobar/info-bar.component";
+import {NetDTO} from "../dtos";
 
 export interface NetCanvas {
-	getNet(): Object[]
+	getAllElements(): Object[]
+
+	loadNet(net: NetDTO): void
 }
 
 @Component({
@@ -358,8 +361,12 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		})
 	}
 
-    getNet(): Object[] {
+    getAllElements(): Object[] {
         return this.canvas.getObjects()
             .filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
     }
+
+	loadNet(net: NetDTO): void {
+		throw new Error('Method not implemented.')
+	}
 }
