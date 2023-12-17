@@ -27,7 +27,7 @@ pub fn check_properties(
             let total_properties = end_time_properties - start_time_properties;
 
             let time_string = format!(
-                "Total: {}ms, RG {}ms, Properties {}",
+                "Total: {}ms, RG {}ms, Properties {}ms",
                 total.as_millis(),
                 total_rg.as_millis(),
                 total_properties.as_millis()
