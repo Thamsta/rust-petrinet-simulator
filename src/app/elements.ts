@@ -92,7 +92,7 @@ const transitionOptions = {
 	height: 50,
 	originX: 'center',
 	originY: 'center',
-	...baseOptions
+	...baseOptions,
 }
 
 // Options for places
@@ -101,7 +101,7 @@ const placeOptions = {
 	radius: 30,
 	originX: 'center',
 	originY: 'center',
-	...baseOptions
+	...baseOptions,
 }
 
 // Options for lines
@@ -117,7 +117,7 @@ const textOptions = {
 	textAlign: 'center',
 	...immovableOptions,
 	...baseOptions,
-    strokeWidth: 0
+    strokeWidth: 0,
 }
 
 /**
