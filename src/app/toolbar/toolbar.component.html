@@ -1,5 +1,10 @@
 <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet"/>
 <mat-toolbar>
+    <app-export [canvas]="canvas"></app-export>
+	<app-import [canvas]="canvas"></app-import>
+
+	<mat-divider vertical></mat-divider>
+
 	<button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)">
 		<mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
 	</button>

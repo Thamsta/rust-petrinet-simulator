@@ -92,7 +92,7 @@ const transitionOptions = {
 	height: 50,
 	originX: 'center',
 	originY: 'center',
-	...baseOptions
+	...baseOptions,
 }
 
 // Options for places
@@ -101,7 +101,7 @@ const placeOptions = {
 	radius: 30,
 	originX: 'center',
 	originY: 'center',
-	...baseOptions
+	...baseOptions,
 }
 
 // Options for lines
@@ -117,7 +117,7 @@ const textOptions = {
 	textAlign: 'center',
 	...immovableOptions,
 	...baseOptions,
-    strokeWidth: 0
+    strokeWidth: 0,
 }
 
 /**
@@ -168,10 +168,10 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         })
         this.tokenText = new Text("0", this)
         this.updateTextPosition()
-        canvas.add(this.tokenText)
-        canvas.bringToFront(this.tokenText)
         canvas.add(this)
+        canvas.add(this.tokenText)
         canvas.sendBackwards(this)
+        canvas.bringToFront(this.tokenText)
     }
 
     addToGroup(group: fabric.Group): void {
@@ -226,7 +226,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     from: Place | Transition;
     to: Place | Transition;
     weight = 1
-    weightText: fabric.Text
+    weightText: Text
 
     arrowArc1: fabric.Line;
     arrowArc2: fabric.Line;
@@ -253,6 +253,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     removeFromGroup(group: fabric.Group): void {
         group.remove(this, this.arrowArc1, this.arrowArc2, this.weightText)
         this.updateLinePoints()
+        this.updateText()
     }
 
     remove(canvas: fabric.Canvas): void {

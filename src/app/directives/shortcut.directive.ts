@@ -7,6 +7,11 @@ export class ShortcutDirective {
 
 	@Input('appShortcut') shortcut: string = '';
 
+	key: string | undefined;
+	ctrl: boolean = false;
+	shift: boolean = false;
+	alt: boolean = false;
+
 	constructor(private element: ElementRef) {
 	}
 
@@ -20,6 +25,19 @@ export class ShortcutDirective {
 	}
 
 	private shortcutMatches(event: KeyboardEvent): boolean {
-		return event.key.toLowerCase() == this.shortcut.toLowerCase();
+		if (this.key == undefined) this.init();
+
+
+		return event.key.toLowerCase() == this.key
+			&& (event.ctrlKey || event.metaKey) == this.ctrl // meta key for macOS
+			&& event.shiftKey == this.shift
+			&& event.altKey == this.alt;
+	}
+
+	private init() {
+		this.ctrl = this.shortcut.toLowerCase().startsWith("ctrl")
+		this.shift = this.shortcut.toLowerCase().startsWith("shift")
+		this.alt = this.shortcut.toLowerCase().startsWith("alt")
+		this.key = this.shortcut.toLowerCase().substring(this.shortcut.length - 1)
 	}
 }

@@ -12,6 +12,8 @@ import {MatDividerModule} from "@angular/material/divider";
 import {InfoBarComponent} from './infobar/info-bar.component';
 import {ShortcutDirective} from './directives/shortcut.directive';
 import {MatTooltipModule} from "@angular/material/tooltip";
+import { ExportComponent } from './export/export.component';
+import { ImportComponent } from './import/import.component';
 
 @NgModule({
 	declarations: [
@@ -20,6 +22,8 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 		ToolbarComponent,
 		InfoBarComponent,
 		ShortcutDirective,
+  ExportComponent,
+  ImportComponent,
 	],
 	imports: [
 		BrowserModule,

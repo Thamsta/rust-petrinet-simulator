@@ -8,13 +8,20 @@ import {SimulatorService, States} from "../simulator/simulator.service"
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {InfoBarComponent} from "../infobar/info-bar.component";
+import {NetDTO} from "../dtos";
+
+export interface NetCanvas {
+	getAllElements(): Object[]
+
+	loadNet(net: NetDTO): void
+}
 
 @Component({
 	selector: 'app-canvas',
 	templateUrl: './canvas.component.html',
 	styleUrls: ['./canvas.component.scss']
 })
-export class CanvasComponent implements AfterContentInit {
+export class CanvasComponent implements AfterContentInit, NetCanvas {
 	canvas: fabric.Canvas = new fabric.Canvas('canvas')
 	lastSelected?: fabric.Object
 
@@ -112,7 +119,7 @@ export class CanvasComponent implements AfterContentInit {
 				break
 			}
 			case DrawingTools.ARC: {
-				this.addArc(target)
+				this.addArcFromLastSelected(target)
 				break
 			}
 		}
@@ -127,15 +134,20 @@ export class CanvasComponent implements AfterContentInit {
 		return new Place(x, y, this.canvas)
 	}
 
-	private addArc(target: fabric.Object | undefined) {
-		let other = this.lastSelected
+	private addArcFromLastSelected(target: fabric.Object | undefined) {
+		this.addArc(this.lastSelected, target)
+	}
 
-		if (target instanceof Place && other instanceof Transition
-			|| target instanceof Transition && other instanceof Place) {
-			let arc = new Arc(other, target, this.canvas)
-			other.arcs.arcs_out.push(arc)
+	private addArc(source: fabric.Object | undefined, target: fabric.Object | undefined) {
+		if (target instanceof Place && source instanceof Transition
+			|| target instanceof Transition && source instanceof Place) {
+			let arc = new Arc(source, target, this.canvas)
+			source.arcs.arcs_out.push(arc)
 			target.arcs.arcs_in.push(arc)
+			return arc
 		}
+
+		return undefined
 	}
 
 	private deleteObject(obj: fabric.Object | undefined) {
@@ -350,6 +362,47 @@ export class CanvasComponent implements AfterContentInit {
 			}
 			if (obj instanceof Place) {
 				obj.addToGroup(group!)
+			}
+		})
+		this.canvas.renderAll()
+	}
+
+    getAllElements(): Object[] {
+        return this.canvas.getObjects()
+            .filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
+    }
+
+	loadNet(net: NetDTO): void {
+		this.deleteAllElements()
+		let map = new Map<string, Transition | Place>()
+		net.places.forEach(place => {
+			let p = this.addPlace(place.position.x, place.position.y)
+			p.setAmount(place.initialMarking)
+			p.id = place.id
+			map.set(p.id, p)
+		})
+		net.transitions.forEach(transition => {
+			let t = this.addTransition(transition.position.x, transition.position.y)
+			t.id = transition.id
+			map.set(t.id, t)
+		})
+		net.arcs.forEach(arc => {
+			let from = map.get(arc.source)
+			let to = map.get(arc.target)
+
+			let a = this.addArc(from, to)
+			if (a == undefined) return;
+
+			a.weight = +arc.text
+			a.id = arc.id
+		})
+		this.canvas.renderAll();
+	}
+
+	private deleteAllElements(): void {
+		this.canvas.getObjects().forEach(obj => {
+			if (obj instanceof Transition || obj instanceof Place) {
+				obj.remove(this.canvas)
 			}
 		})
 	}
