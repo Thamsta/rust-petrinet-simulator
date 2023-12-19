@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard};
 
 use lazy_static::lazy_static;
@@ -42,6 +43,9 @@ pub(crate) fn start_simulation(
     let t_in: Matrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
     let t_out: Matrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
     let t_effect: Matrix = &t_out - &t_in;
+    let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out, &t, &p);
+
+    println!("{:?}", firing_updates);
 
     return match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
@@ -84,6 +88,7 @@ fn simulate(
     for _ in 0..t_in.len() {
         t_heat.push(0);
     }
+
     for step in 0..steps {
         let active_transitions = find_active_transitions(&state_vec, &t_in);
 
@@ -97,9 +102,7 @@ fn simulate(
             return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat, true));
         }
 
-        let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
-        let t_opt = active_transitions.get(rng_index);
-        let t = *t_opt.unwrap() as usize;
+        let t = select_transition(&active_transitions);
         t_heat[t] += 1;
         state_vec = fire_transition(&state_vec, &t_effect, t);
     }
@@ -108,6 +111,11 @@ fn simulate(
     lock.state = state_vec;
 
     return Ok(SimulationResponse::new(result_marking, t_heat, false));
+}
+
+fn select_transition(active_transitions: &Vec<i16>) -> usize {
+    let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
+    return *active_transitions.get(rng_index).unwrap() as usize;
 }
 
 fn handle_no_transitions(marking: Vec<i16>) -> Result<SimulationResponse, String> {

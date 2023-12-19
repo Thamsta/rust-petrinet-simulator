@@ -1,5 +1,7 @@
+use std::collections::{HashMap, HashSet};
+
 use derive_new::new;
-use ndarray::{s, Array1, Array2, Axis};
+use ndarray::{Array1, Array2, Axis, s};
 use petgraph::graph::DiGraph;
 use serde::Serialize;
 
@@ -20,6 +22,56 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
     }
 
     return active_transitions;
+}
+
+pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: &usize, places: &usize) -> FiringUpdates {
+    let mut adds_tokens_to: HashMap<i16, Vec<i16>> = HashMap::new(); // transition add to places
+    let mut has_tokens_removed_from: HashMap<i16, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
+
+    for p in 0..*places {
+        has_tokens_removed_from.insert(p as i16, Vec::new());
+    }
+
+    for t_u in 0..*transitions {
+        let t = t_u as i16;
+        let transition_consumes = t_in.slice(s![t as usize, ..]);
+        let transition_creates = t_out.slice(s![t as usize, ..]);
+        adds_tokens_to.insert(t, Vec::new());
+        for p_u in 0..transition_creates.len_of(Axis(0)) {
+            let p = p_u as i16;
+            if transition_creates[[p_u]] > 0 { adds_tokens_to.get_mut(&t).unwrap().push(p); }
+            if transition_consumes[[p_u]] > 0 { has_tokens_removed_from.get_mut(&p).unwrap().push(t); }
+        }
+    }
+
+    let mut can_enable: HashMap<i16, HashSet<i16>> = HashMap::new();
+    let mut might_disable: HashMap<i16, HashSet<i16>> = HashMap::new();
+    for t in 0..*transitions {
+        let mut enables: HashSet<i16> = HashSet::new();
+        // every transition that adds a token to 'p' might activate all transitions that consume from 'p'
+        let adds_to_places = adds_tokens_to.get(&(t as i16)).unwrap();
+        adds_to_places.iter().for_each(|p| {
+            let all_places = has_tokens_removed_from.get(p).unwrap();
+            all_places.iter().for_each(|p| {
+                enables.insert(p.clone());
+            });
+        });
+        can_enable.insert(t as i16, enables);
+
+        let mut disables: HashSet<i16> = HashSet::new();
+        // every transition that consumes a token from 'p' might disable other transitions that consume from 'p'
+        has_tokens_removed_from.values().for_each(|consuming_transitions| {
+            if consuming_transitions.contains(&(t as i16)) {
+                consuming_transitions.iter().for_each(|other_transition| { disables.insert(other_transition.clone()); })
+            }
+        });
+        might_disable.insert(t as i16, disables);
+    }
+
+    return FiringUpdates {
+        can_enable,
+        might_disable,
+    }
 }
 
 pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns: &usize) -> Matrix {
@@ -88,4 +140,10 @@ impl RGResponse {
             message: msg,
         }
     }
+}
+
+#[derive(Debug)]
+pub(crate) struct FiringUpdates {
+    pub(crate) can_enable: HashMap<i16, HashSet<i16>>,
+    pub(crate) might_disable: HashMap<i16, HashSet<i16>>,
 }
