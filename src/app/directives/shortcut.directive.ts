@@ -17,12 +17,19 @@ export class ShortcutDirective {
 
 	@HostListener('document:keydown', ['$event'])
 	handleKeyboardEvent(event: KeyboardEvent): void {
+        // ignore keyboard inputs into TextAreas to prevent triggering shortcuts when typing.
+        if (this.isTypingIntoInput(event)) return
+
 		if (this.shortcutMatches(event)) {
 			event.preventDefault(); // Prevents default browser behavior
 			// Perform the action associated with the shortcut
 			this.element.nativeElement.click();
 		}
 	}
+
+    private isTypingIntoInput(event: KeyboardEvent): boolean {
+        return [HTMLTextAreaElement, HTMLInputElement].some(clazz => event.target instanceof clazz)
+    }
 
 	private shortcutMatches(event: KeyboardEvent): boolean {
 		if (this.key == undefined) this.init();
