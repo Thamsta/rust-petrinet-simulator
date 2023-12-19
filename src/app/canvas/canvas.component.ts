@@ -52,10 +52,11 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	ngAfterContentInit() {
 		this.canvas = new fabric.Canvas('canvas')
 		this.setupCanvas()
-		this.canvas.on('mouse:down', (event) => this.onClick(event))
-		this.canvas.on('selection:created', (e) => this.selectCreate(e))
-		this.canvas.on('selection:cleared', (e) => this.selectClear(e))
-		this.canvas.on('object:moving', (e) => this.objectMoving(e))
+		this.canvas.on('mouse:down', e => this.onClick(e))
+		this.canvas.on('selection:created', e => this.selectCreate(e))
+		this.canvas.on('selection:cleared', e => this.selectClear(e))
+		this.canvas.on('object:moving', e => this.objectMoving(e))
+        this.canvas.on('object:modified', e => this.objectModified(e))
 		window.addEventListener('resize', this.onWindowResize)
 	}
 
@@ -406,4 +407,10 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			}
 		})
 	}
+
+    private objectModified(e: IEvent<MouseEvent>) {
+        if (e.target instanceof Text) {
+            e.target.updateFromText()
+        }
+    }
 }

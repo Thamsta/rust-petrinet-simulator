@@ -209,6 +209,11 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         this.updateText()
     }
 
+    updateTextFromString(text: string) {
+        this.tokens = +text.replaceAll(/\D/g, '')
+        this.updateText()
+    }
+
     private updateText() {
         this.tokenText.set({text: String(this.tokens)})
         this.updateTextPosition()
@@ -385,17 +390,26 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     private updateText() {
         this.weightText.set({text: String(this.weight)});
     }
+
+    updateTextFromString(text: string) {
+        this.weight = +text.replaceAll(/\D/g, '')
+        this.updateText()
+    }
 }
 
 /**
  * Model class for any kind of Text. Knows its parent.
  * @class
  */
-export class Text extends fabric.Text {
-    parent: fabric.Object;
+export class Text extends fabric.IText {
+    parent: Arc | Place;
 
-    constructor(text: string, parent: fabric.Object) {
+    constructor(text: string, parent: Arc | Place) {
         super(text, textOptions);
         this.parent = parent;
+    }
+
+    updateFromText() {
+        this.parent.updateTextFromString(this.text ? this.text : "0");
     }
 }
