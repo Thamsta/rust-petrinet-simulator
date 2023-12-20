@@ -90,6 +90,7 @@ fn simulate(
         t_heat.push(0);
     }
 
+    let mut active_transitions_new: Vec<i16> = Vec::new();
     for step in 0..steps {
         let active_transitions = find_active_transitions(&state_vec, t_in);
 

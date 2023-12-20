@@ -24,6 +24,37 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
     return active_transitions;
 }
 
+pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transition_inputs: &Matrix, mut last_step_active: Vec<i16>, firing_updates: &FiringUpdates, last_fired: &i16) -> Vec<i16> {
+    // Compare each row of the matrix to the reference array
+    let might_be_disabled = firing_updates.might_disable.get(last_fired).unwrap();
+    let can_be_enabled = firing_updates.can_enable.get(last_fired).unwrap();
+    for (row_index, row) in transition_inputs.axis_iter(Axis(0)).enumerate() {
+        // Check whether the marking is at least as large as the edge weight.
+        let row_index_i16 = &(row_index as i16);
+        let was_active = last_step_active.contains(row_index_i16);
+        let remove_if_disabled = was_active && might_be_disabled.contains(row_index_i16);
+        let add_if_enabled = !was_active && can_be_enabled.contains(row_index_i16);
+
+        if add_if_enabled || remove_if_disabled {
+            // check if it is enabled
+            let enabled= marking.iter().zip(row.iter()).all(|(&a, &b)| a >= b);
+
+            // is newly enabled
+            if enabled && add_if_enabled { last_step_active.push(*row_index_i16) }
+            // was enabled but is now disabled
+            else if !enabled && remove_if_disabled {
+                if let Some(index) = last_step_active.iter().position(|&x| x == row_index_i16) {
+                    last_step_active.remove(index);
+                }
+            }
+        }
+    }
+
+
+    return last_step_active;
+}
+
+
 pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: &usize, places: &usize) -> FiringUpdates {
     let mut adds_tokens_to: HashMap<i16, Vec<i16>> = HashMap::new(); // transition add to places
     let mut has_tokens_removed_from: HashMap<i16, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
