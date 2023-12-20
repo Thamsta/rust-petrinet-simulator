@@ -95,7 +95,7 @@ fn simulate(
     let mut fired: usize = 0;
     let start = Instant::now();
     for step in 0..steps {
-        active_transitions = find_active_transitions_from_firing_set(&state_vec, t_in, active_transitions, firing_updates, &(fired as i16));
+        active_transitions = find_active_transitions_from_firing_set(&state_vec, t_in, active_transitions, firing_updates, &fired);
 
         if active_transitions.is_empty() {
             println!(

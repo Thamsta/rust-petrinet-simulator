@@ -25,7 +25,7 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
 }
 
 // TODO: make lastfired etc. usize
-pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transition_inputs: &Matrix, mut last_step_active: Vec<i16>, firing_updates: &FiringUpdates, last_fired: &i16) -> Vec<i16> {
+pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transition_inputs: &Matrix, mut last_step_active: Vec<i16>, firing_updates: &FiringUpdates, last_fired: &usize) -> Vec<i16> {
     if (last_step_active.len()) == 0 {
         return find_active_transitions(marking, transition_inputs);
     }
@@ -61,38 +61,36 @@ pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transitio
 
 
 pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: &usize, places: &usize) -> FiringUpdates {
-    let mut adds_tokens_to: HashMap<i16, Vec<i16>> = HashMap::new(); // transition add to places
-    let mut has_tokens_removed_from: HashMap<i16, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
+    let mut adds_tokens_to: HashMap<usize, Vec<i16>> = HashMap::new(); // transition add to places
+    let mut has_tokens_removed_from: HashMap<usize, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
 
     for p in 0..*places {
-        has_tokens_removed_from.insert(p as i16, Vec::new());
+        has_tokens_removed_from.insert(p, Vec::new());
     }
 
-    for t_u in 0..*transitions {
-        let t = t_u as i16;
+    for t in 0..*transitions {
         let transition_consumes = t_in.slice(s![t as usize, ..]);
         let transition_creates = t_out.slice(s![t as usize, ..]);
         adds_tokens_to.insert(t, Vec::new());
-        for p_u in 0..transition_creates.len_of(Axis(0)) {
-            let p = p_u as i16;
-            if transition_creates[[p_u]] > 0 { adds_tokens_to.get_mut(&t).unwrap().push(p); }
-            if transition_consumes[[p_u]] > 0 { has_tokens_removed_from.get_mut(&p).unwrap().push(t); }
+        for p in 0..transition_creates.len_of(Axis(0)) {
+            if transition_creates[[p]] > 0 { adds_tokens_to.get_mut(&t).unwrap().push(p as i16); }
+            if transition_consumes[[p]] > 0 { has_tokens_removed_from.get_mut(&p).unwrap().push(t as i16); }
         }
     }
 
-    let mut can_enable: HashMap<i16, HashSet<i16>> = HashMap::new();
-    let mut might_disable: HashMap<i16, HashSet<i16>> = HashMap::new();
+    let mut can_enable: HashMap<usize, HashSet<i16>> = HashMap::new();
+    let mut might_disable: HashMap<usize, HashSet<i16>> = HashMap::new();
     for t in 0..*transitions {
         let mut enables: HashSet<i16> = HashSet::new();
         // every transition that adds a token to 'p' might activate all transitions that consume from 'p'
-        let adds_to_places = adds_tokens_to.get(&(t as i16)).unwrap();
-        adds_to_places.iter().for_each(|p| {
-            let all_places = has_tokens_removed_from.get(p).unwrap();
+        let adds_to_places = adds_tokens_to.get(&t).unwrap();
+        adds_to_places.iter().for_each(|&p| {
+            let all_places = has_tokens_removed_from.get(&(p as usize)).unwrap();
             all_places.iter().for_each(|p| {
                 enables.insert(p.clone());
             });
         });
-        can_enable.insert(t as i16, enables);
+        can_enable.insert(t, enables);
 
         let mut disables: HashSet<i16> = HashSet::new();
         // every transition that consumes a token from 'p' might disable other transitions that consume from 'p'
@@ -101,7 +99,7 @@ pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: 
                 consuming_transitions.iter().for_each(|other_transition| { disables.insert(other_transition.clone()); })
             }
         });
-        might_disable.insert(t as i16, disables);
+        might_disable.insert(t, disables);
     }
 
     return FiringUpdates {
@@ -180,8 +178,8 @@ impl RGResponse {
 
 #[derive(Debug)]
 pub(crate) struct FiringUpdates {
-    pub(crate) can_enable: HashMap<i16, HashSet<i16>>,
-    pub(crate) might_disable: HashMap<i16, HashSet<i16>>,
+    pub(crate) can_enable: HashMap<usize, HashSet<i16>>,
+    pub(crate) might_disable: HashMap<usize, HashSet<i16>>,
 }
 
 impl Default for FiringUpdates {
