@@ -1,4 +1,5 @@
 use std::sync::{Mutex, MutexGuard};
+use std::time::Instant;
 
 use lazy_static::lazy_static;
 use ndarray::{arr1, Array1, Array2};
@@ -90,9 +91,11 @@ fn simulate(
         t_heat.push(0);
     }
 
-    let mut active_transitions_new: Vec<i16> = Vec::new();
+    let mut active_transitions: Vec<i16> = Vec::new();
+    let mut fired: usize = 0;
+    let start = Instant::now();
     for step in 0..steps {
-        let active_transitions = find_active_transitions(&state_vec, t_in);
+        active_transitions = find_active_transitions_from_firing_set(&state_vec, t_in, active_transitions, firing_updates, &(fired as i16));
 
         if active_transitions.is_empty() {
             println!(
@@ -104,10 +107,14 @@ fn simulate(
             return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat, true));
         }
 
-        let t = select_transition(&active_transitions);
-        t_heat[t] += 1;
-        state_vec = fire_transition(&state_vec, t_effect, t);
+        fired = select_transition(&active_transitions);
+        t_heat[fired] += 1;
+        state_vec = fire_transition(&state_vec, t_effect, fired);
     }
+
+    let end = Instant::now();
+
+    println!("Simulating {} steps took {}ms", steps, (end - start).as_millis());
 
     let result_marking = state_vec.to_vec();
     lock.state = state_vec;

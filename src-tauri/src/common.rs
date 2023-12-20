@@ -24,7 +24,12 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
     return active_transitions;
 }
 
+// TODO: make lastfired etc. usize
 pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transition_inputs: &Matrix, mut last_step_active: Vec<i16>, firing_updates: &FiringUpdates, last_fired: &i16) -> Vec<i16> {
+    if (last_step_active.len()) == 0 {
+        return find_active_transitions(marking, transition_inputs);
+    }
+
     // Compare each row of the matrix to the reference array
     let might_be_disabled = firing_updates.might_disable.get(last_fired).unwrap();
     let can_be_enabled = firing_updates.can_enable.get(last_fired).unwrap();
@@ -43,7 +48,7 @@ pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transitio
             if enabled && add_if_enabled { last_step_active.push(*row_index_i16) }
             // was enabled but is now disabled
             else if !enabled && remove_if_disabled {
-                if let Some(index) = last_step_active.iter().position(|&x| x == row_index_i16) {
+                if let Some(index) = last_step_active.iter().position(|x| x == row_index_i16) {
                     last_step_active.remove(index);
                 }
             }
