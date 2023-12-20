@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 
 use derive_new::new;
-use ndarray::{Array1, Array2, Axis, s};
+use ndarray::{s, Array1, Array2, Axis};
 use petgraph::graph::DiGraph;
 use serde::Serialize;
 
@@ -25,7 +25,13 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
 }
 
 // TODO: make lastfired etc. usize
-pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transition_inputs: &Matrix, mut last_step_active: Vec<i16>, firing_updates: &FiringUpdates, last_fired: &usize) -> Vec<i16> {
+pub(crate) fn find_active_transitions_from_firing_set(
+    marking: &State,
+    transition_inputs: &Matrix,
+    mut last_step_active: Vec<i16>,
+    firing_updates: &FiringUpdates,
+    last_fired: &usize,
+) -> Vec<i16> {
     if (last_step_active.len()) == 0 {
         return find_active_transitions(marking, transition_inputs);
     }
@@ -42,10 +48,12 @@ pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transitio
 
         if add_if_enabled || remove_if_disabled {
             // check if it is enabled
-            let enabled= marking.iter().zip(row.iter()).all(|(&a, &b)| a >= b);
+            let enabled = marking.iter().zip(row.iter()).all(|(&a, &b)| a >= b);
 
             // is newly enabled
-            if enabled && add_if_enabled { last_step_active.push(*row_index_i16) }
+            if enabled && add_if_enabled {
+                last_step_active.push(*row_index_i16)
+            }
             // was enabled but is now disabled
             else if !enabled && remove_if_disabled {
                 if let Some(index) = last_step_active.iter().position(|x| x == row_index_i16) {
@@ -55,12 +63,15 @@ pub(crate) fn find_active_transitions_from_firing_set(marking: &State, transitio
         }
     }
 
-
     return last_step_active;
 }
 
-
-pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: &usize, places: &usize) -> FiringUpdates {
+pub(crate) fn create_firing_updates(
+    t_in: &Matrix,
+    t_out: &Matrix,
+    transitions: &usize,
+    places: &usize,
+) -> FiringUpdates {
     let mut adds_tokens_to: HashMap<usize, Vec<i16>> = HashMap::new(); // transition add to places
     let mut has_tokens_removed_from: HashMap<usize, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
 
@@ -73,8 +84,12 @@ pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: 
         let transition_creates = t_out.slice(s![t as usize, ..]);
         adds_tokens_to.insert(t, Vec::new());
         for p in 0..transition_creates.len_of(Axis(0)) {
-            if transition_creates[[p]] > 0 { adds_tokens_to.get_mut(&t).unwrap().push(p as i16); }
-            if transition_consumes[[p]] > 0 { has_tokens_removed_from.get_mut(&p).unwrap().push(t as i16); }
+            if transition_creates[[p]] > 0 {
+                adds_tokens_to.get_mut(&t).unwrap().push(p as i16);
+            }
+            if transition_consumes[[p]] > 0 {
+                has_tokens_removed_from.get_mut(&p).unwrap().push(t as i16);
+            }
         }
     }
 
@@ -94,18 +109,22 @@ pub(crate) fn create_firing_updates(t_in: &Matrix, t_out: &Matrix, transitions: 
 
         let mut disables: HashSet<i16> = HashSet::new();
         // every transition that consumes a token from 'p' might disable other transitions that consume from 'p'
-        has_tokens_removed_from.values().for_each(|consuming_transitions| {
-            if consuming_transitions.contains(&(t as i16)) {
-                consuming_transitions.iter().for_each(|other_transition| { disables.insert(other_transition.clone()); })
-            }
-        });
+        has_tokens_removed_from
+            .values()
+            .for_each(|consuming_transitions| {
+                if consuming_transitions.contains(&(t as i16)) {
+                    consuming_transitions.iter().for_each(|other_transition| {
+                        disables.insert(other_transition.clone());
+                    })
+                }
+            });
         might_disable.insert(t, disables);
     }
 
     return FiringUpdates {
         can_enable,
         might_disable,
-    }
+    };
 }
 
 pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns: &usize) -> Matrix {

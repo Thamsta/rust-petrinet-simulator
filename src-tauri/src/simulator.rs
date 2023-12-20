@@ -67,11 +67,7 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
             if state.deadlocked {
                 return Ok(SimulationResponse::new(state.state.to_vec(), vec![], true));
             }
-            simulate(
-                state.state.clone(),
-                steps,
-                state,
-            )
+            simulate(state.state.clone(), steps, state)
         }
         Err(_) => Err("Could not read simulation state: ".to_string()),
     };
@@ -95,7 +91,13 @@ fn simulate(
     let mut fired: usize = 0;
     let start = Instant::now();
     for step in 0..steps {
-        active_transitions = find_active_transitions_from_firing_set(&state_vec, t_in, active_transitions, firing_updates, &fired);
+        active_transitions = find_active_transitions_from_firing_set(
+            &state_vec,
+            t_in,
+            active_transitions,
+            firing_updates,
+            &fired,
+        );
 
         if active_transitions.is_empty() {
             println!(
@@ -113,8 +115,9 @@ fn simulate(
     }
 
     let end = Instant::now();
+    let took_ms = (end - start).as_millis();
 
-    println!("Simulating {} steps took {}ms", steps, (end - start).as_millis());
+    println!("Simulating {} steps took {}ms", steps, took_ms);
 
     let result_marking = state_vec.to_vec();
     lock.state = state_vec;
