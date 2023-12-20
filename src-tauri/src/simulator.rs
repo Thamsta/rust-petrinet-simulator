@@ -10,8 +10,8 @@ use crate::common::*;
 
 struct SimulatorState {
     state: State,
-    t_in: Matrix,
-    t_effect: Matrix,
+    t_in: PTMatrix,
+    t_effect: PTMatrix,
     deadlocked: bool,
     firing_updates: FiringUpdates,
 }
@@ -42,10 +42,10 @@ pub(crate) fn start_simulation(
         return handle_no_transitions(marking);
     } // TODO: correctly handle nets with no places
 
-    let t_in: Matrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
-    let t_out: Matrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
-    let t_effect: Matrix = &t_out - &t_in;
-    let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out, &t, &p);
+    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
+    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
+    let t_effect: PTMatrix = &t_out - &t_in;
+    let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out);
 
     println!("{:?}", firing_updates);
 
@@ -83,7 +83,8 @@ fn simulate(
     let t_in = &lock.t_in;
     let t_effect = &lock.t_effect;
     let firing_updates = &lock.firing_updates;
-    for _ in 0..t_in.len() {
+
+    for _ in 0..t_in.transition_count() {
         t_heat.push(0);
     }
 

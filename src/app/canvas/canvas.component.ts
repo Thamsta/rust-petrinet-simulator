@@ -27,6 +27,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	isLocked = false
 	isDeadlocked = false // show notice on canvas if deadlocked
+    places: Place[] = [] // cache places and transitions while locked.
+    transitions: Transition[] = []
 
 	gridSize = 20
 	gridEnabled = false
@@ -36,14 +38,12 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	constructor(private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
 		simulatorService.simulationEmitter.subscribe(event => {
-			console.log(event)
 			this.isDeadlocked = event.deadlocked
 			this.setMarking(event.marking)
 			if (event.state == States.Stopped) {
 				this.unlock()
 			} else {
 				this.setTransitionHeat(event.firings)
-				this.canvas.renderAll()
 			}
 			this.canvas.renderAll()
 		})
@@ -270,6 +270,9 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	}
 
 	public getPlacesAndTransitions(): [Place[], Transition[]] {
+        if (this.isLocked) {
+            return [this.places, this.transitions]
+        }
 		let objects = this.canvas.getObjects()
 		let places: Place[] = []
 		let transitions: Transition[] = []
@@ -309,10 +312,13 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	}
 
 	private lock() {
+        let [places, transitions] = this.getPlacesAndTransitions()
 		this.isLocked = true
 		this.canvas.setBackgroundColor(canvas_color_simulating, () => {
 			this.canvas.renderAll()
 		})
+        this.places = places
+        this.transitions = transitions
 	}
 
 	private unlock() {
@@ -321,6 +327,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		this.canvas.setBackgroundColor(canvas_color, () => {
 		})
 		this.isLocked = false
+        this.places = []
+        this.transitions = []
 	}
 
 	private setMarking(p: number[]) {
@@ -346,7 +354,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		firings.map(value => value / sum)
 			.map(value => toHeatColor(value))
 			.forEach((value, index) => {
-				transitions[index].set({fill: value})
+                transitions[index].set({fill: value})
 			})
 	}
 

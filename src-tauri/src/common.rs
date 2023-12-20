@@ -5,11 +5,11 @@ use ndarray::{s, Array1, Array2, Axis};
 use petgraph::graph::DiGraph;
 use serde::Serialize;
 
-pub(crate) fn fire_transition(state: &State, effect_matrix: &Matrix, t: usize) -> State {
+pub(crate) fn fire_transition(state: &State, effect_matrix: &PTMatrix, t: usize) -> State {
     state + &effect_matrix.slice(s![t, ..])
 }
 
-pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matrix) -> Vec<i16> {
+pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &PTMatrix) -> Vec<i16> {
     let mut active_transitions = Vec::new();
 
     // Compare each row of the matrix to the reference array
@@ -27,7 +27,7 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
 // TODO: make lastfired etc. usize
 pub(crate) fn find_active_transitions_from_firing_set(
     marking: &State,
-    transition_inputs: &Matrix,
+    transition_inputs: &PTMatrix,
     mut last_step_active: Vec<i16>,
     firing_updates: &FiringUpdates,
     last_fired: &usize,
@@ -66,20 +66,17 @@ pub(crate) fn find_active_transitions_from_firing_set(
     return last_step_active;
 }
 
-pub(crate) fn create_firing_updates(
-    t_in: &Matrix,
-    t_out: &Matrix,
-    transitions: &usize,
-    places: &usize,
-) -> FiringUpdates {
+pub(crate) fn create_firing_updates(t_in: &PTMatrix, t_out: &PTMatrix) -> FiringUpdates {
+    let places = t_in.place_count();
+    let transitions = t_in.transition_count();
     let mut adds_tokens_to: HashMap<usize, Vec<i16>> = HashMap::new(); // transition add to places
     let mut has_tokens_removed_from: HashMap<usize, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
 
-    for p in 0..*places {
+    for p in 0..places {
         has_tokens_removed_from.insert(p, Vec::new());
     }
 
-    for t in 0..*transitions {
+    for t in 0..transitions {
         let transition_consumes = t_in.slice(s![t as usize, ..]);
         let transition_creates = t_out.slice(s![t as usize, ..]);
         adds_tokens_to.insert(t, Vec::new());
@@ -95,7 +92,7 @@ pub(crate) fn create_firing_updates(
 
     let mut can_enable: HashMap<usize, HashSet<i16>> = HashMap::new();
     let mut might_disable: HashMap<usize, HashSet<i16>> = HashMap::new();
-    for t in 0..*transitions {
+    for t in 0..transitions {
         let mut enables: HashSet<i16> = HashSet::new();
         // every transition that adds a token to 'p' might activate all transitions that consume from 'p'
         let adds_to_places = adds_tokens_to.get(&t).unwrap();
@@ -127,7 +124,11 @@ pub(crate) fn create_firing_updates(
     };
 }
 
-pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns: &usize) -> Matrix {
+pub(crate) fn input_matrix_to_matrix(
+    input: &InputMatrix,
+    rows: &usize,
+    columns: &usize,
+) -> PTMatrix {
     let mut result = Array2::zeros((*rows, *columns));
     for (i, mut row) in result.axis_iter_mut(Axis(0)).enumerate() {
         for (j, col) in row.iter_mut().enumerate() {
@@ -141,8 +142,23 @@ pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns:
 pub type InputState = Vec<i16>;
 pub type InputMatrix = Vec<Vec<i16>>;
 pub type State = Array1<i16>;
-pub type Matrix = Array2<i16>;
+pub type PTMatrix = Array2<i16>;
 pub type ReachabilityGraph = DiGraph<State, i16>;
+
+pub(crate) trait PTDimensions {
+    fn transition_count(&self) -> usize;
+    fn place_count(&self) -> usize;
+}
+
+impl PTDimensions for PTMatrix {
+    fn transition_count(&self) -> usize {
+        PTMatrix::shape(&self)[0]
+    }
+
+    fn place_count(&self) -> usize {
+        PTMatrix::shape(&self)[1]
+    }
+}
 
 #[derive(Serialize, new)]
 pub struct SimulationResponse {
