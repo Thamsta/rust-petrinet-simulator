@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::sync::{Mutex, MutexGuard};
 
 use lazy_static::lazy_static;
@@ -13,6 +12,7 @@ struct SimulatorState {
     t_in: Matrix,
     t_effect: Matrix,
     deadlocked: bool,
+    firing_updates: FiringUpdates,
 }
 
 lazy_static! {
@@ -21,6 +21,7 @@ lazy_static! {
         t_in: Array2::zeros((0, 0)),
         t_effect: Array2::zeros((0, 0)),
         deadlocked: false,
+        firing_updates: FiringUpdates::default()
     });
 }
 
@@ -49,10 +50,11 @@ pub(crate) fn start_simulation(
 
     return match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
-            state.t_in = t_in.clone();
-            state.t_effect = t_effect.clone();
+            state.t_in = t_in;
+            state.t_effect = t_effect;
             state.deadlocked = false;
-            simulate(arr1(&marking), t_in, t_effect, steps, state)
+            state.firing_updates = firing_updates;
+            simulate(arr1(&marking), steps, state)
         }
         Err(_) => Err("Could not acquire lock!".to_string()),
     };
@@ -66,8 +68,6 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
             }
             simulate(
                 state.state.clone(),
-                state.t_in.clone(),
-                state.t_effect.clone(),
                 steps,
                 state,
             )
@@ -78,19 +78,20 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
 
 fn simulate(
     marking: State,
-    t_in: Matrix,
-    t_effect: Matrix,
     steps: i16,
     mut lock: MutexGuard<SimulatorState>,
 ) -> Result<SimulationResponse, String> {
     let mut state_vec = marking.clone();
     let mut t_heat: Vec<i16> = Vec::new();
+    let t_in = &lock.t_in;
+    let t_effect = &lock.t_effect;
+    let firing_updates = &lock.firing_updates;
     for _ in 0..t_in.len() {
         t_heat.push(0);
     }
 
     for step in 0..steps {
-        let active_transitions = find_active_transitions(&state_vec, &t_in);
+        let active_transitions = find_active_transitions(&state_vec, t_in);
 
         if active_transitions.is_empty() {
             println!(
@@ -104,7 +105,7 @@ fn simulate(
 
         let t = select_transition(&active_transitions);
         t_heat[t] += 1;
-        state_vec = fire_transition(&state_vec, &t_effect, t);
+        state_vec = fire_transition(&state_vec, t_effect, t);
     }
 
     let result_marking = state_vec.to_vec();

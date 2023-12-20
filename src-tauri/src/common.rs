@@ -147,3 +147,12 @@ pub(crate) struct FiringUpdates {
     pub(crate) can_enable: HashMap<i16, HashSet<i16>>,
     pub(crate) might_disable: HashMap<i16, HashSet<i16>>,
 }
+
+impl Default for FiringUpdates {
+    fn default() -> Self {
+        FiringUpdates {
+            can_enable: Default::default(),
+            might_disable: Default::default(),
+        }
+    }
+}
