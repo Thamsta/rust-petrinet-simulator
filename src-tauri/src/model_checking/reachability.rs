@@ -13,11 +13,9 @@ pub(super) fn create_rg(
     transition_outputs: InputMatrix,
 ) -> Result<ReachabilityGraph, String> {
     let start_time_rg = Instant::now();
-    let t = &transition_inputs.len(); // rows
-    let p = &transition_inputs.get(0).expect("empty array").len(); // columns
 
-    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
-    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
+    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs);
+    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs);
     let t_effect: PTMatrix = &t_out - &t_in;
 
     let state_vec = arr1(&marking);

@@ -32,18 +32,17 @@ pub(crate) fn start_simulation(
     transition_outputs: InputMatrix,
     steps: i16,
 ) -> Result<SimulationResponse, String> {
-    let t = &transition_inputs.len(); // rows: number of transitions
-    if t.is_zero() {
+    if transition_inputs.transition_count().is_zero() {
         return handle_no_transitions(marking);
     }
 
-    let p = &transition_inputs.get(0).unwrap().len(); // columns: number of places
-    if p.is_zero() {
+    if transition_inputs.place_count().is_zero() {
+        // TODO: correctly handle nets with no places
         return handle_no_transitions(marking);
-    } // TODO: correctly handle nets with no places
+    }
 
-    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
-    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
+    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs);
+    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs);
     let t_effect: PTMatrix = &t_out - &t_in;
     let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out);
 

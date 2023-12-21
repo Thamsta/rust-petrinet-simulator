@@ -124,12 +124,10 @@ pub(crate) fn create_firing_updates(t_in: &PTMatrix, t_out: &PTMatrix) -> Firing
     };
 }
 
-pub(crate) fn input_matrix_to_matrix(
-    input: &InputMatrix,
-    rows: &usize,
-    columns: &usize,
-) -> PTMatrix {
-    let mut result = Array2::zeros((*rows, *columns));
+pub(crate) fn input_matrix_to_matrix(input: &InputMatrix) -> PTMatrix {
+    let rows = input.transition_count();
+    let columns = input.place_count();
+    let mut result = Array2::zeros((rows, columns));
     for (i, mut row) in result.axis_iter_mut(Axis(0)).enumerate() {
         for (j, col) in row.iter_mut().enumerate() {
             *col = input[i][j];
@@ -157,6 +155,16 @@ impl PTDimensions for PTMatrix {
 
     fn place_count(&self) -> usize {
         PTMatrix::shape(&self)[1]
+    }
+}
+
+impl PTDimensions for InputMatrix {
+    fn transition_count(&self) -> usize {
+        return self.len();
+    }
+
+    fn place_count(&self) -> usize {
+        self.get(0).map_or_else(|| 0, |v| v.len())
     }
 }
 
