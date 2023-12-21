@@ -8,7 +8,7 @@ use crate::common::*;
 use crate::model_checking::coverability::is_covering;
 
 pub(super) fn create_rg(
-    marking: Vec<i16>,
+    marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
 ) -> Result<ReachabilityGraph, String> {

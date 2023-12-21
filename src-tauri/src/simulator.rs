@@ -79,7 +79,7 @@ fn simulate(
     mut lock: MutexGuard<SimulatorState>,
 ) -> Result<SimulationResponse, String> {
     let mut state_vec = marking.clone();
-    let mut t_heat: Vec<i16> = Vec::new();
+    let mut t_heat: InputState = Vec::new();
     let t_in = &lock.t_in;
     let t_effect = &lock.t_effect;
     let firing_updates = &lock.firing_updates;
@@ -88,7 +88,7 @@ fn simulate(
         t_heat.push(0);
     }
 
-    let mut active_transitions: Vec<i16> = Vec::new();
+    let mut active_transitions: InputState = Vec::new();
     let mut fired: usize = 0;
     let start = Instant::now();
     for step in 0..steps {
@@ -126,12 +126,12 @@ fn simulate(
     return Ok(SimulationResponse::new(result_marking, t_heat, false));
 }
 
-fn select_transition(active_transitions: &Vec<i16>) -> usize {
+fn select_transition(active_transitions: &InputState) -> usize {
     let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
     return *active_transitions.get(rng_index).unwrap() as usize;
 }
 
-fn handle_no_transitions(marking: Vec<i16>) -> Result<SimulationResponse, String> {
+fn handle_no_transitions(marking: InputState) -> Result<SimulationResponse, String> {
     match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
             state.t_in = Array2::zeros((0, 0));

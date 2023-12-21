@@ -9,7 +9,7 @@ pub(crate) fn fire_transition(state: &State, effect_matrix: &PTMatrix, t: usize)
     state + &effect_matrix.slice(s![t, ..])
 }
 
-pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &PTMatrix) -> Vec<i16> {
+pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &PTMatrix) -> InputState {
     let mut active_transitions = Vec::new();
 
     // Compare each row of the matrix to the reference array
@@ -28,10 +28,10 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &PTMat
 pub(crate) fn find_active_transitions_from_firing_set(
     marking: &State,
     transition_inputs: &PTMatrix,
-    mut last_step_active: Vec<i16>,
+    mut last_step_active: InputState,
     firing_updates: &FiringUpdates,
     last_fired: &usize,
-) -> Vec<i16> {
+) -> InputState {
     if (last_step_active.len()) == 0 {
         return find_active_transitions(marking, transition_inputs);
     }
@@ -69,8 +69,8 @@ pub(crate) fn find_active_transitions_from_firing_set(
 pub(crate) fn create_firing_updates(t_in: &PTMatrix, t_out: &PTMatrix) -> FiringUpdates {
     let places = t_in.place_count();
     let transitions = t_in.transition_count();
-    let mut adds_tokens_to: HashMap<usize, Vec<i16>> = HashMap::new(); // transition add to places
-    let mut has_tokens_removed_from: HashMap<usize, Vec<i16>> = HashMap::new(); // place have tokens removed by transitions
+    let mut adds_tokens_to: HashMap<usize, InputState> = HashMap::new(); // transition add to places
+    let mut has_tokens_removed_from: HashMap<usize, InputState> = HashMap::new(); // place have tokens removed by transitions
 
     for p in 0..places {
         has_tokens_removed_from.insert(p, Vec::new());
@@ -140,7 +140,7 @@ pub(crate) fn input_matrix_to_matrix(
 }
 
 pub type InputState = Vec<i16>;
-pub type InputMatrix = Vec<Vec<i16>>;
+pub type InputMatrix = Vec<InputState>;
 pub type State = Array1<i16>;
 pub type PTMatrix = Array2<i16>;
 pub type ReachabilityGraph = DiGraph<State, i16>;
@@ -162,8 +162,8 @@ impl PTDimensions for PTMatrix {
 
 #[derive(Serialize, new)]
 pub struct SimulationResponse {
-    pub marking: Vec<i16>,
-    pub firings: Vec<i16>,
+    pub marking: InputState,
+    pub firings: InputState,
     pub deadlocked: bool,
 }
 
