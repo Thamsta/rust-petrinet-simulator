@@ -1,4 +1,5 @@
 use std::sync::{Mutex, MutexGuard};
+use std::time::Instant;
 
 use lazy_static::lazy_static;
 use ndarray::{arr1, Array1, Array2};
@@ -9,9 +10,10 @@ use crate::common::*;
 
 struct SimulatorState {
     state: State,
-    t_in: Matrix,
-    t_effect: Matrix,
+    t_in: PTMatrix,
+    t_effect: PTMatrix,
     deadlocked: bool,
+    firing_updates: FiringUpdates,
 }
 
 lazy_static! {
@@ -20,6 +22,7 @@ lazy_static! {
         t_in: Array2::zeros((0, 0)),
         t_effect: Array2::zeros((0, 0)),
         deadlocked: false,
+        firing_updates: FiringUpdates::default()
     });
 }
 
@@ -29,26 +32,29 @@ pub(crate) fn start_simulation(
     transition_outputs: InputMatrix,
     steps: i16,
 ) -> Result<SimulationResponse, String> {
-    let t = &transition_inputs.len(); // rows: number of transitions
-    if t.is_zero() {
+    if transition_inputs.transition_count().is_zero() {
         return handle_no_transitions(marking);
     }
 
-    let p = &transition_inputs.get(0).unwrap().len(); // columns: number of places
-    if p.is_zero() {
+    if transition_inputs.place_count().is_zero() {
+        // TODO: correctly handle nets with no places
         return handle_no_transitions(marking);
-    } // TODO: correctly handle nets with no places
+    }
 
-    let t_in: Matrix = input_matrix_to_matrix(&transition_inputs, &t, &p);
-    let t_out: Matrix = input_matrix_to_matrix(&transition_outputs, &t, &p);
-    let t_effect: Matrix = &t_out - &t_in;
+    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs);
+    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs);
+    let t_effect: PTMatrix = &t_out - &t_in;
+    let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out);
+
+    println!("{:?}", firing_updates);
 
     return match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
-            state.t_in = t_in.clone();
-            state.t_effect = t_effect.clone();
+            state.t_in = t_in;
+            state.t_effect = t_effect;
             state.deadlocked = false;
-            simulate(arr1(&marking), t_in, t_effect, steps, state)
+            state.firing_updates = firing_updates;
+            simulate(arr1(&marking), steps, state)
         }
         Err(_) => Err("Could not acquire lock!".to_string()),
     };
@@ -60,13 +66,7 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
             if state.deadlocked {
                 return Ok(SimulationResponse::new(state.state.to_vec(), vec![], true));
             }
-            simulate(
-                state.state.clone(),
-                state.t_in.clone(),
-                state.t_effect.clone(),
-                steps,
-                state,
-            )
+            simulate(state.state.clone(), steps, state)
         }
         Err(_) => Err("Could not read simulation state: ".to_string()),
     };
@@ -74,18 +74,30 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
 
 fn simulate(
     marking: State,
-    t_in: Matrix,
-    t_effect: Matrix,
     steps: i16,
     mut lock: MutexGuard<SimulatorState>,
 ) -> Result<SimulationResponse, String> {
     let mut state_vec = marking.clone();
-    let mut t_heat: Vec<i16> = Vec::new();
-    for _ in 0..t_in.len() {
+    let mut t_heat: InputState = Vec::new();
+    let t_in = &lock.t_in;
+    let t_effect = &lock.t_effect;
+    let firing_updates = &lock.firing_updates;
+
+    for _ in 0..t_in.transition_count() {
         t_heat.push(0);
     }
+
+    let mut active_transitions: InputState = Vec::new();
+    let mut fired: usize = 0;
+    let start = Instant::now();
     for step in 0..steps {
-        let active_transitions = find_active_transitions(&state_vec, &t_in);
+        active_transitions = find_active_transitions_from_firing_set(
+            &state_vec,
+            t_in,
+            active_transitions,
+            firing_updates,
+            &fired,
+        );
 
         if active_transitions.is_empty() {
             println!(
@@ -97,12 +109,15 @@ fn simulate(
             return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat, true));
         }
 
-        let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
-        let t_opt = active_transitions.get(rng_index);
-        let t = *t_opt.unwrap() as usize;
-        t_heat[t] += 1;
-        state_vec = fire_transition(&state_vec, &t_effect, t);
+        fired = select_transition(&active_transitions);
+        t_heat[fired] += 1;
+        state_vec = fire_transition(&state_vec, t_effect, fired);
     }
+
+    let end = Instant::now();
+    let took_ms = (end - start).as_millis();
+
+    println!("Simulating {} steps took {}ms", steps, took_ms);
 
     let result_marking = state_vec.to_vec();
     lock.state = state_vec;
@@ -110,7 +125,12 @@ fn simulate(
     return Ok(SimulationResponse::new(result_marking, t_heat, false));
 }
 
-fn handle_no_transitions(marking: Vec<i16>) -> Result<SimulationResponse, String> {
+fn select_transition(active_transitions: &InputState) -> usize {
+    let rng_index: usize = rand::thread_rng().gen_range(0..active_transitions.len());
+    return *active_transitions.get(rng_index).unwrap() as usize;
+}
+
+fn handle_no_transitions(marking: InputState) -> Result<SimulationResponse, String> {
     match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
             state.t_in = Array2::zeros((0, 0));

@@ -1,13 +1,15 @@
+use std::collections::{HashMap, HashSet};
+
 use derive_new::new;
 use ndarray::{s, Array1, Array2, Axis};
 use petgraph::graph::DiGraph;
 use serde::Serialize;
 
-pub(crate) fn fire_transition(state: &State, effect_matrix: &Matrix, t: usize) -> State {
+pub(crate) fn fire_transition(state: &State, effect_matrix: &PTMatrix, t: usize) -> State {
     state + &effect_matrix.slice(s![t, ..])
 }
 
-pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matrix) -> Vec<i16> {
+pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &PTMatrix) -> InputState {
     let mut active_transitions = Vec::new();
 
     // Compare each row of the matrix to the reference array
@@ -22,8 +24,110 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &Matri
     return active_transitions;
 }
 
-pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns: &usize) -> Matrix {
-    let mut result = Array2::zeros((*rows, *columns));
+// TODO: make lastfired etc. usize
+pub(crate) fn find_active_transitions_from_firing_set(
+    marking: &State,
+    transition_inputs: &PTMatrix,
+    mut last_step_active: InputState,
+    firing_updates: &FiringUpdates,
+    last_fired: &usize,
+) -> InputState {
+    if (last_step_active.len()) == 0 {
+        return find_active_transitions(marking, transition_inputs);
+    }
+
+    // Compare each row of the matrix to the reference array
+    let might_be_disabled = firing_updates.might_disable.get(last_fired).unwrap();
+    let can_be_enabled = firing_updates.can_enable.get(last_fired).unwrap();
+    for (row_index, row) in transition_inputs.axis_iter(Axis(0)).enumerate() {
+        // Check whether the marking is at least as large as the edge weight.
+        let row_index_i16 = &(row_index as i16);
+        let was_active = last_step_active.contains(row_index_i16);
+        let remove_if_disabled = was_active && might_be_disabled.contains(row_index_i16);
+        let add_if_enabled = !was_active && can_be_enabled.contains(row_index_i16);
+
+        if add_if_enabled || remove_if_disabled {
+            // check if it is enabled
+            let enabled = marking.iter().zip(row.iter()).all(|(&a, &b)| a >= b);
+
+            // is newly enabled
+            if enabled && add_if_enabled {
+                last_step_active.push(*row_index_i16)
+            }
+            // was enabled but is now disabled
+            else if !enabled && remove_if_disabled {
+                if let Some(index) = last_step_active.iter().position(|x| x == row_index_i16) {
+                    last_step_active.remove(index);
+                }
+            }
+        }
+    }
+
+    return last_step_active;
+}
+
+pub(crate) fn create_firing_updates(t_in: &PTMatrix, t_out: &PTMatrix) -> FiringUpdates {
+    let places = t_in.place_count();
+    let transitions = t_in.transition_count();
+    let mut adds_tokens_to: HashMap<usize, InputState> = HashMap::new(); // transition add to places
+    let mut has_tokens_removed_from: HashMap<usize, InputState> = HashMap::new(); // place have tokens removed by transitions
+
+    for p in 0..places {
+        has_tokens_removed_from.insert(p, Vec::new());
+    }
+
+    for t in 0..transitions {
+        let transition_consumes = t_in.slice(s![t as usize, ..]);
+        let transition_creates = t_out.slice(s![t as usize, ..]);
+        adds_tokens_to.insert(t, Vec::new());
+        for p in 0..transition_creates.len_of(Axis(0)) {
+            if transition_creates[[p]] > 0 {
+                adds_tokens_to.get_mut(&t).unwrap().push(p as i16);
+            }
+            if transition_consumes[[p]] > 0 {
+                has_tokens_removed_from.get_mut(&p).unwrap().push(t as i16);
+            }
+        }
+    }
+
+    let mut can_enable: HashMap<usize, HashSet<i16>> = HashMap::new();
+    let mut might_disable: HashMap<usize, HashSet<i16>> = HashMap::new();
+    for t in 0..transitions {
+        let mut enables: HashSet<i16> = HashSet::new();
+        // every transition that adds a token to 'p' might activate all transitions that consume from 'p'
+        let adds_to_places = adds_tokens_to.get(&t).unwrap();
+        adds_to_places.iter().for_each(|&p| {
+            let all_places = has_tokens_removed_from.get(&(p as usize)).unwrap();
+            all_places.iter().for_each(|p| {
+                enables.insert(p.clone());
+            });
+        });
+        can_enable.insert(t, enables);
+
+        let mut disables: HashSet<i16> = HashSet::new();
+        // every transition that consumes a token from 'p' might disable other transitions that consume from 'p'
+        has_tokens_removed_from
+            .values()
+            .for_each(|consuming_transitions| {
+                if consuming_transitions.contains(&(t as i16)) {
+                    consuming_transitions.iter().for_each(|other_transition| {
+                        disables.insert(other_transition.clone());
+                    })
+                }
+            });
+        might_disable.insert(t, disables);
+    }
+
+    return FiringUpdates {
+        can_enable,
+        might_disable,
+    };
+}
+
+pub(crate) fn input_matrix_to_matrix(input: &InputMatrix) -> PTMatrix {
+    let rows = input.transition_count();
+    let columns = input.place_count();
+    let mut result = Array2::zeros((rows, columns));
     for (i, mut row) in result.axis_iter_mut(Axis(0)).enumerate() {
         for (j, col) in row.iter_mut().enumerate() {
             *col = input[i][j];
@@ -34,15 +138,40 @@ pub(crate) fn input_matrix_to_matrix(input: &InputMatrix, rows: &usize, columns:
 }
 
 pub type InputState = Vec<i16>;
-pub type InputMatrix = Vec<Vec<i16>>;
+pub type InputMatrix = Vec<InputState>;
 pub type State = Array1<i16>;
-pub type Matrix = Array2<i16>;
+pub type PTMatrix = Array2<i16>;
 pub type ReachabilityGraph = DiGraph<State, i16>;
+
+pub(crate) trait PTDimensions {
+    fn transition_count(&self) -> usize;
+    fn place_count(&self) -> usize;
+}
+
+impl PTDimensions for PTMatrix {
+    fn transition_count(&self) -> usize {
+        PTMatrix::shape(&self)[0]
+    }
+
+    fn place_count(&self) -> usize {
+        PTMatrix::shape(&self)[1]
+    }
+}
+
+impl PTDimensions for InputMatrix {
+    fn transition_count(&self) -> usize {
+        return self.len();
+    }
+
+    fn place_count(&self) -> usize {
+        self.get(0).map_or_else(|| 0, |v| v.len())
+    }
+}
 
 #[derive(Serialize, new)]
 pub struct SimulationResponse {
-    pub marking: Vec<i16>,
-    pub firings: Vec<i16>,
+    pub marking: InputState,
+    pub firings: InputState,
     pub deadlocked: bool,
 }
 
@@ -86,6 +215,21 @@ impl RGResponse {
             liveness: properties.liveness,
             bounded: true,
             message: msg,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(crate) struct FiringUpdates {
+    pub(crate) can_enable: HashMap<usize, HashSet<i16>>,
+    pub(crate) might_disable: HashMap<usize, HashSet<i16>>,
+}
+
+impl Default for FiringUpdates {
+    fn default() -> Self {
+        FiringUpdates {
+            can_enable: Default::default(),
+            might_disable: Default::default(),
         }
     }
 }
