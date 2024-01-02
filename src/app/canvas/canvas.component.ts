@@ -95,6 +95,19 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		let x = event.e.offsetX
 		let y = event.e.offsetY
 		let target = this.getTarget(event)
+        if (target instanceof Place && this.lastSelected == target && !target.tokenText.isEditing) {
+            if (target.tokens == 0) {
+                target.tokenText.enterEditing()
+            }
+        } else {
+            this.canvas.getObjects("circle").forEach(
+                it => {
+                    if (it instanceof Place && it != target && it.tokenText.isEditing) {
+                        it.tokenText.exitEditing()
+                    }
+                }
+            )
+        }
 		let tool = this.toolbar.selected
 
 		switch (tool) {
