@@ -166,7 +166,8 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
             top: y,
             ...placeOptions
         })
-        this.tokenText = new Text("0", this)
+        this.tokenText = new Text("", this)
+        this.updateText()
         this.updateTextPosition()
         canvas.add(this)
         canvas.add(this.tokenText)
@@ -215,7 +216,8 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     }
 
     private updateText() {
-        this.tokenText.set({text: String(this.tokens)})
+        let text = this.tokens == 0 ? "" : String(this.tokens)
+        this.tokenText.set({text: text})
         this.updateTextPosition()
     }
 }
@@ -410,6 +412,6 @@ export class Text extends fabric.IText {
     }
 
     updateFromText() {
-        this.parent.updateTextFromString(this.text ? this.text : "0");
+        this.parent.updateTextFromString(this.text ? this.text : "");
     }
 }
