@@ -140,7 +140,6 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         if ((target instanceof Place || target instanceof Arc) && this.lastSelected == target) {
             target.enterEditing()
         } else {
-            // TODO: improve condition
             this.getPlaces().concat()
                 .filter(place => place != target)
                 .forEach(place => place.exitEditing())
