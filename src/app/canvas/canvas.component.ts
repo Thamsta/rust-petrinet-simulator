@@ -13,6 +13,10 @@ import {NetDTO} from "../dtos";
 export interface NetCanvas {
 	getAllElements(): Object[]
 
+    getTransitions(): Transition[]
+    getPlaces(): Place[]
+    getArcs(): Arc[]
+
 	loadNet(net: NetDTO): void
 }
 
@@ -423,6 +427,24 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		this.canvas.renderAll();
 	}
 
+    getPlaces(): Place[] {
+        return this.canvas.getObjects("circle")
+            .filter(it => it instanceof Place)
+            .map(it => it as Place)
+    }
+
+    getTransitions(): Transition[] {
+        return this.canvas.getObjects("rect")
+            .filter(it => it instanceof Transition)
+            .map(it => it as Transition)
+    }
+
+    getArcs(): Arc[] {
+        return this.canvas.getObjects("line")
+            .filter(it => it instanceof Arc)
+            .map(it => it as Arc)
+    }
+
 	private deleteAllElements(): void {
 		this.canvas.getObjects().forEach(obj => {
 			if (obj instanceof Transition || obj instanceof Place) {
@@ -435,23 +457,5 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         if (e.target instanceof Text) {
             e.target.updateFromText()
         }
-    }
-
-    private getPlaces(): Place[] {
-        return this.canvas.getObjects("circle")
-            .filter(it => it instanceof Place)
-            .map(it => it as Place)
-    }
-
-    private getTransitions(): Transition[] {
-        return this.canvas.getObjects("rect")
-            .filter(it => it instanceof Transition)
-            .map(it => it as Transition)
-    }
-
-    private getArcs(): Arc[] {
-        return this.canvas.getObjects("line")
-            .filter(it => it instanceof Arc)
-            .map(it => it as Arc)
     }
 }
