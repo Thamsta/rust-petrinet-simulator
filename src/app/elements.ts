@@ -414,7 +414,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
 
     setAmount(amount: number): void {
         this.weight = amount;
-        if (this.weight <= 1) { this.weight = 1}
+        if (this.weight < 1) this.weight = 1
         this.updateText()
     }
 
@@ -424,6 +424,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
 
     updateTextFromString(text: string) {
         this.weight = +text.replaceAll(/\D/g, '')
+        if (this.weight < 1) this.weight = 1
         this.updateText()
     }
 }
