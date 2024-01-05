@@ -419,7 +419,8 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
     }
 
     private updateText() {
-        this.weightText.set({text: String(this.weight)});
+        let weightString = this.weight > 1 ? String(this.weight) : ""
+        this.weightText.set({text: weightString});
     }
 
     updateTextFromString(text: string) {
