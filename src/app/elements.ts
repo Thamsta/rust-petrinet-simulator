@@ -42,6 +42,11 @@ interface Countable {
     setAmount(amount: number): void
 }
 
+interface TextEditable {
+    enterEditing(): void
+    exitEditing(): void
+}
+
 /**
  * A point of cartesian coordinates.
  * @interface
@@ -150,7 +155,7 @@ export class Transition extends fabric.Rect implements Removable {
  * @class
  * @implements {Removable, Countable, Groupable}
  */
-export class Place extends fabric.Circle implements Removable, Countable, Groupable {
+export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable {
     id = uuidv4();
 
     tokens= 0
@@ -173,6 +178,18 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         canvas.add(this.tokenText)
         canvas.sendBackwards(this)
         canvas.bringToFront(this.tokenText)
+    }
+
+    enterEditing(): void {
+        if (!this.tokenText.isEditing && this.tokens == 0) {
+            this.tokenText.enterEditing()
+        }
+    }
+
+    exitEditing(): void {
+        if (this.tokenText.isEditing) {
+            this.tokenText.exitEditing()
+        }
     }
 
     addToGroup(group: fabric.Group): void {
@@ -227,7 +244,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
  * @class
  * @implements {Removable, Countable, Ungroupable}
  */
-export class Arc extends fabric.Line implements Removable, Countable, Ungroupable {
+export class Arc extends fabric.Line implements Removable, Countable, Ungroupable, TextEditable {
     id = uuidv4();
 
     from: Place | Transition;
@@ -255,6 +272,18 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
         canvas.sendToBack(this);
         canvas.sendToBack(this.arrowArc1);
         canvas.sendToBack(this.arrowArc2);
+    }
+
+    enterEditing(): void {
+        if (!this.weightText.isEditing) {
+            this.weightText.enterEditing()
+        }
+    }
+
+    exitEditing(): void {
+        if (this.weightText.isEditing) {
+            this.weightText.exitEditing()
+        }
     }
 
     removeFromGroup(group: fabric.Group): void {

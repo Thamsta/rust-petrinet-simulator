@@ -95,23 +95,15 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		let x = event.e.offsetX
 		let y = event.e.offsetY
 		let target = this.getTarget(event)
-        if (target instanceof Place && this.lastSelected == target && !target.tokenText.isEditing) {
-            if (target.tokens == 0) {
-                target.tokenText.enterEditing()
-            }
-        } else {
-            this.canvas.getObjects("circle").forEach(
-                it => {
-                    if (it instanceof Place && it != target && it.tokenText.isEditing) {
-                        it.tokenText.exitEditing()
-                    }
-                }
-            )
-        }
+
 		let tool = this.toolbar.selected
 
 		switch (tool) {
-			case DrawingTools.PLACE: {
+            case DrawingTools.SELECT: {
+                this.handleTextEditing(target)
+                break
+            }
+            case DrawingTools.PLACE: {
 				if (target == undefined) {
 					this.addPlace(x, y)
 				}
@@ -139,6 +131,17 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		}
 		this.lastSelected = target
 	}
+
+    private handleTextEditing(target: Object | undefined) {
+        if ((target instanceof Place || target instanceof Arc) && this.lastSelected == target) {
+            target.enterEditing()
+        } else {
+            // TODO: improve condition, also iterate over arcs?
+            this.getPlaces()
+                .filter(place => place != target)
+                .forEach(place => place.exitEditing())
+        }
+    }
 
 	private addTransition = (x: number, y: number) => {
 		return new Transition(x, y, this.canvas)
@@ -186,11 +189,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	private selectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.
-		this.canvas.getObjects("circle").forEach(obj => {
-			if (obj instanceof Place) {
-				obj.updateTextPosition()
-			}
-		})
+		this.getPlaces().forEach(obj => obj.updateTextPosition())
 		this.lastSelected = undefined
 		this.canvas.renderAll()
 	}
@@ -433,5 +432,17 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         if (e.target instanceof Text) {
             e.target.updateFromText()
         }
+    }
+
+    private getPlaces(): Place[] {
+        return this.canvas.getObjects("circle")
+            .filter(it => it instanceof Place)
+            .map(it => it as Place)
+    }
+
+    private getTransitions(): Transition[] {
+        return this.canvas.getObjects("rect")
+            .filter(it => it instanceof Transition)
+            .map(it => it as Transition)
     }
 }
