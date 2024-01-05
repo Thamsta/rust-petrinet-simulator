@@ -136,10 +136,13 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         if ((target instanceof Place || target instanceof Arc) && this.lastSelected == target) {
             target.enterEditing()
         } else {
-            // TODO: improve condition, also iterate over arcs?
-            this.getPlaces()
+            // TODO: improve condition
+            this.getPlaces().concat()
                 .filter(place => place != target)
                 .forEach(place => place.exitEditing())
+            this.getArcs()
+				.filter(arc => arc != target)
+				.forEach(arc => arc.exitEditing())
         }
     }
 
@@ -444,5 +447,11 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         return this.canvas.getObjects("rect")
             .filter(it => it instanceof Transition)
             .map(it => it as Transition)
+    }
+
+    private getArcs(): Arc[] {
+        return this.canvas.getObjects("line")
+            .filter(it => it instanceof Arc)
+            .map(it => it as Arc)
     }
 }
