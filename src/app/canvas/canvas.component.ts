@@ -13,6 +13,10 @@ import {NetDTO} from "../dtos";
 export interface NetCanvas {
 	getAllElements(): Object[]
 
+    getTransitions(): Transition[]
+    getPlaces(): Place[]
+    getArcs(): Arc[]
+
 	loadNet(net: NetDTO): void
 }
 
@@ -95,10 +99,16 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		let x = event.e.offsetX
 		let y = event.e.offsetY
 		let target = this.getTarget(event)
+
 		let tool = this.toolbar.selected
 
+        // TODO: deselect text editing also from other tools than the select tool.
 		switch (tool) {
-			case DrawingTools.PLACE: {
+            case DrawingTools.SELECT: {
+                this.handleTextEditing(target)
+                break
+            }
+            case DrawingTools.PLACE: {
 				if (target == undefined) {
 					this.addPlace(x, y)
 				}
@@ -126,6 +136,23 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		}
 		this.lastSelected = target
 	}
+
+    private handleTextEditing(target: Object | undefined) {
+        if ((target instanceof Place || target instanceof Arc) && this.lastSelected == target) {
+            target.enterEditing()
+        } else {
+            this.leaveTextEditing(target)
+        }
+    }
+
+    private leaveTextEditing(target: Object | undefined) {
+        this.getPlaces().concat()
+            .filter(place => place != target)
+            .forEach(place => place.exitEditing())
+        this.getArcs()
+            .filter(arc => arc != target)
+            .forEach(arc => arc.exitEditing())
+    }
 
 	private addTransition = (x: number, y: number) => {
 		return new Transition(x, y, this.canvas)
@@ -173,11 +200,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	private selectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.
-		this.canvas.getObjects("circle").forEach(obj => {
-			if (obj instanceof Place) {
-				obj.updateTextPosition()
-			}
-		})
+		this.getPlaces().forEach(obj => obj.updateTextPosition())
 		this.lastSelected = undefined
 		this.canvas.renderAll()
 	}
@@ -224,9 +247,16 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	 * @param command
 	 */
 	async controlChanged(command: DrawingTools) {
+        if (command != DrawingTools.SELECT) {
+            this.leaveTextEditing(undefined)
+        }
+
 		let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
 		switch (command) {
-			case DrawingTools.RUN:
+            case DrawingTools.GARBAGE:
+                // TODO: delete current selection
+                break;
+            case DrawingTools.RUN:
 				if (this.simulatorService.isPaused()) {
 					await this.simulatorService.continue()
 				} else {
@@ -407,6 +437,24 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		})
 		this.canvas.renderAll();
 	}
+
+    getPlaces(): Place[] {
+        return this.canvas.getObjects("circle")
+            .filter(it => it instanceof Place)
+            .map(it => it as Place)
+    }
+
+    getTransitions(): Transition[] {
+        return this.canvas.getObjects("rect")
+            .filter(it => it instanceof Transition)
+            .map(it => it as Transition)
+    }
+
+    getArcs(): Arc[] {
+        return this.canvas.getObjects("line")
+            .filter(it => it instanceof Arc)
+            .map(it => it as Arc)
+    }
 
 	private deleteAllElements(): void {
 		this.canvas.getObjects().forEach(obj => {
