@@ -27,17 +27,11 @@ export class ToolbarComponent {
     select(selected: DrawingTools) {
         this.selected = selected;
 
-        if (!this.shouldEmit(selected)) return
-
         this.controlEmitter.emit(selected)
         if (selected == DrawingTools.STOP || selected == DrawingTools.RG) {
             this.selected = DrawingTools.SELECT
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE
         }
-    }
-
-    private shouldEmit(command: DrawingTools) : boolean {
-        return isPlayerCommand(command) || command == DrawingTools.RG
     }
 }
