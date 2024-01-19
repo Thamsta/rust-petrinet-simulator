@@ -102,12 +102,9 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 		let tool = this.toolbar.selected
 
-        // TODO: deselect text editing also from other tools than the select tool.
+        this.handleTextEditing(target, tool)
+
 		switch (tool) {
-            case DrawingTools.SELECT: {
-                this.handleTextEditing(target)
-                break
-            }
             case DrawingTools.PLACE: {
 				if (target == undefined) {
 					this.addPlace(x, y)
@@ -135,18 +132,24 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			}
 		}
 		this.lastSelected = target
-	}
+    }
 
-    private handleTextEditing(target: Object | undefined) {
-        if ((target instanceof Place || target instanceof Arc) && this.lastSelected == target) {
+    private handleTextEditing(target: Object | undefined, tool: DrawingTools) {
+        if (tool == DrawingTools.SELECT
+            && (target instanceof Place || target instanceof Arc)
+            && this.isDoubleClick(target)) {
             target.enterEditing()
         } else {
             this.leaveTextEditing(target)
         }
     }
 
+    private isDoubleClick(target: Object | undefined) {
+        return this.lastSelected == target
+    }
+
     private leaveTextEditing(target: Object | undefined) {
-        this.getPlaces().concat()
+        this.getPlaces()
             .filter(place => place != target)
             .forEach(place => place.exitEditing())
         this.getArcs()
@@ -247,9 +250,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	 * @param command
 	 */
 	async controlChanged(command: DrawingTools) {
-        if (command != DrawingTools.SELECT) {
-            this.leaveTextEditing(undefined)
-        }
+        this.leaveTextEditing(undefined)
 
 		let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
 		switch (command) {
