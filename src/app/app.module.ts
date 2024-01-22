@@ -14,6 +14,7 @@ import {ShortcutDirective} from './directives/shortcut.directive';
 import {MatTooltipModule} from "@angular/material/tooltip";
 import { ExportComponent } from './export/export.component';
 import { ImportComponent } from './import/import.component';
+import { EditorComponent } from './editor/editor.component';
 
 @NgModule({
 	declarations: [
@@ -24,6 +25,7 @@ import { ImportComponent } from './import/import.component';
 		ShortcutDirective,
   ExportComponent,
   ImportComponent,
+  EditorComponent,
 	],
 	imports: [
 		BrowserModule,

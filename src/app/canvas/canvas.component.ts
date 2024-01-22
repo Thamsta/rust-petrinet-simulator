@@ -1,13 +1,9 @@
-import {AfterContentInit, Component, NgZone, ViewChild} from '@angular/core'
+import {AfterContentInit, Component, EventEmitter, Output} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
-import {ToolbarComponent} from "../toolbar/toolbar.component"
 import {DrawingTools} from "../models"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
-import {SimulatorService, States} from "../simulator/simulator.service"
-import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
-import {InfoBarComponent} from "../infobar/info-bar.component";
 import {NetDTO} from "../dtos";
 
 export interface NetCanvas {
@@ -20,6 +16,14 @@ export interface NetCanvas {
 	loadNet(net: NetDTO): void
 }
 
+export type CanvasEvent = {
+    type: string
+    source: IEvent<MouseEvent>
+}
+
+/**
+ * A wrapper class around an HTML canvas that is enriched with knowledge about Petri nets.
+ */
 @Component({
 	selector: 'app-canvas',
 	templateUrl: './canvas.component.html',
@@ -37,30 +41,20 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	gridSize = 20
 	gridEnabled = false
 
-	@ViewChild('toolbar') toolbar!: ToolbarComponent
-	@ViewChild('infobar') infobar!: InfoBarComponent
+    @Output()
+    mouseEventEmitter = new EventEmitter<CanvasEvent>
 
-	constructor(private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
-		simulatorService.simulationEmitter.subscribe(event => {
-			this.isDeadlocked = event.deadlocked
-			this.setMarking(event.marking)
-			if (event.state == States.Stopped) {
-				this.unlock()
-			} else {
-				this.setTransitionHeat(event.firings)
-			}
-			this.canvas.renderAll()
-		})
-	}
 
-	ngAfterContentInit() {
+    ngAfterContentInit() {
 		this.canvas = new fabric.Canvas('canvas')
 		this.setupCanvas()
+        // mouse:down is a special event
 		this.canvas.on('mouse:down', e => this.onClick(e))
-		this.canvas.on('selection:created', e => this.selectCreate(e))
-		this.canvas.on('selection:cleared', e => this.selectClear(e))
-		this.canvas.on('object:moving', e => this.objectMoving(e))
-        this.canvas.on('object:modified', e => this.objectModified(e))
+
+	    this.canvas.on('selection:created', e => this.selectCreate(e))
+	    this.canvas.on('selection:cleared', e => this.selectClear(e))
+	    this.canvas.on('object:moving', e => this.objectMoving(e))
+	    this.canvas.on('object:modified', e => this.objectModified(e))
 		window.addEventListener('resize', this.onWindowResize)
 	}
 
@@ -69,11 +63,6 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			width: window.innerWidth,
 			height: window.innerHeight
 		})
-	}
-
-	private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
-		let target = event.target
-		return target instanceof Text ? target.parent : target
 	}
 
 	private setupCanvas = () => {
@@ -96,42 +85,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			return
 		}
 
-		let x = event.e.offsetX
-		let y = event.e.offsetY
-		let target = this.getTarget(event)
-
-		let tool = this.toolbar.selected
-
-        this.handleTextEditing(target, tool)
-
-		switch (tool) {
-            case DrawingTools.PLACE: {
-				if (target == undefined) {
-					this.addPlace(x, y)
-				}
-				break
-			}
-			case DrawingTools.TRANSITION: {
-				if (target == undefined) {
-					this.addTransition(x, y)
-				}
-				break
-			}
-			case DrawingTools.TOKEN_INC:
-			case DrawingTools.TOKEN_DEC: {
-				this.addOrRemoveToken(tool, target)
-				break
-			}
-			case DrawingTools.GARBAGE: {
-				this.deleteObject(target)
-				break
-			}
-			case DrawingTools.ARC: {
-				this.addArcFromLastSelected(target)
-				break
-			}
-		}
-		this.lastSelected = target
+        this.mouseEventEmitter.emit({type: 'mouse:down', source: event})
     }
 
     private handleTextEditing(target: Object | undefined, tool: DrawingTools) {
@@ -157,19 +111,19 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
             .forEach(arc => arc.exitEditing())
     }
 
-	private addTransition = (x: number, y: number) => {
+	addTransition = (x: number, y: number) => {
 		return new Transition(x, y, this.canvas)
 	}
 
-	private addPlace = (x: number, y: number) => {
+	addPlace = (x: number, y: number) => {
 		return new Place(x, y, this.canvas)
 	}
 
-	private addArcFromLastSelected(target: fabric.Object | undefined) {
+	addArcFromLastSelected(target: fabric.Object | undefined) {
 		this.addArc(this.lastSelected, target)
 	}
 
-	private addArc(source: fabric.Object | undefined, target: fabric.Object | undefined) {
+	addArc(source: fabric.Object | undefined, target: fabric.Object | undefined) {
 		if (target instanceof Place && source instanceof Transition
 			|| target instanceof Transition && source instanceof Place) {
 			let arc = new Arc(source, target, this.canvas)
@@ -181,7 +135,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		return undefined
 	}
 
-	private deleteObject(obj: fabric.Object | undefined) {
+	deleteObject(obj: fabric.Object | undefined) {
 		if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
 			obj.remove(this.canvas)
 		}
@@ -190,7 +144,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		}
 	}
 
-	private addOrRemoveToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: fabric.Object | undefined) {
+	addOrRemoveToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: fabric.Object | undefined) {
 		if (obj instanceof Place || obj instanceof Arc) {
 			if (mode == DrawingTools.TOKEN_INC) {
 				obj.increment()
@@ -219,7 +173,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		this.canvas.renderAll()
 	}
 
-	private moveObj(obj: fabric.Object) {
+	moveObj(obj: fabric.Object) {
 		if (this.gridEnabled) {
 			let [left, top] = this.toGridCoordinate(obj.left!, obj.top!)
 			obj.set({top: top, left: left})
@@ -245,62 +199,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		return [xGrid, yGrid]
 	}
 
-	/**
-	 * Player.
-	 * @param command
-	 */
-	async controlChanged(command: DrawingTools) {
-        this.leaveTextEditing(undefined)
-
-		let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
-		switch (command) {
-            case DrawingTools.GARBAGE:
-                // TODO: delete current selection
-                break;
-            case DrawingTools.RUN:
-				if (this.simulatorService.isPaused()) {
-					await this.simulatorService.continue()
-				} else {
-					this.lock()
-					await this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
-				}
-				break;
-			case DrawingTools.STEP:
-				this.lock()
-				await this.simulatorService.step(p, pxt_in, pxt_out)
-				break;
-			case DrawingTools.STOP:
-				this.simulatorService.stop()
-				break;
-			case DrawingTools.PAUSE:
-				this.simulatorService.pause()
-				break;
-			case DrawingTools.RG:
-				this.rg(p, pxt_in, pxt_out)
-				break;
-		}
-	}
-
-	async startSimulationAsync(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
-		try {
-			await this.ngZone.runOutsideAngular(async () => {
-				this.simulatorService.start(p, pxt_in, pxt_out, steps).then(_ => {
-				});
-			});
-		} catch (error) {
-			console.error('Error during simulation:', error);
-		}
-	}
-
-	private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
-		this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
-			this.infobar.updateRGInfos(response)
-		}, (error) => {
-			this.infobar.updateOnError(error)
-		})
-	}
-
-	public getPlacesAndTransitions(): [Place[], Transition[]] {
+    getPlacesAndTransitions(): [Place[], Transition[]] {
         if (this.isLocked) {
             return [this.places, this.transitions]
         }
@@ -322,27 +221,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		return [places, transitions]
 	}
 
-	public getNetAsMatrix(): [number[], number[][], number[][]] {
-		let [places, transitions] = this.getPlacesAndTransitions()
-		let pxt_in: number[][] = []
-		let pxt_out: number[][] = []
-
-		const p = places.map(p => p.tokens)
-		const place_to_index = new Map<string, number>(places.map((p, i) => [p.id, i]))
-
-		transitions.forEach(transition => {
-			let t_in_array = Array(p.length).fill(0)
-			let t_out_array = Array(p.length).fill(0)
-			transition.arcs.arcs_out.forEach(arc => t_out_array[place_to_index.get(arc.to.id)!] = arc.weight)
-			transition.arcs.arcs_in.forEach(arc => t_in_array[place_to_index.get(arc.from.id)!] = arc.weight)
-			pxt_in.push(t_in_array)
-			pxt_out.push(t_out_array)
-		})
-
-		return [p, pxt_in, pxt_out]
-	}
-
-	private lock() {
+	lock() {
         let [places, transitions] = this.getPlacesAndTransitions()
 		this.isLocked = true
 		this.canvas.setBackgroundColor(canvas_color_simulating, () => {
@@ -352,7 +231,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         this.transitions = transitions
 	}
 
-	private unlock() {
+	unlock() {
 		this.isDeadlocked = false
 		this.resetTransitionHeat()
 		this.canvas.setBackgroundColor(canvas_color, () => {
@@ -362,7 +241,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         this.transitions = []
 	}
 
-	private setMarking(p: number[]) {
+	setMarking(p: number[]) {
 		if (p.length == 0) return
 
 		let [places, _] = this.getPlacesAndTransitions()
@@ -378,7 +257,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		})
 	}
 
-	private setTransitionHeat(firings: number[]) {
+	setTransitionHeat(firings: number[]) {
 		let [_, transitions] = this.getPlacesAndTransitions()
 		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 1)
 
@@ -469,5 +348,9 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         if (e.target instanceof Text) {
             e.target.updateFromText()
         }
+    }
+
+    public renderAll() {
+        this.canvas.renderAll()
     }
 }

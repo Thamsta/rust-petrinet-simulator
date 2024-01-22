@@ -1,8 +1,4 @@
-<app-toolbar #toolbar (controlEmitter)="controlChanged($event)" [canvas]="this"></app-toolbar>
-<mat-divider></mat-divider>
 <div>
 	<canvas id="canvas"></canvas>
 </div>
 <mat-icon *ngIf="isDeadlocked" class="canvas-overlay">block</mat-icon>
-<mat-divider></mat-divider>
-<app-infobar #infobar></app-infobar>
