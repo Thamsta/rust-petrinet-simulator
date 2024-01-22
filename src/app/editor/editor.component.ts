@@ -1,6 +1,6 @@
 import {AfterContentInit, Component, NgZone, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
-import {Arc, baseOptions, Place, Text} from "../elements";
+import {Arc, Place, Text} from "../elements";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
 import {InfoBarComponent} from "../infobar/info-bar.component";
 import {SimulatorService, States} from "../simulator/simulator.service";
@@ -24,7 +24,6 @@ export class EditorComponent implements AfterContentInit {
     @ViewChild('infobar') infobar!: InfoBarComponent
 
     constructor(private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
-        console.log(this.canvas)
         simulatorService.simulationEmitter.subscribe(event => {
             this.canvas.isDeadlocked = event.deadlocked
             this.canvas.setMarking(event.marking)
@@ -33,7 +32,6 @@ export class EditorComponent implements AfterContentInit {
             } else {
                 this.canvas.setTransitionHeat(event.firings)
             }
-            this.canvas.renderAll()
         })
     }
 
@@ -113,25 +111,6 @@ export class EditorComponent implements AfterContentInit {
             .forEach(arc => arc.exitEditing())
     }
 
-    private selectClear() {
-        // after a group was disbanded, update text position of places.
-        this.canvas.getPlaces().forEach(obj => obj.updateTextPosition())
-        this.canvas.lastSelected = undefined
-        this.canvas.renderAll()
-    }
-
-    private objectMoving(e: IEvent<MouseEvent>) {
-        // TODO: probable extract entire method into canvas
-        let target = e.target!
-        if (target instanceof fabric.Group) {
-            // TODO: fix grid placement for groups
-            target.forEachObject(obj => this.canvas.moveObj(obj))
-        } else {
-            this.canvas.moveObj(target)
-        }
-        this.canvas.renderAll()
-    }
-
     /**
      * React on a changed tool.
      * @param command
@@ -208,8 +187,8 @@ export class EditorComponent implements AfterContentInit {
     }
 
 	canvasMouseEvent(event: CanvasEvent) {
-		switch (event.type) {
-            case 'mouse:down': this.onClick(event.source)
-		}
+		if (event.type === 'mouse:down') {
+            this.onClick(event.source)
+        }
     }
 }

@@ -151,7 +151,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			} else {
 				obj.decrement()
 			}
-			this.canvas.renderAll()
+			this.renderAll()
 		}
 	}
 
@@ -159,7 +159,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		// after a group was disbanded, update text position of places.
 		this.getPlaces().forEach(obj => obj.updateTextPosition())
 		this.lastSelected = undefined
-		this.canvas.renderAll()
+		this.renderAll()
 	}
 
 	private objectMoving(e: IEvent<MouseEvent>) {
@@ -170,7 +170,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		} else {
 			this.moveObj(target)
 		}
-		this.canvas.renderAll()
+		this.renderAll()
 	}
 
 	moveObj(obj: fabric.Object) {
@@ -225,7 +225,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         let [places, transitions] = this.getPlacesAndTransitions()
 		this.isLocked = true
 		this.canvas.setBackgroundColor(canvas_color_simulating, () => {
-			this.canvas.renderAll()
+			this.renderAll()
 		})
         this.places = places
         this.transitions = transitions
@@ -239,6 +239,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		this.isLocked = false
         this.places = []
         this.transitions = []
+
+		this.renderAll()
 	}
 
 	setMarking(p: number[]) {
@@ -248,6 +250,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		for (let i = 0; i < places.length; i++) {
 			places[i].setAmount(p[i])
 		}
+
+		this.renderAll()
 	}
 
 	private resetTransitionHeat() {
@@ -255,6 +259,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 		transitions.forEach(transition => {
 			transition.set({fill: fill_color})
 		})
+
+		this.renderAll()
 	}
 
 	setTransitionHeat(firings: number[]) {
@@ -266,6 +272,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			.forEach((value, index) => {
                 transitions[index].set({fill: value})
 			})
+
+		this.renderAll()
 	}
 
 	private selectCreate(e: IEvent<MouseEvent>) {
@@ -283,7 +291,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 				obj.addToGroup(group!)
 			}
 		})
-		this.canvas.renderAll()
+
+		this.renderAll()
 	}
 
     getAllElements(): Object[] {
@@ -315,7 +324,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			a.weight = +arc.text
 			a.id = arc.id
 		})
-		this.canvas.renderAll();
+
+		this.renderAll();
 	}
 
     getPlaces(): Place[] {
@@ -342,6 +352,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 				obj.remove(this.canvas)
 			}
 		})
+
+		this.renderAll()
 	}
 
     private objectModified(e: IEvent<MouseEvent>) {
