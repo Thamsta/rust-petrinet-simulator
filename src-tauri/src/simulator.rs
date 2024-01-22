@@ -105,8 +105,10 @@ fn simulate(
                 step, state_vec
             );
 
+            let result_marking = state_vec.to_vec();
+            lock.state = state_vec;
             lock.deadlocked = true;
-            return Ok(SimulationResponse::new(state_vec.to_vec(), t_heat, true));
+            return Ok(SimulationResponse::new(result_marking, t_heat, true));
         }
 
         fired = select_transition(&active_transitions);
