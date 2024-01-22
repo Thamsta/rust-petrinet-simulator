@@ -30,7 +30,7 @@ export type CanvasEvent = {
 	styleUrls: ['./canvas.component.scss']
 })
 export class CanvasComponent implements AfterContentInit, NetCanvas {
-	canvas: fabric.Canvas = new fabric.Canvas('canvas')
+	canvas: fabric.Canvas = new fabric.Canvas(null)
 	lastSelected?: fabric.Object
 
 	isLocked = false
@@ -74,10 +74,6 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 		// extra canvas settings
 		this.canvas.preserveObjectStacking = true
-
-		// add some basic shapes
-		this.addPlace(150, 200)
-		this.addTransition(350, 200)
 	}
 
 	private onClick(event: IEvent<MouseEvent>) {
@@ -245,6 +241,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	setMarking(p: number[]) {
 		if (p.length == 0) return
+		console.log(p)
 
 		let [places, _] = this.getPlacesAndTransitions()
 		for (let i = 0; i < places.length; i++) {
@@ -362,7 +359,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         }
     }
 
-    public renderAll() {
+    private renderAll() {
         this.canvas.renderAll()
     }
 }

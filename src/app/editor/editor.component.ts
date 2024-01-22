@@ -1,4 +1,4 @@
-import {AfterContentInit, Component, NgZone, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, NgZone, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
@@ -17,7 +17,7 @@ import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss']
 })
-export class EditorComponent implements AfterContentInit {
+export class EditorComponent implements AfterViewInit {
 
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: ToolbarComponent
@@ -35,14 +35,12 @@ export class EditorComponent implements AfterContentInit {
         })
     }
 
-    ngAfterContentInit(): void {
+    ngAfterViewInit(): void {
         // add some basic shapes
         let p = this.canvas.addPlace(150, 200)
         let t = this.canvas.addTransition(350, 200)
         this.canvas.addArc(p, t)
     }
-
-    // TODO: react to emitted canvas events
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
         let target = event.target
