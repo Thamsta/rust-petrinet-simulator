@@ -32,7 +32,16 @@ pub fn check_properties(
                 total_rg.as_millis(),
                 total_properties.as_millis()
             );
-            println!("{}", time_string);
+
+            println!("--- #### ---");
+            println!("---  RG  ---");
+            println!("{} nodes", graph.node_count());
+            println!("{} edges", graph.edge_count());
+            println!("--- Time ---");
+            println!("{}ms total", total.as_millis());
+            println!("  {}ms RG", total_rg.as_millis());
+            println!("  {}ms properties", total_properties.as_millis());
+            println!("--- --- ---");
             return Ok(RGResponse::success(&graph, &rg_properties, time_string));
         }
         Err(_) => Ok(RGResponse::unbounded()),

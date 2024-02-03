@@ -1,4 +1,7 @@
 use petgraph::graph::NodeIndex;
+use petgraph::visit::IntoNeighborsDirected;
+use petgraph::Direction;
+use std::collections::HashSet;
 
 use crate::common::{ReachabilityGraph, State};
 
@@ -9,20 +12,21 @@ pub(super) fn is_covering(new_node: &NodeIndex, graph: &ReachabilityGraph, pseud
         return new_node_weight.iter().any(|&a| a > 2048);
     }
 
-    // TODO: do a backwards traversal instead
-    for node in graph.node_indices() {
+    let mut visited = HashSet::new();
+    let mut stack = vec![*new_node];
+    while let Some(node) = stack.pop() {
+        if !visited.insert(node) {
+            continue;
+        }
+
         let weight_of_node = graph.node_weight(node).unwrap();
-        if graph.contains_edge(node, *new_node) {
-            if is_strictly_greater_than(new_node_weight, weight_of_node) {
-                return true;
-            }
-        } else {
-            // Check if there is a path from 'node' to 'new_node'
-            if petgraph::algo::has_path_connecting(&graph, node, *new_node, None) {
-                if is_strictly_greater_than(new_node_weight, weight_of_node) {
-                    return true;
-                }
-            }
+        if is_strictly_greater_than(new_node_weight, weight_of_node) {
+            return true;
+        }
+
+        let predecessors = graph.neighbors_directed(node, Direction::Incoming);
+        for predecessor in predecessors {
+            stack.push(predecessor)
         }
     }
 
