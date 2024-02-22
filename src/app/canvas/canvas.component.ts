@@ -35,7 +35,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	isLocked = false
 	isDeadlocked = false // show notice on canvas if deadlocked
-    places: Place[] = [] // cache places and transitions while locked.
+    places: Place[] = [] // cache places ands transitions while locked.
     transitions: Transition[] = []
 
 	gridSize = 20
@@ -153,7 +153,9 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 	private selectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.
-		this.getPlaces().forEach(obj => obj.updateTextPosition())
+        let [places, transitions] = this.getPlacesAndTransitions()
+		places.forEach(obj => obj.updateTextPosition())
+		transitions.forEach(obj => obj.updateTextPosition())
 		this.lastSelected = undefined
 		this.renderAll()
 	}
@@ -183,9 +185,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 				arc.set({x2: obj.left, y2: obj.top})
 				arc.updateLinePoints()
 			})
-		}
-		if (obj instanceof Place) {
-			obj.updateTextPosition()
+            obj.updateTextPosition()
 		}
 	}
 
@@ -280,11 +280,8 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
-			if (obj instanceof Arc) {
-				obj.removeFromGroup(group!)
-			}
-			if (obj instanceof Place) {
-				obj.addToGroup(group!)
+			if (obj instanceof Arc || obj instanceof Place || obj instanceof Transition) {
+				obj.handleGrouping(group!)
 			}
 		})
 

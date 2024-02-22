@@ -5,22 +5,13 @@ import {Canvas} from "fabric/fabric-impl";
 import {scale} from "./config";
 
 /**
- * Represents an element that should not be included in a group selection.
- * Always call this interface's method to remove it from a group.
- * @interface
- */
-interface Ungroupable {
-    removeFromGroup(group: fabric.Group): void
-}
-
-/**
  * Represents an element that can be included in a group selection and
  * has special behaviour that needs to be considered when it is added
  * to a group.
  * @interface
  */
 interface Groupable {
-    addToGroup(group: fabric.Group): void
+    handleGrouping(group: fabric.Group): void
 }
 
 /**
@@ -46,6 +37,14 @@ interface Countable {
 interface TextEditable {
     enterEditing(): void
     exitEditing(): void
+}
+
+/**
+ * Allows the presentation of arbitrary text under the element.
+ * Currently experimental.
+ */
+interface WithInfoText {
+    setInfoText(text: string): void
 }
 
 /**
@@ -127,15 +126,26 @@ const textOptions = {
     strokeWidth: 0,
 }
 
+// Default options for info text.
+const infoTextOptions = {
+	textAlign: 'center',
+    fontSize: 14 * scale,
+    fontFamily: 'monospace',
+	...immovableOptions,
+	...baseOptions,
+    strokeWidth: 0,
+}
+
 /**
  * Represents a Transition
  * @class
  * @implements Removable
  */
-export class Transition extends fabric.Rect implements Removable {
+export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText {
     id = uuidv4();
 
     arcs: Connectable = new Connectable()
+    text: InfoText
 
     constructor(x: number, y: number, canvas: fabric.Canvas) {
         super({
@@ -143,12 +153,38 @@ export class Transition extends fabric.Rect implements Removable {
             top: y,
             ...transitionOptions,
         });
+        this.text = new InfoText("", this)
+        this.updateTextPosition()
+        canvas.add(this.text)
         canvas.add(this)
+    }
+
+    setInfoText(text: string): void {
+        this.text.text = text
+        this.updateTextPosition()
+    }
+
+    handleGrouping(group: fabric.Group): void {
+        group.add(this.text)
+        this.updateTextPosition()
     }
 
     remove(canvas: Canvas): void {
         canvas.remove(this)
         this.arcs.remove(canvas)
+    }
+
+    updateTextPosition() {
+        const length = this.text.getLongestLineLength()
+
+        this.text.set({
+            left: this.left! - (length * 4 * scale),
+            top: this.top! + this.height! - (12 * scale),
+        })
+    }
+
+    updateTextFromString(text: string) {
+        // nothing to do. The text is purely cosmetic
     }
 }
 
@@ -157,7 +193,7 @@ export class Transition extends fabric.Rect implements Removable {
  * @class
  * @implements {Removable, Countable, Groupable}
  */
-export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable {
+export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText {
     id = uuidv4();
 
     tokens= 0
@@ -167,6 +203,8 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     textDx = -11 * scale;
     textDy = -22 * scale;
 
+    infoText: InfoText
+
     constructor(x: number, y: number, canvas: fabric.Canvas) {
         super({
             left: x,
@@ -174,12 +212,20 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
             ...placeOptions
         })
         this.tokenText = new Text("", this)
+        this.infoText = new InfoText("", this)
         this.updateText()
         this.updateTextPosition()
         canvas.add(this)
+        canvas.add(this.infoText)
         canvas.add(this.tokenText)
         canvas.sendBackwards(this)
+        canvas.bringToFront(this.infoText)
         canvas.bringToFront(this.tokenText)
+    }
+
+    setInfoText(text: string): void {
+        this.infoText.text = text
+        this.updateTextPosition()
     }
 
     enterEditing(): void {
@@ -194,7 +240,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         }
     }
 
-    addToGroup(group: fabric.Group): void {
+    handleGrouping(group: fabric.Group): void {
         group.add(this.tokenText)
         this.updateTextPosition() // recalculate text so it uses the relative coordinates of the group
     }
@@ -209,6 +255,13 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         this.tokenText.set({
             left: this.left! + this.textDx - (tokenLength * 11),
             top: this.top! + this.textDy,
+        })
+
+        const infoLength = this.infoText.getLongestLineLength()
+
+        this.infoText.set({
+            left: this.left! - (infoLength * 4 * scale),
+            top: this.top! + this.height! - (12 * scale),
         })
     }
 
@@ -244,15 +297,17 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
 /**
  * Represents an Arc that connects a Place and a Transition
  * @class
- * @implements {Removable, Countable, Ungroupable}
+ * @implements {Removable, Countable, Groupable}
  */
-export class Arc extends fabric.Line implements Removable, Countable, Ungroupable, TextEditable {
+export class Arc extends fabric.Line implements Removable, Countable, Groupable, TextEditable, WithInfoText {
     id = uuidv4();
 
     from: Place | Transition;
     to: Place | Transition;
     weight = 1
     weightText: Text
+
+    infoText: InfoText
 
     arrowArc1: fabric.Line;
     arrowArc2: fabric.Line;
@@ -267,13 +322,20 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
         this.from = from;
         this.to = to;
 
+        this.infoText = new InfoText("", this)
+
         this.updateLinePoints()
         this.updateText()
 
-        canvas.add(this, this.arrowArc1, this.arrowArc2, this.weightText);
+        canvas.add(this, this.arrowArc1, this.arrowArc2, this.weightText, this.infoText);
         canvas.sendToBack(this);
         canvas.sendToBack(this.arrowArc1);
         canvas.sendToBack(this.arrowArc2);
+    }
+
+    setInfoText(text: string): void {
+        this.infoText.text = text
+        this.updateLinePoints()
     }
 
     enterEditing(): void {
@@ -288,7 +350,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
         }
     }
 
-    removeFromGroup(group: fabric.Group): void {
+    handleGrouping(group: fabric.Group): void {
         group.remove(this, this.arrowArc1, this.arrowArc2, this.weightText)
         this.updateLinePoints()
         this.updateText()
@@ -308,8 +370,14 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
 
     private updateTextPosition(start: Point, end: Point) {
         const x = start.x + (end.x - start.x) / 2
-        const y = start.y + (end.y - start.y) / 2
+        const y = start.y + (end.y - start.y) / 2 - (45 * scale)
         this.weightText.set({top: y, left: x})
+
+        const infoLength = this.infoText.getLongestLineLength()
+        this.infoText.set({
+            left: this.left! - (infoLength * 5 * scale),
+            top: this.top! + (10 * scale),
+        })
     }
 
     updateLinePoints() {
@@ -437,14 +505,35 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
  * @class
  */
 export class Text extends fabric.IText {
-    parent: Arc | Place;
+    parent: Arc | Place | Transition;
 
-    constructor(text: string, parent: Arc | Place) {
+    constructor(text: string, parent: Arc | Place | Transition) {
         super(text, textOptions);
         this.parent = parent;
     }
 
     updateFromText() {
         this.parent.updateTextFromString(this.text ? this.text : "");
+    }
+}
+
+/**
+ * Model class for any kind of Text. Knows its parent.
+ * @class
+ */
+export class InfoText extends fabric.Text {
+    parent: Arc | Place | Transition;
+
+    constructor(text: string, parent: Arc | Place | Transition) {
+        super(text, infoTextOptions);
+        this.parent = parent;
+    }
+
+    getLongestLineLength(): number {
+        if (this.text == undefined) return 0
+        const lines = this.text.split("\n");
+        if (lines.length == 1) return this.text.length
+
+        return Math.max(...lines.map(line =>line.length))
     }
 }
