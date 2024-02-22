@@ -119,7 +119,7 @@ export class EditorComponent implements AfterViewInit {
         let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
         switch (command) {
             case DrawingTools.GARBAGE:
-                // TODO: delete current selection
+                this.canvas.deleteCurrentSelection()
                 break;
             case DrawingTools.RUN:
                 if (this.simulatorService.isPaused()) {

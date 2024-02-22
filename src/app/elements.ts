@@ -2,6 +2,7 @@ import {fabric} from "fabric";
 import {v4 as uuidv4} from "uuid";
 import {fill_color, line_color} from "./colors";
 import {Canvas} from "fabric/fabric-impl";
+import {scale} from "./config";
 
 /**
  * Represents an element that should not be included in a group selection.
@@ -93,8 +94,8 @@ const immovableOptions = {
 // Options for transitions
 const transitionOptions = {
 	fill: fill_color,
-	width: 80,
-	height: 50,
+	width: 80 * scale,
+	height: 50 * scale,
 	originX: 'center',
 	originY: 'center',
 	...baseOptions,
@@ -103,7 +104,7 @@ const transitionOptions = {
 // Options for places
 const placeOptions = {
 	fill: fill_color,
-	radius: 30,
+	radius: 30 * scale,
 	originX: 'center',
 	originY: 'center',
 	...baseOptions,
@@ -120,6 +121,7 @@ const lineOptions = {
 // Default options for text.
 const textOptions = {
 	textAlign: 'center',
+    fontSize: 42 * scale,
 	...immovableOptions,
 	...baseOptions,
     strokeWidth: 0,
@@ -162,8 +164,8 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     tokenText: Text
     arcs: Connectable = new Connectable()
 
-    textDx = -11;
-    textDy = -22;
+    textDx = -11 * scale;
+    textDy = -22 * scale;
 
     constructor(x: number, y: number, canvas: fabric.Canvas) {
         super({
@@ -331,7 +333,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Ungroupabl
         }
 
         const lineEnd: Point = this.shortenLine(lineStart, target, 30, this.to)
-        const [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25)
+        const [a1, a2] = this.calculateArrowhead(lineStart, lineEnd, 25 * scale)
         this.updateTextPosition(lineStart, lineEnd)
         // @ts-ignore: this works.
         this.set({x1: lineStart.x, y1: lineStart.y, x2: lineEnd.x, y2: lineEnd.y})

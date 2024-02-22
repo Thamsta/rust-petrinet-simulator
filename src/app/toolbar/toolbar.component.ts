@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {DrawingTools, isPlayerCommand} from '../models';
+import {DrawingTools} from '../models';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
-import {CanvasComponent, NetCanvas} from "../canvas/canvas.component";
+import {NetCanvas} from "../canvas/canvas.component";
 
 export const tooltipDelays: MatTooltipDefaultOptions = {
     showDelay: 400,
@@ -28,7 +28,7 @@ export class ToolbarComponent {
         this.selected = selected;
 
         this.controlEmitter.emit(selected)
-        if (selected == DrawingTools.STOP || selected == DrawingTools.RG) {
+        if (selected == DrawingTools.STOP || selected == DrawingTools.RG || selected == DrawingTools.GARBAGE) {
             this.selected = DrawingTools.SELECT
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE

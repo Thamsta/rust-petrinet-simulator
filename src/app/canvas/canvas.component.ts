@@ -84,29 +84,6 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
         this.mouseEventEmitter.emit({type: 'mouse:down', source: event})
     }
 
-    private handleTextEditing(target: Object | undefined, tool: DrawingTools) {
-        if (tool == DrawingTools.SELECT
-            && (target instanceof Place || target instanceof Arc)
-            && this.isDoubleClick(target)) {
-            target.enterEditing()
-        } else {
-            this.leaveTextEditing(target)
-        }
-    }
-
-    private isDoubleClick(target: Object | undefined) {
-        return this.lastSelected == target
-    }
-
-    private leaveTextEditing(target: Object | undefined) {
-        this.getPlaces()
-            .filter(place => place != target)
-            .forEach(place => place.exitEditing())
-        this.getArcs()
-            .filter(arc => arc != target)
-            .forEach(arc => arc.exitEditing())
-    }
-
 	addTransition = (x: number, y: number) => {
 		return new Transition(x, y, this.canvas)
 	}
@@ -130,6 +107,29 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 		return undefined
 	}
+
+    deleteCurrentSelection() {
+        if (this.lastSelected == null) {
+            return
+        }
+
+        if (this.lastSelected instanceof fabric.Group) {
+            this.lastSelected.getObjects().forEach(obj => {
+                this.deleteObject(obj)
+            })
+            this.lastSelected.destroy()
+            this.canvas.remove(this.lastSelected)
+            this.lastSelected.hasBorders = false
+        }
+
+        this.deleteObject(this.lastSelected)
+        this.lastSelected = undefined
+        this.renderAll()
+    }
+
+    deleteAll(objs: fabric.Object[]) {
+        objs.forEach(it => this.deleteObject(it))
+    }
 
 	deleteObject(obj: fabric.Object | undefined) {
 		if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
@@ -288,6 +288,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			}
 		})
 
+        this.lastSelected = group
 		this.renderAll()
 	}
 
@@ -360,5 +361,16 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
     private renderAll() {
         this.canvas.renderAll()
+    }
+
+    getCurrentSelected() {
+        if (this.lastSelected === undefined) {
+            return []
+        }
+        if (this.lastSelected instanceof fabric.Group) {
+            return this.lastSelected.getObjects()
+        }
+
+        return [this.lastSelected]
     }
 }

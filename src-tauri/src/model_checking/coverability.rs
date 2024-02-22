@@ -1,5 +1,4 @@
 use petgraph::graph::NodeIndex;
-use petgraph::visit::IntoNeighborsDirected;
 use petgraph::Direction;
 use std::collections::HashSet;
 
