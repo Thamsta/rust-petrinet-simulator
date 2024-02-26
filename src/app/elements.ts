@@ -4,6 +4,8 @@ import {fill_color, line_color} from "./colors";
 import {Canvas} from "fabric/fabric-impl";
 import {scale} from "./config";
 
+export type NetElement = Place | Transition | Arc
+
 /**
  * Represents an element that can be included in a group selection and
  * has special behaviour that needs to be considered when it is added
@@ -145,7 +147,7 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     id = uuidv4();
 
     arcs: Connectable = new Connectable()
-    text: InfoText
+    infoText: InfoText
 
     constructor(x: number, y: number, canvas: fabric.Canvas) {
         super({
@@ -153,19 +155,19 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
             top: y,
             ...transitionOptions,
         });
-        this.text = new InfoText("", this)
+        this.infoText = new InfoText("", this)
         this.updateTextPosition()
-        canvas.add(this.text)
+        canvas.add(this.infoText)
         canvas.add(this)
     }
 
     setInfoText(text: string): void {
-        this.text.text = text
+        this.infoText.text = text
         this.updateTextPosition()
     }
 
     handleGrouping(group: fabric.Group): void {
-        group.add(this.text)
+        group.add(this.infoText)
         this.updateTextPosition()
     }
 
@@ -175,15 +177,15 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     }
 
     updateTextPosition() {
-        const length = this.text.getLongestLineLength()
+        const length = this.infoText.getLongestLineLength()
 
-        this.text.set({
+        this.infoText.set({
             left: this.left! - (length * 4 * scale),
             top: this.top! + this.height! - (12 * scale),
         })
     }
 
-    updateTextFromString(text: string) {
+    updateTextFromString(_: string) {
         // nothing to do. The text is purely cosmetic
     }
 }
@@ -505,9 +507,9 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
  * @class
  */
 export class Text extends fabric.IText {
-    parent: Arc | Place | Transition;
+    parent: NetElement;
 
-    constructor(text: string, parent: Arc | Place | Transition) {
+    constructor(text: string, parent: NetElement) {
         super(text, textOptions);
         this.parent = parent;
     }
@@ -522,9 +524,9 @@ export class Text extends fabric.IText {
  * @class
  */
 export class InfoText extends fabric.Text {
-    parent: Arc | Place | Transition;
+    parent: NetElement;
 
-    constructor(text: string, parent: Arc | Place | Transition) {
+    constructor(text: string, parent: NetElement) {
         super(text, infoTextOptions);
         this.parent = parent;
     }

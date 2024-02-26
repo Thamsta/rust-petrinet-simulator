@@ -301,11 +301,13 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 			let p = this.addPlace(place.position.x, place.position.y)
 			p.setAmount(place.initialMarking)
 			p.id = place.id
+            p.setInfoText(place.infoText)
 			map.set(p.id, p)
 		})
 		net.transitions.forEach(transition => {
 			let t = this.addTransition(transition.position.x, transition.position.y)
 			t.id = transition.id
+            t.setInfoText(transition.infoText)
 			map.set(t.id, t)
 		})
 		net.arcs.forEach(arc => {
@@ -317,6 +319,7 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 
 			a.weight = +arc.text
 			a.id = arc.id
+            a.setInfoText(arc.infoText)
 		})
 
 		this.renderAll();

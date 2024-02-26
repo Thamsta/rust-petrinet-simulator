@@ -31,10 +31,12 @@ export class NetDTO {
 export class TransitionDTO {
 	id: string
 	position: Position
+    infoText: string
 
 	constructor(transition: Transition) {
 		this.id = transition.id
 		this.position = new Position(transition.left!, transition.top!)
+        this.infoText = transition.infoText.text ?? ""
 	}
 }
 
@@ -42,11 +44,13 @@ export class PlaceDTO {
 	id: string
 	position: Position
 	initialMarking: number
+    infoText: string
 
 	constructor(place: Place) {
 		this.id = place.id
 		this.position = new Position(place.left!, place.top!)
 		this.initialMarking = place.tokens
+        this.infoText = place.infoText.text ?? ""
 	}
 
 }
@@ -56,11 +60,13 @@ export class ArcDTO {
 	source: string
 	target: string
 	text: string
+    infoText: string
 
 	constructor(arc: Arc) {
 		this.id = arc.id
 		this.source = arc.from.id
 		this.target = arc.to.id
 		this.text = String(arc.weight)
+        this.infoText = arc.infoText.text ?? ""
 	}
 }
