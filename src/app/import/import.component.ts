@@ -3,6 +3,7 @@ import {open} from '@tauri-apps/api/dialog';
 import {readTextFile} from '@tauri-apps/api/fs';
 import {NetDTO} from "../dtos";
 import {NetCanvas} from "../canvas/canvas.component";
+import {PnmlImporter} from "../pnml/pnmlImporter";
 
 @Component({
 	selector: 'app-import',
@@ -20,18 +21,20 @@ export class ImportComponent {
 			multiple: false,
 			filters: [{
 				name: 'Net',
-				extensions: ['pnon']
+				extensions: ['pnon', 'pnml']
 			}]
 		});
 		if (selected == null || Array.isArray(selected)) return
 
-		let fileContent = await readTextFile(selected);
-		let net = JSON.parse(fileContent);
-		if (net ! instanceof NetDTO) {
-			console.log("net could not be parsed")
-			return
-		}
-
+        let fileContent = await readTextFile(selected);
+        let net: NetDTO
+        if (selected.endsWith('.pnml')) {
+            const pnmlImporter = new PnmlImporter()
+            let nets = await pnmlImporter.parseXml(fileContent)
+            net = nets[0]
+        } else {
+            net = JSON.parse(fileContent);
+        }
 		this.canvas.loadNet(net as NetDTO)
 	}
 }

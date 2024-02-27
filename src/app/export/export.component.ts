@@ -6,6 +6,7 @@ import {v4 as uuidv4} from "uuid";
 
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
+import {PnmlExporter} from "../pnml/pnmlExporter";
 
 @Component({
     selector: 'app-export',
@@ -24,20 +25,27 @@ export class ExportComponent {
         const netElements = this.canvas.getAllElements()
 
         const places = netElements.filter(obj => obj instanceof Place)
-            .map(t => new PlaceDTO(t as Place))
+            .map(t => PlaceDTO.fromPlace(t as Place))
         const transitions = netElements.filter(obj => obj instanceof Transition)
-            .map(t => new TransitionDTO(t as Transition))
+            .map(t => TransitionDTO.fromTransition(t as Transition))
         const arcs = netElements.filter(obj => obj instanceof Arc)
-            .map(t => new ArcDTO(t as Arc))
+            .map(t => ArcDTO.fromArc(t as Arc))
 
         const net = new NetDTO(uuidv4(), "pt-net", "net-name", places, transitions, arcs)
 
         const filePath = await save({
             title: "Save Net",
-            filters: [{name: "", extensions: ["pnon"]}],
+            filters: [{name: "", extensions: ["pnon", "pnml"]}],
         });
         if (filePath == null) return;
 
-        await writeTextFile(filePath, JSON.stringify(net));
+        let output
+        if (filePath.endsWith('pnml')) {
+            let pnmlExporter = new PnmlExporter()
+            output = pnmlExporter.createXml(net)
+        } else {
+            output = JSON.stringify(net);
+        }
+        await writeTextFile(filePath, output);
     };
 }
