@@ -33,18 +33,27 @@ export class ExportComponent {
 
         const net = new NetDTO(uuidv4(), "pt-net", "net-name", places, transitions, arcs)
 
-        const filePath = await save({
+        let filePath = await save({
             title: "Save Net",
             filters: [{name: "", extensions: ["pnon", "pnml"]}],
         });
         if (filePath == null) return;
+        if (!filePath.includes('.')) filePath += ".pnon"
+
+        const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1)
 
         let output
-        if (filePath.endsWith('pnml')) {
-            output = new PnmlExporterService().createXml(net)
-        } else {
-            output = JSON.stringify(net);
+        switch (fileEnding) {
+            case 'pnon': output = JSON.stringify(net); break
+            case 'pnml': output = new PnmlExporterService().createXml(net); break
         }
+
+        if (!output) {
+            // this case should be prevented by the OS file dialogue
+            console.log(`Unsupported file type ${fileEnding} in path ${filePath}. Nothing will be written.`)
+            return
+        }
+
         await writeTextFile(filePath, output);
     };
 }
