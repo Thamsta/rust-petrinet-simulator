@@ -6,7 +6,7 @@ import {v4 as uuidv4} from "uuid";
 
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
-import {PnmlExporterService} from "../pnml/pnmlExporter.service";
+import {PnmlExporterService} from "../pnml/pnml-exporter.service";
 
 @Component({
     selector: 'app-export',

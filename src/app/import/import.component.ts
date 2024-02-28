@@ -3,7 +3,7 @@ import {open} from '@tauri-apps/api/dialog';
 import {readTextFile} from '@tauri-apps/api/fs';
 import {NetDTO} from "../dtos";
 import {NetCanvas} from "../canvas/canvas.component";
-import {PnmlImporterService} from "../pnml/pnmlImporter.service";
+import {PnmlImporterService} from "../pnml/pnml-importer.service";
 
 @Component({
     selector: 'app-import',
