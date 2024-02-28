@@ -30,6 +30,9 @@ export class ImportComponent {
         let net: NetDTO
         if (selected.endsWith('.pnml')) {
             let nets = await new PnmlImporterService().parseXml(fileContent)
+            if (nets.length > 1) {
+                console.log(`PNML file '${selected}' contains more than one net. Only the first one is loaded.`)
+            }
             net = nets[0]
         } else {
             net = JSON.parse(fileContent);
