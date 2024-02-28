@@ -11,10 +11,10 @@ import {
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {Parser} from "xml2js";
 
-export class PnmlImporter {
+export class PnmlImporterService {
 
     private idToUUIDMap: Map<string, string>
-    private additionalSpace = 50
+    private baseOffset = 50
 
     constructor() {
         this.idToUUIDMap = new Map<string, string>()
@@ -61,16 +61,16 @@ export class PnmlImporter {
         return pnmlplaces.map(place => this.createPlace(place))
     }
 
-    private createPlace(pnmlplace: PnmlPlace): PlaceDTO {
-        let uuid = pnmlplace.toolspecific[0].$.uuid
-        let position = this.createPosition(pnmlplace.graphics[0])
-        let initialMarking = this.createMarking(pnmlplace.initialMarking)
+    private createPlace(pnmlPlace: PnmlPlace): PlaceDTO {
+        let uuid = pnmlPlace.toolspecific[0].$.uuid
+        let position = this.createPosition(pnmlPlace.graphics[0])
+        let initialMarking = this.getMarking(pnmlPlace.initialMarking)
         let inscription = ""
-        this.idToUUIDMap.set(pnmlplace.$.id, uuid)
+        this.idToUUIDMap.set(pnmlPlace.$.id, uuid)
         return new PlaceDTO(uuid, position, initialMarking, inscription)
     }
 
-    private createMarking(initialMarking: PnmlInitialMarking[] | undefined): number {
+    private getMarking(initialMarking: PnmlInitialMarking[] | undefined): number {
         if (!initialMarking) return 0;
         let marking = parseInt(initialMarking[0].text[0])
         if (isNaN(marking)) {
@@ -80,42 +80,44 @@ export class PnmlImporter {
         return marking
     }
 
-    private createTransitions(pnmltransitions: PnmlTransition[]): TransitionDTO[] {
-        return pnmltransitions.map(transition => this.createTransition(transition))
+    private createTransitions(pnmlTransitions: PnmlTransition[]): TransitionDTO[] {
+        return pnmlTransitions.map(transition => this.createTransition(transition))
     }
 
-    private createTransition(pnmltransition: PnmlTransition): TransitionDTO {
-        let uuid = pnmltransition.toolspecific[0].$.uuid
-        let position = this.createPosition(pnmltransition.graphics[0])
-        let inscription = this.createTransitionInscription(pnmltransition)
-        this.idToUUIDMap.set(pnmltransition.$.id, uuid)
+    private createTransition(pnmlTransition: PnmlTransition): TransitionDTO {
+        let uuid = pnmlTransition.toolspecific[0].$.uuid
+        let position = this.createPosition(pnmlTransition.graphics[0])
+        let inscription = this.getTransitionInscription(pnmlTransition)
+        this.idToUUIDMap.set(pnmlTransition.$.id, uuid)
         return new TransitionDTO(uuid, position, inscription)
     }
 
-    private createTransitionInscription(pnmltransition: PnmlTransition): string {
-        if (pnmltransition.downlink) {
-            return pnmltransition.downlink[0].text[0]
+    private getTransitionInscription(pnmlTransition: PnmlTransition): string {
+        // TODO: what if a transition is both up- and downlink?
+        if (pnmlTransition.downlink) {
+            return pnmlTransition.downlink[0].text[0]
         }
-        if (pnmltransition.uplink) {
-            return pnmltransition.uplink[0].text[0]
+        if (pnmlTransition.uplink) {
+            return pnmlTransition.uplink[0].text[0]
         }
         return ""
     }
 
-    private createArcs(pnmlarcs: PnmlArc[]): ArcDTO[] {
-        return pnmlarcs.map(arc => this.createArc(arc))
+    private createArcs(pnmlArcs: PnmlArc[]): ArcDTO[] {
+        return pnmlArcs.map(arc => this.createArc(arc))
     }
 
-    private createArc(pnmlarc: PnmlArc): ArcDTO {
-        let uuid = pnmlarc.toolspecific[0].$.uuid
-        let source = this.idToUUIDMap.get(pnmlarc.$.source) ?? ""
-        let target = this.idToUUIDMap.get(pnmlarc.$.target) ?? ""
-        let text = this.createInscription(pnmlarc.inscription)
+    private createArc(pnmlArc: PnmlArc): ArcDTO {
+        let uuid = pnmlArc.toolspecific[0].$.uuid
+        let source = this.idToUUIDMap.get(pnmlArc.$.source) ?? ""
+        let target = this.idToUUIDMap.get(pnmlArc.$.target) ?? ""
+        // TODO: probably should differentiate between number inscriptions and NaN-inscriptions (use infotext for NaN)
+        let text = this.getInscriptionText(pnmlArc.inscription)
         let infotext = ""
         return new ArcDTO(uuid, source, target, text, infotext)
     }
 
-    private createInscription(pnmlinscriptions: PnmlInscription[]): string {
+    private getInscriptionText(pnmlinscriptions: PnmlInscription[]): string {
         if (!pnmlinscriptions || !pnmlinscriptions[0] || !pnmlinscriptions[0].text) return ""
         return pnmlinscriptions[0].text[0]
     }
@@ -123,6 +125,6 @@ export class PnmlImporter {
     private createPosition(graphics: PnmlGraphics) {
         let x = parseInt(graphics.position![0].$.x) ?? 0
         let y = parseInt(graphics.position![0].$.y) ?? 0
-        return new Position(x + this.additionalSpace, y + this.additionalSpace)
+        return new Position(x + this.baseOffset, y + this.baseOffset)
     }
 }

@@ -15,7 +15,7 @@ import {
 } from "./types";
 import * as xml2js from "xml2js";
 
-export class PnmlExporter {
+export class PnmlExporterService {
 
     private uuidToIdMap: Map<string, string>
     private elementCounter: number
@@ -65,8 +65,7 @@ export class PnmlExporter {
             y: place.position.y.toString()
         })]
         let graphics: PnmlGraphics[] = [new PnmlGraphics(position)]
-        let toolSpecificAttributes = {tool: "renew", version: "4.0", uuid: place.id}
-        let toolSpecific: PnmlToolspecific[] = [new PnmlToolspecific(toolSpecificAttributes)]
+        let toolSpecific = this.createToolSpecificAttributes(place)
         let initialMarking: PnmlInitialMarking[] = this.createInitialMarking(place)
         return new PnmlPlace($, graphics, toolSpecific, initialMarking)
     }
@@ -90,8 +89,7 @@ export class PnmlExporter {
             y: transition.position.y.toString()
         })]
         let graphics = [new PnmlGraphics(position)]
-        let toolSpecificAttributes = {tool: "renew", version: "4.0", uuid: transition.id}
-        let toolSpecific: PnmlToolspecific[] = [new PnmlToolspecific(toolSpecificAttributes)]
+        let toolSpecific = this.createToolSpecificAttributes(transition)
         return new PnmlTransition($, graphics, toolSpecific);
     }
 
@@ -108,8 +106,7 @@ export class PnmlExporter {
         let line: PnmlLine = new PnmlLine({color: "rgb(0,0,0)", style: "solid"})
         let graphics = [new PnmlGraphics(undefined, undefined, undefined, [line])]
         let inscription = [new PnmlInscription(graphics, [arc.text])]
-        let toolSpecificAttributes = {tool: "renew", version: "4.0", uuid: arc.id}
-        let toolSpecific: PnmlToolspecific[] = [new PnmlToolspecific(toolSpecificAttributes)]
+        let toolSpecific = this.createToolSpecificAttributes(arc)
         return new PnmlArc($, graphics, inscription, toolSpecific);
     }
 
@@ -119,5 +116,10 @@ export class PnmlExporter {
         let parsed = JSON.parse(jsonString);
         console.log(parsed)
         return parsed
+    }
+
+    private createToolSpecificAttributes(element: PlaceDTO | TransitionDTO | ArcDTO): PnmlToolspecific[] {
+        // currently supports Renew, which also uses UUIDs per element
+        return [new PnmlToolspecific({tool: "renew", version: "4.0", uuid: element.id})]
     }
 }

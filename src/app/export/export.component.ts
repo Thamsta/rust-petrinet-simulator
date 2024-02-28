@@ -6,7 +6,7 @@ import {v4 as uuidv4} from "uuid";
 
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
-import {PnmlExporter} from "../pnml/pnmlExporter";
+import {PnmlExporterService} from "../pnml/pnmlExporter.service";
 
 @Component({
     selector: 'app-export',
@@ -41,8 +41,7 @@ export class ExportComponent {
 
         let output
         if (filePath.endsWith('pnml')) {
-            let pnmlExporter = new PnmlExporter()
-            output = pnmlExporter.createXml(net)
+            output = new PnmlExporterService().createXml(net)
         } else {
             output = JSON.stringify(net);
         }
