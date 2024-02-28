@@ -112,10 +112,8 @@ export class PnmlExporterService {
 
 
     private removeNullOrUndefined(obj: any): any {
-        const jsonString = JSON.stringify(obj, (key, value) => (value === undefined || value === null) ? undefined : value);
-        let parsed = JSON.parse(jsonString);
-        console.log(parsed)
-        return parsed
+        const jsonString = JSON.stringify(obj, (_, value) => (value === undefined || value === null) ? undefined : value);
+        return JSON.parse(jsonString);
     }
 
     private createToolSpecificAttributes(element: PlaceDTO | TransitionDTO | ArcDTO): PnmlToolspecific[] {
