@@ -35,10 +35,10 @@ pub fn check_properties(
             );
 
             println!("--- #### ---");
-            println!("---  RG  ---");
+            println!("---💢 RG ---");
             println!("{} nodes", rg.node_count());
             println!("{} edges", rg.edge_count());
-            println!("--- Time ---");
+            println!("---⏳ Time---");
             println!("{}ms total", total.as_millis());
             println!("  {}ms RG", total_rg.as_millis());
             println!("  {}ms properties", total_properties.as_millis());
