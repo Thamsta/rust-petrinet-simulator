@@ -24,7 +24,6 @@ pub(crate) fn find_active_transitions(marking: &State, transition_inputs: &PTMat
     return active_transitions;
 }
 
-// TODO: make lastfired etc. usize
 pub(crate) fn find_active_transitions_from_firing_set(
     marking: &State,
     transition_inputs: &PTMatrix,
@@ -168,6 +167,7 @@ impl PTDimensions for InputMatrix {
     }
 }
 
+/// Response struct to return for a simulation request
 #[derive(Serialize, new)]
 pub struct SimulationResponse {
     pub marking: InputState,
@@ -175,6 +175,7 @@ pub struct SimulationResponse {
     pub deadlocked: bool,
 }
 
+/// Response struct to return for a RG request
 #[derive(Serialize)]
 pub struct RGResponse {
     pub states: usize,
@@ -185,8 +186,14 @@ pub struct RGResponse {
     pub message: String,
 }
 
+/// An internal struct that describes the result of a RG generation
+pub struct RGResult {
+    pub rg: ReachabilityGraph,
+    pub had_deadlocks: bool,
+}
+
 #[derive(Debug)]
-pub struct RgProperties {
+pub struct RGProperties {
     pub liveness: bool,
     pub reversible: bool,
 }
@@ -205,7 +212,7 @@ impl RGResponse {
 
     pub(crate) fn success(
         graph: &ReachabilityGraph,
-        properties: &RgProperties,
+        properties: &RGProperties,
         msg: String,
     ) -> Self {
         RGResponse {

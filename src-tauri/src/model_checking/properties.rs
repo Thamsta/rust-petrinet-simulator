@@ -6,12 +6,21 @@ use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
 use petgraph::Direction;
 
-use crate::common::{ReachabilityGraph, RgProperties};
+use crate::common::{RGProperties, RGResult, ReachabilityGraph};
 
-pub(super) fn check_properties(rg: &ReachabilityGraph, transitions: usize) -> RgProperties {
+pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGProperties {
+    if result.had_deadlocks {
+        println!("Deadlock occurred during RG generation. Skip checking properties");
+        return RGProperties {
+            liveness: false,
+            reversible: false,
+        };
+    }
+
     let start_time_properties = Instant::now();
-    let sccs = tarjan_scc(rg);
-    let scc_graph = create_scc_graph(&sccs, rg, transitions);
+    let rg = &result.rg;
+    let sccs = tarjan_scc(&rg);
+    let scc_graph = create_scc_graph(&sccs, &rg, transitions);
     let end_time_properties = Instant::now();
     let elapsed_time_properties = end_time_properties - start_time_properties;
     println!(
@@ -24,7 +33,7 @@ pub(super) fn check_properties(rg: &ReachabilityGraph, transitions: usize) -> Rg
     let reversible = sccs.len() == 1 && rg.edge_count() > 0;
     let liveness = check_liveness(&scc_graph);
 
-    return RgProperties {
+    return RGProperties {
         liveness,
         reversible,
     };

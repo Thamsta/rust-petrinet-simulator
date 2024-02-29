@@ -11,7 +11,7 @@ pub(super) fn create_rg(
     marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
-) -> Result<ReachabilityGraph, String> {
+) -> Result<RGResult, String> {
     let start_time_rg = Instant::now();
 
     let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs);
@@ -23,6 +23,8 @@ pub(super) fn create_rg(
     let mut graph = DiGraph::<State, i16>::new();
     let mut all_states_rev: HashMap<State, NodeIndex> = HashMap::new();
 
+    let mut has_deadlock = false;
+
     // create & insert start node
     let start_node = graph.add_node(state_vec.clone());
     all_states_rev.insert(state_vec, start_node);
@@ -31,7 +33,11 @@ pub(super) fn create_rg(
     while !queue.is_empty() {
         let cur_state_idx = queue.pop().unwrap();
         let cur_state = graph.node_weight(cur_state_idx).cloned().unwrap();
-        let active = find_active_transitions(&cur_state, &t_in);
+        let active: Vec<i16> = find_active_transitions(&cur_state, &t_in);
+
+        if active.is_empty() {
+            has_deadlock = true;
+        }
 
         for inx in active {
             let new_state: State = fire_transition(&cur_state, &t_effect, inx as usize);
@@ -69,5 +75,8 @@ pub(super) fn create_rg(
         elements_per_second.round()
     );
 
-    return Ok(graph);
+    return Ok(RGResult {
+        rg: graph,
+        had_deadlocks: has_deadlock,
+    });
 }
