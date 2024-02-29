@@ -17,9 +17,10 @@ pub fn check_properties(
     let end_time_rg = Instant::now();
 
     return match rg_result {
-        Ok(graph) => {
+        Ok(result) => {
+            let rg = &result.rg;
             let start_time_properties = Instant::now();
-            let rg_properties = properties::check_properties(&graph, t);
+            let rg_properties = properties::check_properties(&result, t);
             let end_time_properties = Instant::now();
 
             let total = end_time_properties - start_time_rg;
@@ -34,15 +35,15 @@ pub fn check_properties(
             );
 
             println!("--- #### ---");
-            println!("---  RG  ---");
-            println!("{} nodes", graph.node_count());
-            println!("{} edges", graph.edge_count());
-            println!("--- Time ---");
+            println!("---💢 RG ---");
+            println!("{} nodes", rg.node_count());
+            println!("{} edges", rg.edge_count());
+            println!("---⏳ Time---");
             println!("{}ms total", total.as_millis());
             println!("  {}ms RG", total_rg.as_millis());
             println!("  {}ms properties", total_properties.as_millis());
             println!("--- --- ---");
-            return Ok(RGResponse::success(&graph, &rg_properties, time_string));
+            return Ok(RGResponse::success(&rg, &rg_properties, time_string));
         }
         Err(_) => Ok(RGResponse::unbounded()),
     };

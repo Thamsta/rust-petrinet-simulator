@@ -46,7 +46,7 @@ pub(crate) fn start_simulation(
     let t_effect: PTMatrix = &t_out - &t_in;
     let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out);
 
-    println!("{:?}", firing_updates);
+    println!("🆕Starting new simulation.");
 
     return match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
@@ -56,7 +56,7 @@ pub(crate) fn start_simulation(
             state.firing_updates = firing_updates;
             simulate(arr1(&marking), steps, state)
         }
-        Err(_) => Err("Could not acquire lock!".to_string()),
+        Err(_) => Err("❌Could not acquire lock!".to_string()),
     };
 }
 
@@ -64,11 +64,13 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
     return match SIMULATOR_STATE.lock() {
         Ok(state) => {
             if state.deadlocked {
+                println!("☠️Trying to continue but simulation is still deadlocked.");
                 return Ok(SimulationResponse::new(state.state.to_vec(), vec![], true));
             }
+            println!("↪️Continuing simulation.");
             simulate(state.state.clone(), steps, state)
         }
-        Err(_) => Err("Could not read simulation state: ".to_string()),
+        Err(_) => Err("❌Could not acquire lock!".to_string()),
     };
 }
 
@@ -101,7 +103,7 @@ fn simulate(
 
         if active_transitions.is_empty() {
             println!(
-                "No active transitions after step {} with state {:?}.",
+                "☠️No active transitions after step {} with state {:?}.",
                 step, state_vec
             );
 
@@ -119,7 +121,7 @@ fn simulate(
     let end = Instant::now();
     let took_ms = (end - start).as_millis();
 
-    println!("Simulating {} steps took {}ms", steps, took_ms);
+    println!("🔄Simulating {} steps took {}ms", steps, took_ms);
 
     let result_marking = state_vec.to_vec();
     lock.state = state_vec;
