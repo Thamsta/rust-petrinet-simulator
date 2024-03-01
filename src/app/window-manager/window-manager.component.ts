@@ -29,6 +29,13 @@ export class WindowManagerComponent {
                 "}\n"},
     ]
 
+    removeTab(index: number) {
+        this.openWindows.splice(index, 1);
+        if (this.openWindows.length == 0) {
+            this.openWindows = [{type: WindowTypes.net, name: "new*", net: undefined, rg: undefined}]
+        }
+    }
+
     sampleNetDTO(): NetDTO {
         let p = new PlaceDTO(uuidv4(), new Position(150, 250), 1, "");
         let t = new TransitionDTO(uuidv4(), new Position(350, 250), "");
