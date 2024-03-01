@@ -1,13 +1,9 @@
-<div class="custom">
+<div class="custom" >
     <mat-tab-group headerPosition="below">
-        <mat-tab label="Net">
+        <mat-tab *ngFor="let openWindow of openWindows" label="{{openWindow.name}}">
             <ng-template matTabContent>
-                <app-editor></app-editor>
-            </ng-template>
-        </mat-tab>
-        <mat-tab label="RG">
-            <ng-template matTabContent>
-                <app-reachability-graph></app-reachability-graph>
+                <app-editor *ngIf="openWindow.type==='net'"></app-editor>
+                <app-reachability-graph [graph]="openWindow.content" *ngIf="openWindow.type==='rg'"></app-reachability-graph>
             </ng-template>
         </mat-tab>
     </mat-tab-group>
