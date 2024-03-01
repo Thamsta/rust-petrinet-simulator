@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, NgZone, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, NgZone, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
@@ -8,6 +8,7 @@ import {ReachabilityGraphService} from "../reachability-graph/reachability-graph
 import {IEvent} from "fabric/fabric-impl";
 import {DrawingTools} from "../models";
 import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
+import {NetDTO} from "../dtos";
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -18,6 +19,9 @@ import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
   styleUrls: ['./editor.component.scss']
 })
 export class EditorComponent implements AfterViewInit {
+
+    @Input()
+    initNet: NetDTO | undefined
 
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: ToolbarComponent
@@ -36,10 +40,9 @@ export class EditorComponent implements AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        // add some basic shapes
-        let p = this.canvas.addPlace(150, 200)
-        let t = this.canvas.addTransition(350, 200)
-        this.canvas.addArc(p, t)
+        if (this.initNet === undefined) return
+
+        this.canvas.loadNet(this.initNet);
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {

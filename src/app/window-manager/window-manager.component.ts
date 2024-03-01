@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
+import {v4 as uuidv4} from "uuid";
 
 @Component({
   selector: 'app-window-manager',
@@ -7,8 +9,8 @@ import { Component } from '@angular/core';
 })
 export class WindowManagerComponent {
     openWindows: OpenWindow[] = [
-        {type: "net", name: "My Net", content: "some content"},
-        {type: "rg", name: "My Net RG", content: "digraph {\n" +
+        {type: WindowTypes.net, name: "My Net", net: this.sampleNetDTO(), rg: undefined},
+        {type: WindowTypes.rg, name: "My Net RG", net: undefined, rg: "digraph {\n" +
                 "    0 [ label = \"[2, 0, 0]\"]\n" +
                 "    1 [ label = \"[1, 0, 1]\"]\n" +
                 "    2 [ label = \"[1, 1, 0]\"]\n" +
@@ -26,10 +28,25 @@ export class WindowManagerComponent {
                 "    5 -> 3 [ label = \"1\"]\n" +
                 "}\n"},
     ]
+
+    sampleNetDTO(): NetDTO {
+        let p = new PlaceDTO(uuidv4(), new Position(150, 250), 1, "");
+        let t = new TransitionDTO(uuidv4(), new Position(350, 250), "");
+        let a = new ArcDTO(uuidv4(), p.id, t.id, "1", "")
+        return new NetDTO(uuidv4(), "pt-net", "net", [p], [t], [a])
+    }
+
+    protected readonly WindowTypes = WindowTypes;
 }
 
 export type OpenWindow = {
-    type: string
+    type: WindowTypes
     name: string
-    content: string
+    net: NetDTO | undefined
+    rg: string | undefined
+}
+
+export enum WindowTypes {
+    net,
+    rg
 }

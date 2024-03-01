@@ -9,12 +9,15 @@ import {graphviz} from "d3-graphviz";
 export class ReachabilityGraphComponent implements AfterViewInit {
 
     @Input()
-    graph: string = "digraph {}"
+    graph: string | undefined
 
     ngAfterViewInit() {
+        console.log(this.graph)
+        if (this.graph == undefined) return
+
         graphviz('#rg')
             .width(window.innerWidth)
-            .height(window.innerHeight)
-            .renderDot(this.graph);
+            .height(window.innerHeight - 50) // leave 50 px for the tab bar
+            .renderDot(this.graph)
     }
 }
