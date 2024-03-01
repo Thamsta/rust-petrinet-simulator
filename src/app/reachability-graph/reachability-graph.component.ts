@@ -12,7 +12,6 @@ export class ReachabilityGraphComponent implements AfterViewInit {
     graph: string | undefined
 
     ngAfterViewInit() {
-        console.log(this.graph)
         if (this.graph == undefined) return
 
         graphviz('#rg')

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
+import {MatTabChangeEvent} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-window-manager',
