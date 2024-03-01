@@ -15,6 +15,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 import { ExportComponent } from './export/export.component';
 import { ImportComponent } from './import/import.component';
 import { EditorComponent } from './editor/editor.component';
+import { GraphvizComponent } from './graphviz/graphviz.component';
 
 @NgModule({
 	declarations: [
@@ -26,6 +27,7 @@ import { EditorComponent } from './editor/editor.component';
   ExportComponent,
   ImportComponent,
   EditorComponent,
+  GraphvizComponent,
 	],
 	imports: [
 		BrowserModule,

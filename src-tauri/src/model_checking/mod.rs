@@ -1,4 +1,8 @@
 use std::time::Instant;
+use ndarray::{ArrayBase, Dim, OwnedRepr};
+
+use petgraph::dot::{Config, Dot};
+use petgraph::graph::{EdgeReference, NodeIndex};
 
 use crate::common::*;
 
@@ -19,6 +23,19 @@ pub fn check_properties(
     return match rg_result {
         Ok(result) => {
             let rg = &result.rg;
+            let edge_extractor =
+                |_: &ReachabilityGraph, er: EdgeReference<i16>| -> String { return format!("label = \"{}\"", er.weight()) };
+            let node_extractor =
+                |_: &ReachabilityGraph, state: (NodeIndex<u32>, &ArrayBase<OwnedRepr<i16>, Dim<[usize; 1]>>)| -> String { return format!("label = \"{:?}\"", state.1.to_vec()) };
+            println!(
+                "{:?}",
+                Dot::with_attr_getters(
+                    rg,
+                    &[Config::EdgeNoLabel, Config::NodeNoLabel],
+                    &edge_extractor,
+                    &node_extractor
+                )
+            );
             let start_time_properties = Instant::now();
             let rg_properties = properties::check_properties(&result, t);
             let end_time_properties = Instant::now();
