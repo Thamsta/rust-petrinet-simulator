@@ -4,6 +4,7 @@ import {readTextFile} from '@tauri-apps/api/fs';
 import {NetDTO} from "../dtos";
 import {NetCanvas} from "../canvas/canvas.component";
 import {PnmlImporterService} from "../pnml/pnml-importer.service";
+import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
 @Component({
     selector: 'app-import',
@@ -12,11 +13,9 @@ import {PnmlImporterService} from "../pnml/pnml-importer.service";
 })
 export class ImportComponent {
 
-    @Input() canvas: NetCanvas | undefined; // for exporting the net
+    @Input() windowManager!: WindowManagerComponent; // for opening new nets
 
     async loadFile() {
-        if (this.canvas == null) return
-
         const selected = await open({
             multiple: false,
             filters: [{
@@ -41,7 +40,7 @@ export class ImportComponent {
             console.log(`Could not load net from file ${selected}. File ending might be unsupported.`)
             return
         }
-        this.canvas.loadNet(net as NetDTO)
+        this.windowManager.openNewNet(net as NetDTO)
     }
 
     private async loadPnml(fileContent: string, selected: string) {

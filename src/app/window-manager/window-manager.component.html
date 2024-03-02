@@ -6,7 +6,7 @@
                 <button (click)="removeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
             </ng-template>
             <ng-template matTabContent>
-                <app-editor *ngIf="openWindow.type===WindowTypes.net" [initNet]="openWindow.net"></app-editor>
+                <app-editor *ngIf="openWindow.type===WindowTypes.net" [windowManager]="this" [initNet]="openWindow.net"></app-editor>
                 <app-reachability-graph *ngIf="openWindow.type===WindowTypes.rg" [graph]="openWindow.rg"></app-reachability-graph>
             </ng-template>
         </mat-tab>

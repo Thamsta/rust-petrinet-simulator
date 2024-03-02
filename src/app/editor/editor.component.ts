@@ -9,6 +9,7 @@ import {IEvent} from "fabric/fabric-impl";
 import {DrawingTools} from "../models";
 import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
+import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -22,6 +23,8 @@ export class EditorComponent implements AfterViewInit {
 
     @Input()
     initNet: NetDTO | undefined
+    @Input()
+    windowManager!: WindowManagerComponent
 
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: ToolbarComponent

@@ -1,7 +1,6 @@
-import { Component } from '@angular/core';
+import {Component} from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
-import {MatTabChangeEvent} from "@angular/material/tabs";
 
 @Component({
   selector: 'app-window-manager',
@@ -11,6 +10,7 @@ import {MatTabChangeEvent} from "@angular/material/tabs";
 export class WindowManagerComponent {
     openWindows: OpenWindow[] = [
         {type: WindowTypes.net, name: "My Net", net: this.sampleNetDTO(), rg: undefined},
+        {type: WindowTypes.net, name: "My Net 2", net: this.sampleNetDTO(), rg: undefined},
         {type: WindowTypes.rg, name: "My Net RG", net: undefined, rg: "digraph {\n" +
                 "    0 [ label = \"[2, 0, 0]\"]\n" +
                 "    1 [ label = \"[1, 0, 1]\"]\n" +
@@ -28,7 +28,26 @@ export class WindowManagerComponent {
                 "    1 -> 3 [ label = \"2\"]\n" +
                 "    5 -> 3 [ label = \"1\"]\n" +
                 "}\n"},
+        {type: WindowTypes.rg, name: "My Net RG", net: undefined, rg: "digraph {\n" +
+                "    0 [ label = \"[hello world]\"]\n" +
+                "    1 [ label = \"[1, 0, 1]\"]\n" +
+                "    2 [ label = \"[1, 1, 0]\"]\n" +
+                "    3 [ label = \"[0, 1, 1]\"]\n" +
+                "    0 -> 1 [ label = \"0\"]\n" +
+                "    0 -> 2 [ label = \"2\"]\n" +
+                "    2 -> 3 [ label = \"0\"]\n" +
+                "    1 -> 2 [ label = \"1\"]\n" +
+                "    1 -> 3 [ label = \"2\"]\n" +
+                "}\n"},
     ]
+
+    openNewNet(net: NetDTO) {
+        this.openWindows.push({type: WindowTypes.net, name: net.name, net: net, rg: undefined})
+    }
+
+    openNewRG(rg: string, name: string) {
+        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg})
+    }
 
     removeTab(index: number) {
         this.openWindows.splice(index, 1);
