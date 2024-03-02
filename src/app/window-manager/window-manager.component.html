@@ -3,7 +3,7 @@
         <mat-tab *ngFor="let openWindow of openWindows; let index = index">
             <ng-template matTabLabel>
                 {{openWindow.name}}
-                <button [disabled]="openWindows.length <= 1" (click)="removeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
+                <button (click)="removeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
             </ng-template>
             <ng-template matTabContent>
                 <app-editor *ngIf="openWindow.type===WindowTypes.net" [initNet]="openWindow.net"></app-editor>
