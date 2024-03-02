@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
+import {FormControl} from "@angular/forms";
 
 @Component({
   selector: 'app-window-manager',
@@ -8,6 +9,7 @@ import {v4 as uuidv4} from "uuid";
   styleUrls: ['./window-manager.component.scss']
 })
 export class WindowManagerComponent {
+    selected = new FormControl(0);
     openWindows: OpenWindow[] = [
         {type: WindowTypes.net, name: "My Net", net: this.sampleNetDTO(), rg: undefined},
         {type: WindowTypes.net, name: "My Net 2", net: this.sampleNetDTO(), rg: undefined},
@@ -43,10 +45,12 @@ export class WindowManagerComponent {
 
     openNewNet(net: NetDTO) {
         this.openWindows.push({type: WindowTypes.net, name: net.name, net: net, rg: undefined})
+        this.selected.setValue(this.openWindows.length - 1)
     }
 
     openNewRG(rg: string, name: string) {
         this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg})
+        this.selected.setValue(this.openWindows.length - 1)
     }
 
     removeTab(index: number) {

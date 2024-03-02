@@ -1,5 +1,5 @@
 <div class="custom" >
-    <mat-tab-group mat-stretch-tabs="false" preserveContent="true" headerPosition="below">
+    <mat-tab-group mat-stretch-tabs="false" preserveContent="true" headerPosition="below" [selectedIndex]="selected.value" (selectedIndexChange)="selected.setValue($event)">
         <mat-tab *ngFor="let openWindow of openWindows; let index = index">
             <ng-template matTabLabel>
                 {{openWindow.name}}
