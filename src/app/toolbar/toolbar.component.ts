@@ -36,4 +36,8 @@ export class ToolbarComponent {
             this.selected = DrawingTools.PAUSE
         }
     }
+
+    openNewNet() {
+        this.windowManager.openNewNet(undefined)
+    }
 }

@@ -43,8 +43,8 @@ export class WindowManagerComponent {
                 "}\n"},
     ]
 
-    openNewNet(net: NetDTO) {
-        this.openWindows.push({type: WindowTypes.net, name: net.name, net: net, rg: undefined})
+    openNewNet(net: NetDTO | undefined) {
+        this.openWindows.push({type: WindowTypes.net, name: net?.name ?? "new", net: net, rg: undefined})
         this.selected.setValue(this.openWindows.length - 1)
     }
 

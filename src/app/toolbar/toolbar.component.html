@@ -1,5 +1,8 @@
 <link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet"/>
 <mat-toolbar>
+    <button appShortcut="Ctrl + N" matTooltip="New (Ctrl + N)" mat-icon-button class="material-symbols-outlined" (click)="openNewNet()">
+        <mat-icon fontSet="material-icons-outlined">note_add</mat-icon>
+    </button>
     <app-export [canvas]="canvas"></app-export>
 	<app-import [windowManager]="windowManager"></app-import>
 
