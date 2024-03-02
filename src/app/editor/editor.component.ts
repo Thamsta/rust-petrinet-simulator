@@ -160,6 +160,7 @@ export class EditorComponent implements AfterViewInit {
 
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
+            console.log(response.dot_graph)
             this.infobar.updateRGInfos(response)
         }, (error) => {
             this.infobar.updateOnError(error)
