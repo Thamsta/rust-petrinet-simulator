@@ -11,6 +11,8 @@ import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {v4 as uuidv4} from "uuid";
+import {MatDialog} from "@angular/material/dialog";
+import {RgDialogComponent} from "../rg-dialog/rg-dialog.component";
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -33,7 +35,7 @@ export class EditorComponent implements AfterViewInit {
     @ViewChild('toolbar') toolbar!: ToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
 
-    constructor(private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
+    constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
             this.canvas.isDeadlocked = event.deadlocked
             this.canvas.setMarking(event.marking)
@@ -166,8 +168,17 @@ export class EditorComponent implements AfterViewInit {
 
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
-            this.windowManager.openNewRG(response.dot_graph,"some rg", this.id, true)
             this.infobar.updateRGInfos(response)
+
+            const dialogRef = this.dialog.open(RgDialogComponent, {
+                data: { checkboxText: `Visualize reachability graph with ${response.states} states and ${response.edges} edges?` }
+            });
+
+            dialogRef.afterClosed().subscribe(result => {
+                if (result && result.confirmed) {
+                    this.windowManager.openNewRG(response.dot_graph,"some rg", this.id, result.checkboxChecked)
+                }
+            });
         }, (error) => {
             this.infobar.updateOnError(error)
         })

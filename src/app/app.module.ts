@@ -18,6 +18,10 @@ import {EditorComponent} from './editor/editor.component';
 import {WindowManagerComponent} from './window-manager/window-manager.component';
 import {MatTabsModule} from "@angular/material/tabs";
 import {ReachabilityGraphComponent} from './reachability-graph/reachability-graph.component';
+import { RgDialogComponent } from './rg-dialog/rg-dialog.component';
+import {MatDialogModule} from "@angular/material/dialog";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {FormsModule} from "@angular/forms";
 
 @NgModule({
     declarations: [
@@ -31,6 +35,7 @@ import {ReachabilityGraphComponent} from './reachability-graph/reachability-grap
         EditorComponent,
         WindowManagerComponent,
         ReachabilityGraphComponent,
+        RgDialogComponent,
     ],
     imports: [
         BrowserModule,
@@ -40,7 +45,10 @@ import {ReachabilityGraphComponent} from './reachability-graph/reachability-grap
         BrowserAnimationsModule,
         MatDividerModule,
         MatTooltipModule,
-        MatTabsModule
+        MatTabsModule,
+        MatDialogModule,
+        MatCheckboxModule,
+        FormsModule
     ],
     providers: [],
     bootstrap: [AppComponent]
