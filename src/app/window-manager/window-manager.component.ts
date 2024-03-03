@@ -11,10 +11,10 @@ import {FormControl} from "@angular/forms";
 export class WindowManagerComponent {
     selected = new FormControl(0);
     openWindows: OpenWindow[] = [
-        {type: WindowTypes.net, name: "My Net", net: this.sampleNetDTO(), rg: undefined},
-        {type: WindowTypes.net, name: "My Net 2", net: this.sampleNetDTO(), rg: undefined},
+        {type: WindowTypes.net, name: "My Net", net: this.sampleNetDTO(), rg: undefined, rgId: ""},
+        {type: WindowTypes.net, name: "My Net 2", net: this.sampleNetDTO(), rg: undefined, rgId: ""},
         {type: WindowTypes.rg, name: "My Net RG", net: undefined, rg: "digraph {\n" +
-                "    0 [ label = \"[2, 0, 0]\"]\n" +
+                "    0 [ label = \"[2, 0, 0]\" style=\"bold,filled\" color=\"#7E57C2\" fillcolor=\"#F5F5F5\"]\n" +
                 "    1 [ label = \"[1, 0, 1]\"]\n" +
                 "    2 [ label = \"[1, 1, 0]\"]\n" +
                 "    3 [ label = \"[0, 1, 1]\"]\n" +
@@ -29,7 +29,8 @@ export class WindowManagerComponent {
                 "    1 -> 2 [ label = \"1\"]\n" +
                 "    1 -> 3 [ label = \"2\"]\n" +
                 "    5 -> 3 [ label = \"1\"]\n" +
-                "}\n"},
+                "}\n",
+        rgId: ""},
         {type: WindowTypes.rg, name: "My Net RG", net: undefined, rg: "digraph {\n" +
                 "    0 [ label = \"[hello world]\"]\n" +
                 "    1 [ label = \"[1, 0, 1]\"]\n" +
@@ -40,23 +41,32 @@ export class WindowManagerComponent {
                 "    2 -> 3 [ label = \"0\"]\n" +
                 "    1 -> 2 [ label = \"1\"]\n" +
                 "    1 -> 3 [ label = \"2\"]\n" +
-                "}\n"},
+                "}\n",
+            rgId: ""},
     ]
 
     openNewNet(net: NetDTO | undefined) {
-        this.openWindows.push({type: WindowTypes.net, name: net?.name ?? "new", net: net, rg: undefined})
+        this.openWindows.push({type: WindowTypes.net, name: net?.name ?? "new", net: net, rg: undefined, rgId: ""})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
-    openNewRG(rg: string, name: string) {
-        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg})
+    openNewRG(rg: string, name: string, id: string, replaceExisting: boolean) {
+        if (replaceExisting) {
+            this.openWindows.map(window => window.rgId)
+                .forEach((rgId, index) => {
+                    if (id === rgId) {
+                        this.removeTab(index);
+                    }
+                })
+        }
+        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, rgId: id})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
     removeTab(index: number) {
         this.openWindows.splice(index, 1);
         if (this.openWindows.length == 0) {
-            this.openWindows = [{type: WindowTypes.net, name: "new*", net: undefined, rg: undefined}]
+            this.openWindows = [{type: WindowTypes.net, name: "new*", net: undefined, rg: undefined, rgId: ""}]
         }
     }
 
@@ -75,6 +85,7 @@ export type OpenWindow = {
     name: string
     net: NetDTO | undefined
     rg: string | undefined
+    rgId: string
 }
 
 export enum WindowTypes {

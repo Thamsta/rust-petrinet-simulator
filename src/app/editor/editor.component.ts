@@ -10,6 +10,7 @@ import {DrawingTools} from "../models";
 import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
+import {v4 as uuidv4} from "uuid";
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -25,6 +26,8 @@ export class EditorComponent implements AfterViewInit {
     initNet: NetDTO | undefined
     @Input()
     windowManager!: WindowManagerComponent
+
+    id = uuidv4()
 
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: ToolbarComponent
@@ -163,7 +166,7 @@ export class EditorComponent implements AfterViewInit {
 
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
-            console.log(response.dot_graph)
+            this.windowManager.openNewRG(response.dot_graph,"some rg", this.id, true)
             this.infobar.updateRGInfos(response)
         }, (error) => {
             this.infobar.updateOnError(error)
