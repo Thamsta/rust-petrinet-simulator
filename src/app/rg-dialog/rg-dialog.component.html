@@ -3,7 +3,7 @@
 <mat-dialog-content>
     <mat-checkbox [(ngModel)]="checkboxChecked">Replace opened RG of this net (if exists)</mat-checkbox>
 </mat-dialog-content>
-<mat-dialog-actions>
-    <button mat-button (click)="onClick(false)">No</button>
-    <button mat-button (click)="onClick(true)">Yes</button>
+<mat-dialog-actions align="end">
+    <button mat-flat-button (click)="onClick(false)">No</button>
+    <button mat-flat-button (click)="onClick(true)">Yes</button>
 </mat-dialog-actions>

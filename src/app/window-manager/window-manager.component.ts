@@ -11,11 +11,11 @@ import {FormControl} from "@angular/forms";
 export class WindowManagerComponent {
     selected = new FormControl(0);
     openWindows: OpenWindow[] = [
-        {type: WindowTypes.net, name: "My Net", net: this.sampleNetDTO(), rg: undefined, rgId: ""}
+        {type: WindowTypes.net, name: "new*", net: this.sampleNetDTO(), rg: undefined, rgId: ""}
     ]
 
     openNewNet(net: NetDTO | undefined) {
-        this.openWindows.push({type: WindowTypes.net, name: net?.name ?? "new", net: net, rg: undefined, rgId: ""})
+        this.openWindows.push({type: WindowTypes.net, name: net?.name ?? "new*", net: net, rg: undefined, rgId: ""})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
