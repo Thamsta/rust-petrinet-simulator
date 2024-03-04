@@ -2,7 +2,6 @@ import {Component, Input} from '@angular/core';
 import {open} from '@tauri-apps/api/dialog';
 import {readTextFile} from '@tauri-apps/api/fs';
 import {NetDTO} from "../dtos";
-import {NetCanvas} from "../canvas/canvas.component";
 import {PnmlImporterService} from "../pnml/pnml-importer.service";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 

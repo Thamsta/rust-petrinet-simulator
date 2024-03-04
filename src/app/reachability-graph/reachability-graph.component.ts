@@ -1,6 +1,7 @@
 import {AfterViewInit, Component, Input} from '@angular/core';
 import {graphviz} from "d3-graphviz";
 import {v4 as uuidv4} from "uuid";
+import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 
 @Component({
   selector: 'app-reachability-graph',
@@ -19,7 +20,7 @@ export class ReachabilityGraphComponent implements AfterViewInit {
 
         graphviz(`#${this.id}`)
             .width(window.innerWidth)
-            .height(window.innerHeight - 50) // leave 50 px for the tab bar
+            .height(window.innerHeight - 52 - BaseToolbarComponent.height) // leave 50 px for the tab bar
             .renderDot(this.graph)
     }
 }
