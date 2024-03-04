@@ -1,0 +1,14 @@
+<div class="custom" >
+    <mat-tab-group mat-stretch-tabs="false" preserveContent="true" headerPosition="below" [selectedIndex]="selected.value" (selectedIndexChange)="selected.setValue($event)">
+        <mat-tab *ngFor="let openWindow of openWindows; let index = index">
+            <ng-template matTabLabel>
+                {{openWindow.name}}
+                <button (click)="removeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
+            </ng-template>
+            <ng-template matTabContent>
+                <app-editor *ngIf="openWindow.type===WindowTypes.net" [windowManager]="this" [initNet]="openWindow.net"></app-editor>
+                <app-reachability-graph *ngIf="openWindow.type===WindowTypes.rg" [graph]="openWindow.rg"></app-reachability-graph>
+            </ng-template>
+        </mat-tab>
+    </mat-tab-group>
+</div>

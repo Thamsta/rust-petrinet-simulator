@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, NgZone, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, Input, NgZone, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
 import {ToolbarComponent} from "../toolbar/toolbar.component";
@@ -8,6 +8,11 @@ import {ReachabilityGraphService} from "../reachability-graph/reachability-graph
 import {IEvent} from "fabric/fabric-impl";
 import {DrawingTools} from "../models";
 import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
+import {NetDTO} from "../dtos";
+import {WindowManagerComponent} from "../window-manager/window-manager.component";
+import {v4 as uuidv4} from "uuid";
+import {MatDialog} from "@angular/material/dialog";
+import {RgDialogComponent} from "../rg-dialog/rg-dialog.component";
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -19,11 +24,18 @@ import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
 })
 export class EditorComponent implements AfterViewInit {
 
+    @Input()
+    initNet: NetDTO | undefined
+    @Input()
+    windowManager!: WindowManagerComponent
+
+    id = uuidv4()
+
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: ToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
 
-    constructor(private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
+    constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
             this.canvas.isDeadlocked = event.deadlocked
             this.canvas.setMarking(event.marking)
@@ -36,10 +48,9 @@ export class EditorComponent implements AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        // add some basic shapes
-        let p = this.canvas.addPlace(150, 200)
-        let t = this.canvas.addTransition(350, 200)
-        this.canvas.addArc(p, t)
+        if (this.initNet === undefined) return
+
+        this.canvas.loadNet(this.initNet);
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
@@ -158,6 +169,18 @@ export class EditorComponent implements AfterViewInit {
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
             this.infobar.updateRGInfos(response)
+            let stateString = response.states == 1 ? "state" : "states"
+            let edgeString = response.edges == 1 ? "edge" : "edges"
+
+            const dialogRef = this.dialog.open(RgDialogComponent, {
+                data: { checkboxText: `Reachability graph has ${response.states} ${stateString} and ${response.edges} ${edgeString}. Visualize in new window?` }
+            });
+
+            dialogRef.afterClosed().subscribe(result => {
+                if (result && result.confirmed) {
+                    this.windowManager.openNewRG(response.dot_graph,"📊 new", this.id, result.checkboxChecked)
+                }
+            });
         }, (error) => {
             this.infobar.updateOnError(error)
         })

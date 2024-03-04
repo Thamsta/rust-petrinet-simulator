@@ -2,6 +2,7 @@ import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DrawingTools} from '../models';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {NetCanvas} from "../canvas/canvas.component";
+import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
 export const tooltipDelays: MatTooltipDefaultOptions = {
     showDelay: 400,
@@ -21,7 +22,8 @@ export class ToolbarComponent {
 
     @Output()
     controlEmitter = new EventEmitter<DrawingTools>
-    @Input() canvas: NetCanvas | undefined; // for exporting the net
+    @Input() canvas!: NetCanvas; // for exporting the net
+    @Input() windowManager!: WindowManagerComponent
 
 
     select(selected: DrawingTools) {
@@ -33,5 +35,9 @@ export class ToolbarComponent {
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE
         }
+    }
+
+    openNewNet() {
+        this.windowManager.openNewNet(undefined)
     }
 }

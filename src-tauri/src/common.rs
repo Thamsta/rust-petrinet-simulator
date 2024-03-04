@@ -183,6 +183,7 @@ pub struct RGResponse {
     pub reversible: bool,
     pub liveness: bool,
     pub bounded: bool,
+    pub dot_graph: String,
     pub message: String,
 }
 
@@ -206,6 +207,7 @@ impl RGResponse {
             reversible: false,
             liveness: false,
             bounded: false,
+            dot_graph: "".to_string(),
             message: "Graph is unbounded".to_string(),
         }
     }
@@ -213,6 +215,7 @@ impl RGResponse {
     pub(crate) fn success(
         graph: &ReachabilityGraph,
         properties: &RGProperties,
+        dot_graph: String,
         msg: String,
     ) -> Self {
         RGResponse {
@@ -221,6 +224,7 @@ impl RGResponse {
             reversible: properties.reversible,
             liveness: properties.liveness,
             bounded: true,
+            dot_graph: dot_graph,
             message: msg,
         }
     }

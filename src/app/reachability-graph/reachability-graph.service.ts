@@ -13,7 +13,7 @@ export class ReachabilityGraphService {
             const data = await invoke<RGResponse>('check_properties', {marking: marking, transitionInputs: pxt_in, transitionOutputs: pxt_out});
             const end = performance.now();
             const total = end - start;
-            console.log(data, "took", total, "ms")
+            console.log(`Generating ${data} took ${total}ms`)
             return data
         } catch (error) {
             console.error('Error calling the simulator:', error);

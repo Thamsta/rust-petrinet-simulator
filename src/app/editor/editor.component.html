@@ -1,4 +1,4 @@
-<app-toolbar #toolbar (controlEmitter)="controlChanged($event)" [canvas]="this.canvas"></app-toolbar>
+<app-toolbar #toolbar (controlEmitter)="controlChanged($event)" [windowManager]="this.windowManager" [canvas]="this.canvas"></app-toolbar>
 <mat-divider></mat-divider>
 <app-canvas #canvas (mouseEventEmitter)="canvasMouseEvent($event)"></app-canvas>
 <mat-divider></mat-divider>

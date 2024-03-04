@@ -29,5 +29,6 @@ export type RGResponse = {
 	reversible: boolean,
     liveness: boolean,
     bounded: boolean,
+    dot_graph: string,
     message: string,
 }

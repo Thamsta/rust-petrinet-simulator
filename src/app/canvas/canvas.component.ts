@@ -1,4 +1,4 @@
-import {AfterContentInit, Component, EventEmitter, Output} from '@angular/core'
+import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {DrawingTools} from "../models"
@@ -29,7 +29,7 @@ export type CanvasEvent = {
 	templateUrl: './canvas.component.html',
 	styleUrls: ['./canvas.component.scss']
 })
-export class CanvasComponent implements AfterContentInit, NetCanvas {
+export class CanvasComponent implements AfterViewInit, NetCanvas {
 	canvas: fabric.Canvas = new fabric.Canvas(null)
 	lastSelected?: fabric.Object
 
@@ -41,12 +41,13 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	gridSize = 20
 	gridEnabled = false
 
+    @ViewChild('htmlCanvasElement') canvasElement!: ElementRef<HTMLCanvasElement>
+
     @Output()
     mouseEventEmitter = new EventEmitter<CanvasEvent>
 
-
-    ngAfterContentInit() {
-		this.canvas = new fabric.Canvas('canvas')
+    ngAfterViewInit() {
+        this.canvas = new fabric.Canvas(this.canvasElement.nativeElement)
 		this.setupCanvas()
         // mouse:down is a special event
 		this.canvas.on('mouse:down', e => this.onClick(e))
@@ -61,14 +62,14 @@ export class CanvasComponent implements AfterContentInit, NetCanvas {
 	onWindowResize = () => {
 		this.canvas.setDimensions({
 			width: window.innerWidth,
-			height: window.innerHeight
+			height: window.innerHeight - 155
 		})
 	}
 
 	private setupCanvas = () => {
 		this.canvas.setDimensions({
 			width: window.innerWidth,
-			height: window.innerHeight
+			height: window.innerHeight - 155
 		})
 		this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
 
