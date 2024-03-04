@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::time::Instant;
 
 use ndarray::arr1;
-use petgraph::graph::{DiGraph, NodeIndex};
+use petgraph::dot::{Config, Dot};
+use petgraph::graph::{DiGraph, EdgeReference, NodeIndex};
 
 use crate::common::*;
 use crate::model_checking::coverability::is_covering;
@@ -79,4 +80,30 @@ pub(super) fn create_rg(
         rg: graph,
         had_deadlocks: has_deadlock,
     });
+}
+
+pub(super) fn create_dot_graph(reachability_graph: &ReachabilityGraph) -> String {
+    let edge_extractor = |_: &ReachabilityGraph, edge: EdgeReference<i16>| -> String {
+        return format!("label = \"t{}\"", edge.weight());
+    };
+    let node_extractor = |_: &ReachabilityGraph, state: (NodeIndex<u32>, &State)| -> String {
+        if state.0.index() == 0 {
+            // this is the starting node of the graph, which should have different colorization
+            return format!(
+                "label = \"{:?}\" style = \"filled,bold\" color=\"#673AB7\" fontcolor=\"#FFFFFF\"",
+                state.1.to_vec()
+            );
+        }
+        return format!("label = \"{:?}\"", state.1.to_vec());
+    };
+
+    return format!(
+        "{:?}",
+        Dot::with_attr_getters(
+            reachability_graph,
+            &[Config::EdgeNoLabel, Config::NodeNoLabel],
+            &edge_extractor,
+            &node_extractor
+        )
+    );
 }

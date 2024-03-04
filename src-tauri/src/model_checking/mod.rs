@@ -1,8 +1,4 @@
 use std::time::Instant;
-use ndarray::{ArrayBase, Dim, OwnedRepr};
-
-use petgraph::dot::{Config, Dot};
-use petgraph::graph::{EdgeReference, NodeIndex};
 
 use crate::common::*;
 
@@ -28,29 +24,21 @@ pub fn check_properties(
             let rg_properties = properties::check_properties(&result, t);
             let end_time_properties = Instant::now();
 
-            let total = end_time_properties - start_time_rg;
+            let start_time_visualization = Instant::now();
+            let dot_graph = reachability::create_dot_graph(rg);
+            let end_time_visualization = Instant::now();
+
+            let total = end_time_visualization - start_time_rg;
             let total_rg = end_time_rg - start_time_rg;
             let total_properties = end_time_properties - start_time_properties;
-
-            let edge_extractor =
-                |_: &ReachabilityGraph, er: EdgeReference<i16>| -> String { return format!("label = \"t{}\"", er.weight()) };
-            let node_extractor =
-                |_: &ReachabilityGraph, state: (NodeIndex<u32>, &ArrayBase<OwnedRepr<i16>, Dim<[usize; 1]>>)| -> String { return format!("label = \"{:?}\"", state.1.to_vec()) };
-            let dot_graph = format!(
-                "{:?}",
-                Dot::with_attr_getters(
-                    rg,
-                    &[Config::EdgeNoLabel, Config::NodeNoLabel],
-                    &edge_extractor,
-                    &node_extractor
-                )
-            );
+            let total_visualization = end_time_visualization - start_time_visualization;
 
             let time_string = format!(
-                "Total: {}ms, RG {}ms, Properties {}ms",
+                "Total: {}ms, RG {}ms, Properties {}ms, Visualization {}ms",
                 total.as_millis(),
                 total_rg.as_millis(),
-                total_properties.as_millis()
+                total_properties.as_millis(),
+                total_visualization.as_millis(),
             );
 
             println!("--- #### ---");
@@ -59,10 +47,16 @@ pub fn check_properties(
             println!("{} edges", rg.edge_count());
             println!("---⏳ Time---");
             println!("{}ms total", total.as_millis());
-            println!("  {}ms RG", total_rg.as_millis());
-            println!("  {}ms properties", total_properties.as_millis());
+            println!("  {}ms 💢RG", total_rg.as_millis());
+            println!("  {}ms 📊properties", total_properties.as_millis());
+            println!("  {}ms ✨ visualization", total_visualization.as_millis());
             println!("--- --- ---");
-            return Ok(RGResponse::success(&rg, &rg_properties, dot_graph, time_string));
+            return Ok(RGResponse::success(
+                &rg,
+                &rg_properties,
+                dot_graph,
+                time_string,
+            ));
         }
         Err(_) => Ok(RGResponse::unbounded()),
     };
