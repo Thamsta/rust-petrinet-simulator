@@ -169,9 +169,11 @@ export class EditorComponent implements AfterViewInit {
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
             this.infobar.updateRGInfos(response)
+            let stateString = response.states == 1 ? "state" : "states"
+            let edgeString = response.edges == 1 ? "edge" : "edges"
 
             const dialogRef = this.dialog.open(RgDialogComponent, {
-                data: { checkboxText: `Visualize reachability graph with ${response.states} states and ${response.edges} edges?` }
+                data: { checkboxText: `Reachability graph has ${response.states} ${stateString} and ${response.edges} ${edgeString}. Visualize in new window?` }
             });
 
             dialogRef.afterClosed().subscribe(result => {
