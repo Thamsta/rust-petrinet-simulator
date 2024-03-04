@@ -62,14 +62,14 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	onWindowResize = () => {
 		this.canvas.setDimensions({
 			width: window.innerWidth,
-			height: window.innerHeight - 50
+			height: window.innerHeight - 155
 		})
 	}
 
 	private setupCanvas = () => {
 		this.canvas.setDimensions({
 			width: window.innerWidth,
-			height: window.innerHeight - 50
+			height: window.innerHeight - 155
 		})
 		this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
 
