@@ -2,8 +2,7 @@ import {AfterViewInit, Component, Input} from '@angular/core';
 import {graphviz} from "d3-graphviz";
 import {v4 as uuidv4} from "uuid";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
-import {save} from "@tauri-apps/api/dialog";
-import {writeTextFile} from "@tauri-apps/api/fs";
+import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
 @Component({
   selector: 'app-reachability-graph',
@@ -11,6 +10,7 @@ import {writeTextFile} from "@tauri-apps/api/fs";
   styleUrls: ['./reachability-graph.component.scss']
 })
 export class ReachabilityGraphComponent implements AfterViewInit {
+    @Input() windowManager!: WindowManagerComponent
 
     id = "rg-" + uuidv4()
 
@@ -26,16 +26,7 @@ export class ReachabilityGraphComponent implements AfterViewInit {
             .renderDot(this.graph)
     }
 
-    async saveSvgAsFile() {
-        let svgContent = document.getElementById(this.id)!.outerHTML
-
-        let filePath = await save({
-            title: "Save Net",
-            filters: [{name: "", extensions: ["svg"]}],
-        });
-        if (filePath == null) return;
-
-
-        await writeTextFile(filePath, svgContent);
+    getSVGContent() {
+        return document.getElementById(this.id)!.outerHTML
     }
 }

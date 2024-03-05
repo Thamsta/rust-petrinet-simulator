@@ -40,8 +40,8 @@ export class WindowManagerComponent {
     }
 
     sampleNetDTO(): NetDTO {
-        let p = new PlaceDTO(uuidv4(), new Position(150, 250), 1, "");
-        let t = new TransitionDTO(uuidv4(), new Position(350, 250), "");
+        let p = new PlaceDTO(uuidv4(), new Position(150, 200), 1, "");
+        let t = new TransitionDTO(uuidv4(), new Position(350, 200), "");
         let a = new ArcDTO(uuidv4(), p.id, t.id, "1", "")
         return new NetDTO(uuidv4(), "pt-net", "net", [p], [t], [a])
     }

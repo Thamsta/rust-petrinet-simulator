@@ -1,6 +1,7 @@
 import {Component, Input} from '@angular/core';
 import {NetCanvas} from "../canvas/canvas.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
+import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
 
 @Component({
   selector: 'app-base-toolbar',
@@ -11,6 +12,7 @@ export class BaseToolbarComponent {
     static height = 65
 
     @Input() canvas: NetCanvas | undefined; // for exporting the net
+    @Input() rg: ReachabilityGraphComponent | undefined; // for exporting the rg
     @Input() windowManager!: WindowManagerComponent
 
     openNewNet() {

@@ -7,6 +7,7 @@ import {v4 as uuidv4} from "uuid";
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {PnmlExporterService} from "../pnml/pnml-exporter.service";
+import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
 
 @Component({
     selector: 'app-export',
@@ -16,13 +17,21 @@ import {PnmlExporterService} from "../pnml/pnml-exporter.service";
 export class ExportComponent {
 
     @Input() canvas: NetCanvas | undefined; // for exporting the net
+    @Input() rg: ReachabilityGraphComponent | undefined;
 
-    async downloadCustomFile() {
-        if (!this.canvas) {
+    async exportFile() {
+        if (this.canvas) {
+            await this.exportNet()
             return
         }
+        if (this.rg) {
+            await this.exportRG()
+            return
+        }
+    }
 
-        const netElements = this.canvas.getAllElements()
+    async exportNet() {
+        const netElements = this.canvas!.getAllElements()
 
         const places = netElements.filter(obj => obj instanceof Place)
             .map(t => PlaceDTO.fromPlace(t as Place))
@@ -55,5 +64,18 @@ export class ExportComponent {
         }
 
         await writeTextFile(filePath, output);
-    };
+    }
+
+    private async exportRG() {
+        let svgContent = this.rg!.getSVGContent()
+
+        let filePath = await save({
+            title: "Save Net",
+            filters: [{name: "rg", extensions: ["svg"]}],
+        });
+        if (filePath == null) return;
+
+
+        await writeTextFile(filePath, svgContent);
+    }
 }
