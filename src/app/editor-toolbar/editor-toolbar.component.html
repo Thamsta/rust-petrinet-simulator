@@ -1,0 +1,53 @@
+<link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet"/>
+<mat-toolbar>
+    <app-base-toolbar [canvas]="canvas" [windowManager]="windowManager"></app-base-toolbar>
+
+    <mat-divider vertical></mat-divider>
+
+    <button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)">
+        <mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
+    </button>
+    <button appShortcut="D" matTooltip="Delete (D)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.GARBAGE ? 'accent' : 'default' }}" (click)="select(DrawingTools.GARBAGE)">
+        <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
+    </button>
+
+    <mat-divider vertical></mat-divider>
+
+    <button appShortcut="P" matTooltip="Add Place (P)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)">
+        <mat-icon fontSet="material-icons-outlined">circle_outline</mat-icon>
+    </button>
+    <button appShortcut="T" matTooltip="Add Transition (T)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TRANSITION ? 'accent' : 'default' }}" aria-label="Transition" (click)="select(DrawingTools.TRANSITION)">
+        <mat-icon fontSet="material-icons-outlined">rectangle</mat-icon>
+    </button>
+    <button appShortcut="A" matTooltip="Connect (A)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.ARC ? 'accent' : 'default' }}" (click)="select(DrawingTools.ARC)">
+        <mat-icon>east</mat-icon>
+    </button>
+
+    <mat-divider vertical></mat-divider>
+
+    <button appShortcut="+" matTooltip="Add Token (+)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TOKEN_INC ? 'accent' : 'default' }}" (click)="select(DrawingTools.TOKEN_INC)">
+        <mat-icon>add</mat-icon>
+    </button>
+    <button appShortcut="-" matTooltip="Remove Token (-)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TOKEN_DEC ? 'accent' : 'default' }}" (click)="select(DrawingTools.TOKEN_DEC)">
+        <mat-icon>remove</mat-icon>
+    </button>
+    <mat-divider vertical></mat-divider>
+    <button appShortcut="Q" matTooltip="Run (Q)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.RUN ? 'accent' : 'default' }}"
+            (click)="select(DrawingTools.RUN)">
+        <mat-icon fontSet="material-icons-outlined">play_arrow</mat-icon>
+    </button>
+    <button appShortcut="W" matTooltip="Step (W)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.STEP)">
+        <mat-icon fontSet="material-icons-outlined">skip_next</mat-icon>
+    </button>
+    <button appShortcut="E" matTooltip="Pause (E)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PAUSE ? 'accent' : 'default' }}"
+            (click)="select(DrawingTools.PAUSE)">
+        <mat-icon fontSet="material-icons-outlined">pause</mat-icon>
+    </button>
+    <button appShortcut="R" matTooltip="Stop (R)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.STOP)">
+        <mat-icon fontSet="material-icons-outlined">stop</mat-icon>
+    </button>
+    <mat-divider vertical></mat-divider>
+    <button appShortcut="M" matTooltip="Reachability Graph (M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG)">
+        <mat-icon fontSet="material-icons-outlined">grain</mat-icon>
+    </button>
+</mat-toolbar>

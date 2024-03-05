@@ -1,7 +1,6 @@
 import {AfterViewInit, Component, Input, NgZone, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
-import {ToolbarComponent} from "../toolbar/toolbar.component";
 import {InfoBarComponent} from "../infobar/info-bar.component";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
@@ -13,6 +12,7 @@ import {WindowManagerComponent} from "../window-manager/window-manager.component
 import {v4 as uuidv4} from "uuid";
 import {MatDialog} from "@angular/material/dialog";
 import {RgDialogComponent} from "../rg-dialog/rg-dialog.component";
+import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component";
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -32,7 +32,7 @@ export class EditorComponent implements AfterViewInit {
     id = uuidv4()
 
     @ViewChild('canvas') canvas!: CanvasComponent
-    @ViewChild('toolbar') toolbar!: ToolbarComponent
+    @ViewChild('toolbar') toolbar!: EditorToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
 
     constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {

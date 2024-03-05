@@ -3,7 +3,6 @@ import {BrowserModule} from '@angular/platform-browser';
 
 import {AppComponent} from './app.component';
 import {CanvasComponent} from './canvas/canvas.component';
-import {ToolbarComponent} from './toolbar/toolbar.component';
 import {MatToolbarModule} from "@angular/material/toolbar";
 import {MatIconModule} from "@angular/material/icon";
 import {MatButtonModule} from "@angular/material/button";
@@ -18,16 +17,18 @@ import {EditorComponent} from './editor/editor.component';
 import {WindowManagerComponent} from './window-manager/window-manager.component';
 import {MatTabsModule} from "@angular/material/tabs";
 import {ReachabilityGraphComponent} from './reachability-graph/reachability-graph.component';
-import { RgDialogComponent } from './rg-dialog/rg-dialog.component';
+import {RgDialogComponent} from './rg-dialog/rg-dialog.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {FormsModule} from "@angular/forms";
+import {BaseToolbarComponent} from './base-toolbar/base-toolbar.component';
+import {ReachabilityGraphToolbarComponent} from './reachability-graph-toolbar/reachability-graph-toolbar.component';
+import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component';
 
 @NgModule({
     declarations: [
         AppComponent,
         CanvasComponent,
-        ToolbarComponent,
         InfoBarComponent,
         ShortcutDirective,
         ExportComponent,
@@ -36,6 +37,9 @@ import {FormsModule} from "@angular/forms";
         WindowManagerComponent,
         ReachabilityGraphComponent,
         RgDialogComponent,
+        BaseToolbarComponent,
+        ReachabilityGraphToolbarComponent,
+        EditorToolbarComponent,
     ],
     imports: [
         BrowserModule,

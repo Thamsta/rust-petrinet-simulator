@@ -7,7 +7,7 @@
             </ng-template>
             <ng-template matTabContent>
                 <app-editor *ngIf="openWindow.type===WindowTypes.net" [windowManager]="this" [initNet]="openWindow.net"></app-editor>
-                <app-reachability-graph *ngIf="openWindow.type===WindowTypes.rg" [graph]="openWindow.rg"></app-reachability-graph>
+                <app-reachability-graph *ngIf="openWindow.type===WindowTypes.rg" [windowManager]="this" [graph]="openWindow.rg"></app-reachability-graph>
             </ng-template>
         </mat-tab>
     </mat-tab-group>

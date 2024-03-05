@@ -11,12 +11,12 @@ export const tooltipDelays: MatTooltipDefaultOptions = {
 };
 
 @Component({
-    selector: 'app-toolbar',
-    templateUrl: './toolbar.component.html',
+  selector: 'app-editor-toolbar',
+  templateUrl: './editor-toolbar.component.html',
     providers: [{provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: tooltipDelays}],
-    styleUrls: ['./toolbar.component.scss']
+    styleUrls: ['./editor-toolbar.component.scss']
 })
-export class ToolbarComponent {
+export class EditorToolbarComponent {
     protected readonly DrawingTools = DrawingTools;
     selected: DrawingTools = DrawingTools.SELECT;
 
@@ -35,9 +35,5 @@ export class ToolbarComponent {
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE
         }
-    }
-
-    openNewNet() {
-        this.windowManager.openNewNet(undefined)
     }
 }
