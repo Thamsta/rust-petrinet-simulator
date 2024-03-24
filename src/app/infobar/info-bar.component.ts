@@ -24,7 +24,7 @@ export class InfoBarComponent {
 		this.edges = this.formatNumber(infos.edges)
 		this.reversible = String(infos.reversible)
 		this.live = String(infos.liveness)
-		this.bounded = "true"
+		this.bounded = String(infos.bounded)
 		this.message = infos.message
 	}
 

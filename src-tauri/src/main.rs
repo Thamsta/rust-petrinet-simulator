@@ -34,7 +34,7 @@ fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
 }
 
 #[tauri::command]
-fn check_properties<'a>(
+fn check_properties(
     marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
