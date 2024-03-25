@@ -10,6 +10,7 @@ export enum DrawingTools {
 	STEP = 'STEP',
 	STOP = 'STOP',
 	PAUSE = 'PAUSE',
+	NAME = 'NAME',
 	RG = 'RG',
 }
 
