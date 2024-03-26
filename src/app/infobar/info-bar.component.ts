@@ -16,7 +16,7 @@ export class InfoBarComponent {
 
 	updateRGInfos(infos: RGResponse) {
 		console.log("updating with", infos)
-		if (!infos.bounded) {
+		if (infos.bounded < 0) {
 			this.updateOnUnbounded(infos)
 			return
 		}
