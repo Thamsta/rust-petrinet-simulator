@@ -151,16 +151,18 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		}
 	}
 
-	addOrRemoveToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: fabric.Object | undefined) {
-		if (obj instanceof Place || obj instanceof Arc) {
-			if (mode == DrawingTools.TOKEN_INC) {
-				obj.increment()
-			} else {
-				obj.decrement()
-			}
-			this.renderAll()
-		}
-	}
+    addOrRemoveTokenOfCurrentSelection(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC) {
+        this.getCurrentSelected().forEach(obj => {
+            if (obj instanceof Place || obj instanceof Arc) {
+                if (mode == DrawingTools.TOKEN_INC) {
+                    obj.increment()
+                } else {
+                    obj.decrement()
+                }
+            }
+        })
+        this.renderAll()
+    }
 
 	private selectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.

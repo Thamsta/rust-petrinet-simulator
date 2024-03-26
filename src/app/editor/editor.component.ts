@@ -80,11 +80,6 @@ export class EditorComponent implements AfterViewInit {
                 }
                 break
             }
-            case DrawingTools.TOKEN_INC:
-            case DrawingTools.TOKEN_DEC: {
-                this.canvas.addOrRemoveToken(tool, target)
-                break
-            }
             case DrawingTools.GARBAGE: {
                 this.canvas.deleteObject(target)
                 break
@@ -131,6 +126,10 @@ export class EditorComponent implements AfterViewInit {
         switch (command) {
             case DrawingTools.GARBAGE:
                 this.canvas.deleteCurrentSelection()
+                break;
+            case DrawingTools.TOKEN_DEC:
+            case DrawingTools.TOKEN_INC:
+                this.canvas.addOrRemoveTokenOfCurrentSelection(command)
                 break;
             case DrawingTools.NAME:
                 this.canvas.toggleNames()

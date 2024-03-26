@@ -31,7 +31,7 @@ export class EditorToolbarComponent {
 
         this.controlEmitter.emit(selected)
         if (selected == DrawingTools.STOP || selected == DrawingTools.RG || selected == DrawingTools.GARBAGE
-            || selected == DrawingTools.NAME) {
+            || selected == DrawingTools.NAME || selected == DrawingTools.TOKEN_DEC || selected == DrawingTools.TOKEN_INC) {
             this.selected = DrawingTools.SELECT
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE
