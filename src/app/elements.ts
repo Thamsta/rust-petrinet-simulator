@@ -160,14 +160,14 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     infoText: InfoText
     nameText: NameText
 
-    constructor(x: number, y: number, canvas: fabric.Canvas) {
+    constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
         super({
             left: x,
             top: y,
             ...transitionOptions,
         });
         this.infoText = new InfoText("", this)
-        this.nameText = new NameText("t1", this)
+        this.nameText = new NameText(name, this)
         this.updateTextPosition()
         canvas.add(this.infoText, this.nameText, this)
     }
@@ -228,7 +228,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     infoText: InfoText
     nameText: NameText
 
-    constructor(x: number, y: number, canvas: fabric.Canvas) {
+    constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
         super({
             left: x,
             top: y,
@@ -236,7 +236,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         })
         this.tokenText = new Text("", this)
         this.infoText = new InfoText("", this)
-        this.nameText = new NameText("p1", this)
+        this.nameText = new NameText(name, this)
         this.updateText()
         this.updateTextPosition()
         canvas.add(this.infoText, this.nameText, this.tokenText, this)

@@ -43,6 +43,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	gridEnabled = false
 
     namesAreDisplayed = false;
+    nameHandler = new ElementNameHandler()
 
     @ViewChild('htmlCanvasElement') canvasElement!: ElementRef<HTMLCanvasElement>
 
@@ -89,13 +90,15 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
     }
 
 	addTransition = (x: number, y: number) => {
-        let t = new Transition(x, y, this.canvas)
+        let name = this.nameHandler.getNextTransitionName()
+        let t = new Transition(x, y, name, this.canvas)
         t.showName(this.namesAreDisplayed)
 		return t
 	}
 
 	addPlace = (x: number, y: number) => {
-		let p = new Place(x, y, this.canvas)
+        let name = this.nameHandler.getNextPlaceName()
+		let p = new Place(x, y, name, this.canvas)
         p.showName(this.namesAreDisplayed)
         return p
 	}
@@ -250,7 +253,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	setMarking(p: number[]) {
 		if (p.length == 0) return
 
-		let [places, _] = this.getPlacesAndTransitions()
+		let places = this.getPlaces()
 		for (let i = 0; i < places.length; i++) {
 			places[i].setAmount(p[i])
 		}
@@ -259,7 +262,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	private resetTransitionHeat() {
-		let [_, transitions] = this.getPlacesAndTransitions()
+		let transitions = this.getTransitions()
 		transitions.forEach(transition => {
 			transition.set({fill: fill_color})
 		})
@@ -391,5 +394,20 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         }
 
         return [this.lastSelected]
+    }
+}
+
+class ElementNameHandler {
+    place = 0
+    transition = 0
+
+    getNextPlaceName(): string {
+        this.place++
+        return "p" + this.place
+    }
+
+    getNextTransitionName(): string {
+        this.transition++
+        return "t" + this.transition
     }
 }
