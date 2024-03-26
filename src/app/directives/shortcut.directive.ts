@@ -20,8 +20,6 @@ export class ShortcutDirective {
         // ignore keyboard inputs into TextAreas to prevent triggering shortcuts when typing.
         if (this.isTypingIntoInput(event)) return
 
-        console.log(event)
-
 		if (this.shortcutMatches(event)) {
 			event.preventDefault(); // Prevents default browser behavior
 			// Perform the action associated with the shortcut
