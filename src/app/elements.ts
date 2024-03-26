@@ -138,6 +138,16 @@ const infoTextOptions = {
     strokeWidth: 0,
 }
 
+// Default options for name text.
+const nameTextOptions = {
+	textAlign: 'center',
+    fontSize: 14 * scale,
+    fontFamily: 'monospace',
+	...immovableOptions,
+	...baseOptions,
+    strokeWidth: 0,
+}
+
 /**
  * Represents a Transition
  * @class
@@ -148,17 +158,18 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
 
     arcs: Connectable = new Connectable()
     infoText: InfoText
+    nameText: NameText
 
-    constructor(x: number, y: number, canvas: fabric.Canvas) {
+    constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
         super({
             left: x,
             top: y,
             ...transitionOptions,
         });
         this.infoText = new InfoText("", this)
+        this.nameText = new NameText(name, this)
         this.updateTextPosition()
-        canvas.add(this.infoText)
-        canvas.add(this)
+        canvas.add(this.infoText, this.nameText, this)
     }
 
     setInfoText(text: string): void {
@@ -172,17 +183,26 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     }
 
     remove(canvas: Canvas): void {
-        canvas.remove(this)
+        canvas.remove(this, this.infoText, this.nameText)
         this.arcs.remove(canvas)
     }
 
     updateTextPosition() {
-        const length = this.infoText.getLongestLineLength()
+        const infoLength = getLongestLineLength(this.infoText.text)
+        const nameLength = getLongestLineLength(this.nameText.text)
 
         this.infoText.set({
-            left: this.left! - (length * 4 * scale),
+            left: this.left! - (infoLength * 4 * scale),
             top: this.top! + this.height! - (12 * scale),
         })
+        this.nameText.set({
+            left: this.left! + 0.5 * this.width! + 6 * scale,
+            top: this.top! +  0.5 * this.height! - 12 * scale,
+        })
+    }
+
+    showName(show: boolean) {
+        this.nameText.visible = show
     }
 
     updateTextFromString(_: string) {
@@ -206,8 +226,9 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     textDy = -22 * scale;
 
     infoText: InfoText
+    nameText: NameText
 
-    constructor(x: number, y: number, canvas: fabric.Canvas) {
+    constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
         super({
             left: x,
             top: y,
@@ -215,13 +236,13 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         })
         this.tokenText = new Text("", this)
         this.infoText = new InfoText("", this)
+        this.nameText = new NameText(name, this)
         this.updateText()
         this.updateTextPosition()
-        canvas.add(this)
-        canvas.add(this.infoText)
-        canvas.add(this.tokenText)
+        canvas.add(this.infoText, this.nameText, this.tokenText, this)
         canvas.sendBackwards(this)
         canvas.bringToFront(this.infoText)
+        canvas.bringToFront(this.nameText)
         canvas.bringToFront(this.tokenText)
     }
 
@@ -248,7 +269,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     }
 
     remove(canvas: fabric.Canvas): void {
-        canvas.remove(this, this.tokenText)
+        canvas.remove(this, this.tokenText, this.infoText, this.nameText)
         this.arcs.remove(canvas)
     }
 
@@ -259,11 +280,15 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
             top: this.top! + this.textDy,
         })
 
-        const infoLength = this.infoText.getLongestLineLength()
+        const infoLength = getLongestLineLength(this.infoText.text)
 
         this.infoText.set({
             left: this.left! - (infoLength * 4 * scale),
             top: this.top! + this.height! - (12 * scale),
+        })
+        this.nameText.set({
+            left: this.left! + 0.5 * this.width!,
+            top: this.top! +  0.5 * this.height! - 12 * scale,
         })
     }
 
@@ -287,6 +312,10 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     updateTextFromString(text: string) {
         this.tokens = +text.replaceAll(/\D/g, '')
         this.updateText()
+    }
+
+    showName(show: boolean) {
+        this.nameText.visible = show
     }
 
     private updateText() {
@@ -375,7 +404,7 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
         const y = start.y + (end.y - start.y) / 2 - (45 * scale)
         this.weightText.set({top: y, left: x})
 
-        const infoLength = this.infoText.getLongestLineLength()
+        const infoLength = getLongestLineLength(this.infoText.text)
         this.infoText.set({
             left: this.left! - (infoLength * 5 * scale),
             top: this.top! + (10 * scale),
@@ -523,6 +552,19 @@ export class Text extends fabric.IText {
  * Model class for any kind of Text. Knows its parent.
  * @class
  */
+export class NameText extends fabric.Text {
+    parent: NetElement;
+
+    constructor(text: string, parent: NetElement) {
+        super(text, nameTextOptions);
+        this.parent = parent;
+    }
+}
+
+/**
+ * Model class for any kind of Text. Knows its parent.
+ * @class
+ */
 export class InfoText extends fabric.Text {
     parent: NetElement;
 
@@ -530,12 +572,12 @@ export class InfoText extends fabric.Text {
         super(text, infoTextOptions);
         this.parent = parent;
     }
+}
 
-    getLongestLineLength(): number {
-        if (this.text == undefined) return 0
-        const lines = this.text.split("\n");
-        if (lines.length == 1) return this.text.length
+function getLongestLineLength(text: string | undefined): number {
+    if (text == undefined) return 0
+    const lines = text.split("\n");
+    if (lines.length == 1) return text.length
 
-        return Math.max(...lines.map(line =>line.length))
-    }
+    return Math.max(...lines.map(line =>line.length))
 }

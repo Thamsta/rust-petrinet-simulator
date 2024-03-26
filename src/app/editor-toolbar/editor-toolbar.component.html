@@ -50,4 +50,6 @@
     <button appShortcut="M" matTooltip="Reachability Graph (M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG)">
         <mat-icon fontSet="material-icons-outlined">grain</mat-icon>
     </button>
+    <!-- hidden buttons for shortcuts -->
+    <button appShortcut="N" (click)="select(DrawingTools.NAME)" hidden="hidden">Toggle Names</button>
 </mat-toolbar>

@@ -42,6 +42,9 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	gridSize = 20
 	gridEnabled = false
 
+    namesAreDisplayed = false;
+    nameHandler = new ElementNameHandler()
+
     @ViewChild('htmlCanvasElement') canvasElement!: ElementRef<HTMLCanvasElement>
 
     @Output()
@@ -58,7 +61,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	    this.canvas.on('object:moving', e => this.objectMoving(e))
 	    this.canvas.on('object:modified', e => this.objectModified(e))
 		window.addEventListener('resize', this.onWindowResize)
-	}
+    }
 
 	onWindowResize = () => {
 		this.canvas.setDimensions({
@@ -87,11 +90,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
     }
 
 	addTransition = (x: number, y: number) => {
-		return new Transition(x, y, this.canvas)
+        let name = this.nameHandler.getNextTransitionName()
+        let t = new Transition(x, y, name, this.canvas)
+        t.showName(this.namesAreDisplayed)
+		return t
 	}
 
 	addPlace = (x: number, y: number) => {
-		return new Place(x, y, this.canvas)
+        let name = this.nameHandler.getNextPlaceName()
+		let p = new Place(x, y, name, this.canvas)
+        p.showName(this.namesAreDisplayed)
+        return p
 	}
 
 	addArcFromLastSelected(target: fabric.Object | undefined) {
@@ -244,7 +253,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	setMarking(p: number[]) {
 		if (p.length == 0) return
 
-		let [places, _] = this.getPlacesAndTransitions()
+		let places = this.getPlaces()
 		for (let i = 0; i < places.length; i++) {
 			places[i].setAmount(p[i])
 		}
@@ -253,7 +262,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	private resetTransitionHeat() {
-		let [_, transitions] = this.getPlacesAndTransitions()
+		let transitions = this.getTransitions()
 		transitions.forEach(transition => {
 			transition.set({fill: fill_color})
 		})
@@ -345,6 +354,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             .map(it => it as Arc)
     }
 
+    toggleNames() {
+        this.namesAreDisplayed = !this.namesAreDisplayed
+        this.showNames(this.namesAreDisplayed)
+        this.renderAll()
+    }
+
+    private showNames(show: boolean) {
+        this.getPlaces().forEach(p => p.showName(show))
+        this.getTransitions().forEach(t => t.showName(show))
+    }
+
 	private deleteAllElements(): void {
 		this.canvas.getObjects().forEach(obj => {
 			if (obj instanceof Transition || obj instanceof Place) {
@@ -374,5 +394,20 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         }
 
         return [this.lastSelected]
+    }
+}
+
+class ElementNameHandler {
+    place = 0
+    transition = 0
+
+    getNextPlaceName(): string {
+        this.place++
+        return "p" + this.place
+    }
+
+    getNextTransitionName(): string {
+        this.transition++
+        return "t" + this.transition
     }
 }

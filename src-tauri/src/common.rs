@@ -182,7 +182,8 @@ pub struct RGResponse {
     pub edges: usize,
     pub reversible: bool,
     pub liveness: bool,
-    pub bounded: bool,
+    pub bounded: i16,
+    pub bounded_vec: Vec<i16>,
     pub dot_graph: String,
     pub message: String,
 }
@@ -197,6 +198,8 @@ pub struct RGResult {
 pub struct RGProperties {
     pub liveness: bool,
     pub reversible: bool,
+    pub bounded_vec: Vec<i16>,
+    pub k_bounded: i16,
 }
 
 impl RGResponse {
@@ -206,7 +209,8 @@ impl RGResponse {
             edges: 0,
             reversible: false,
             liveness: false,
-            bounded: false,
+            bounded: -1,
+            bounded_vec: Vec::new(),
             dot_graph: "".to_string(),
             message: "Graph is unbounded".to_string(),
         }
@@ -223,7 +227,8 @@ impl RGResponse {
             edges: graph.edge_count(),
             reversible: properties.reversible,
             liveness: properties.liveness,
-            bounded: true,
+            bounded: properties.k_bounded,
+            bounded_vec: properties.bounded_vec.clone(),
             dot_graph: dot_graph,
             message: msg,
         }

@@ -10,6 +10,7 @@ export enum DrawingTools {
 	STEP = 'STEP',
 	STOP = 'STOP',
 	PAUSE = 'PAUSE',
+	NAME = 'NAME',
 	RG = 'RG',
 }
 
@@ -28,7 +29,8 @@ export type RGResponse = {
     edges: number,
 	reversible: boolean,
     liveness: boolean,
-    bounded: boolean,
+    bounded: number,
+	bounded_vec: number[]
     dot_graph: string,
     message: string,
 }

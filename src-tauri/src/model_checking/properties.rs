@@ -9,11 +9,15 @@ use petgraph::Direction;
 use crate::common::{RGProperties, RGResult, ReachabilityGraph};
 
 pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGProperties {
+    let bounded_vector = get_bounded_vector(&result.rg);
+    let k_bounded = bounded_vector.clone().into_iter().max().unwrap();
     if result.had_deadlocks {
         println!("Deadlock occurred during RG generation. Skip checking properties");
         return RGProperties {
             liveness: false,
             reversible: false,
+            bounded_vec: bounded_vector,
+            k_bounded: k_bounded,
         };
     }
 
@@ -36,6 +40,8 @@ pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGPrope
     return RGProperties {
         liveness,
         reversible,
+        bounded_vec: bounded_vector,
+        k_bounded: k_bounded,
     };
 }
 
@@ -51,6 +57,20 @@ fn check_liveness(scc_graph: &DiGraph<bool, ()>) -> bool {
         };
     });
     return liveness;
+}
+
+fn get_bounded_vector(rg: &ReachabilityGraph) -> Vec<i16> {
+    let length = rg.node_weight(NodeIndex::new(0)).unwrap().len();
+    let mut max_values = vec![-1; length];
+
+    for weight in rg.node_weights() {
+        max_values = max_values.iter()
+            .zip(weight.iter())
+            .map(|(&x, &y)| x.max(y))
+            .collect();
+    }
+
+    return max_values;
 }
 
 // TODO: compare with petgraph::algo::condensation implementation

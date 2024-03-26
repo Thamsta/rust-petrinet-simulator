@@ -132,6 +132,9 @@ export class EditorComponent implements AfterViewInit {
             case DrawingTools.GARBAGE:
                 this.canvas.deleteCurrentSelection()
                 break;
+            case DrawingTools.NAME:
+                this.canvas.toggleNames()
+                break;
             case DrawingTools.RUN:
                 if (this.simulatorService.isPaused()) {
                     await this.simulatorService.continue()
