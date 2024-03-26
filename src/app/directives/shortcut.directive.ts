@@ -20,6 +20,8 @@ export class ShortcutDirective {
         // ignore keyboard inputs into TextAreas to prevent triggering shortcuts when typing.
         if (this.isTypingIntoInput(event)) return
 
+        console.log(event)
+
 		if (this.shortcutMatches(event)) {
 			event.preventDefault(); // Prevents default browser behavior
 			// Perform the action associated with the shortcut
@@ -45,6 +47,6 @@ export class ShortcutDirective {
 		this.ctrl = this.shortcut.toLowerCase().startsWith("ctrl")
 		this.shift = this.shortcut.toLowerCase().startsWith("shift")
 		this.alt = this.shortcut.toLowerCase().startsWith("alt")
-		this.key = this.shortcut.toLowerCase().substring(this.shortcut.length - 1)
+		this.key = this.shortcut.toLowerCase().substring(this.shortcut.lastIndexOf("+")).trim()
 	}
 }

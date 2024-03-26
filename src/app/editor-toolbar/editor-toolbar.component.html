@@ -7,11 +7,6 @@
     <button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)">
         <mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
     </button>
-    <button appShortcut="D" matTooltip="Delete (D)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.GARBAGE ? 'accent' : 'default' }}" (click)="select(DrawingTools.GARBAGE)">
-        <mat-icon fontSet="material-icons-outlined">delete</mat-icon>
-    </button>
-
-    <mat-divider vertical></mat-divider>
 
     <button appShortcut="P" matTooltip="Add Place (P)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)">
         <mat-icon fontSet="material-icons-outlined">circle_outline</mat-icon>
@@ -43,8 +38,15 @@
     <button appShortcut="M" matTooltip="Reachability Graph (M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG)">
         <mat-icon fontSet="material-icons-outlined">grain</mat-icon>
     </button>
+
     <!-- hidden buttons for shortcuts -->
-    <button appShortcut="N" hidden="hidden" (click)="select(DrawingTools.NAME)">Toggle Names</button>
-    <button appShortcut="+" hidden="hidden" (click)="select(DrawingTools.TOKEN_INC)"><mat-icon>add</mat-icon></button>
-    <button appShortcut="-" hidden="hidden" (click)="select(DrawingTools.TOKEN_DEC)"><mat-icon>remove</mat-icon></button>
+
+    <!-- delete -->
+    <button hidden="hidden" appShortcut="Backspace" (click)="select(DrawingTools.GARBAGE)"><mat-icon fontSet="material-icons-outlined">delete</mat-icon></button>
+    <!-- toggle names -->
+    <button hidden="hidden" appShortcut="N" (click)="select(DrawingTools.NAME)">Toggle Names</button>
+    <!-- increment token -->
+    <button hidden="hidden" appShortcut="+" (click)="select(DrawingTools.TOKEN_INC)"><mat-icon>add</mat-icon></button>
+    <!-- decrement token -->
+    <button hidden="hidden" appShortcut="-" (click)="select(DrawingTools.TOKEN_DEC)"><mat-icon>remove</mat-icon></button>
 </mat-toolbar>
