@@ -76,8 +76,8 @@ pub(crate) fn create_firing_updates(t_in: &PTMatrix, t_out: &PTMatrix) -> Firing
     }
 
     for t in 0..transitions {
-        let transition_consumes = t_in.slice(s![t as usize, ..]);
-        let transition_creates = t_out.slice(s![t as usize, ..]);
+        let transition_consumes = t_in.slice(s![t, ..]);
+        let transition_creates = t_out.slice(s![t, ..]);
         adds_tokens_to.insert(t, Vec::new());
         for p in 0..transition_creates.len_of(Axis(0)) {
             if transition_creates[[p]] > 0 {
@@ -220,7 +220,7 @@ impl RGResponse {
         graph: &ReachabilityGraph,
         properties: &RGProperties,
         dot_graph: String,
-        msg: String,
+        message: String,
     ) -> Self {
         RGResponse {
             states: graph.node_count(),
@@ -229,8 +229,8 @@ impl RGResponse {
             liveness: properties.liveness,
             bounded: properties.k_bounded,
             bounded_vec: properties.bounded_vec.clone(),
-            dot_graph: dot_graph,
-            message: msg,
+            dot_graph,
+            message,
         }
     }
 }
