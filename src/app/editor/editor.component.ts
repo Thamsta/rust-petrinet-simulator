@@ -40,7 +40,7 @@ export class EditorComponent implements AfterViewInit {
             this.canvas.isDeadlocked = event.deadlocked
             this.canvas.setMarking(event.marking)
             if (event.state == States.Stopped) {
-                this.canvas.unlock()
+                this.unlock()
             } else {
                 this.canvas.setTransitionHeat(event.firings)
             }
@@ -92,6 +92,16 @@ export class EditorComponent implements AfterViewInit {
         this.canvas.lastSelected = target
     }
 
+    private lock() {
+        this.canvas.lock()
+        this.toolbar.lockEditor()
+    }
+
+    private unlock() {
+        this.canvas.unlock()
+        this.toolbar.unlockEditor()
+    }
+
     private handleTextEditing(target: Object | undefined, tool: DrawingTools) {
         if (tool == DrawingTools.SELECT
             && (target instanceof Place || target instanceof Arc)
@@ -138,12 +148,12 @@ export class EditorComponent implements AfterViewInit {
                 if (this.simulatorService.isPaused()) {
                     await this.simulatorService.continue()
                 } else {
-                    this.canvas.lock()
+                    this.lock()
                     await this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
                 }
                 break;
             case DrawingTools.STEP:
-                this.canvas.lock()
+                this.lock()
                 await this.simulatorService.step(p, pxt_in, pxt_out)
                 break;
             case DrawingTools.STOP:

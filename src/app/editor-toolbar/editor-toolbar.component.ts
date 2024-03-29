@@ -19,6 +19,7 @@ export const tooltipDelays: MatTooltipDefaultOptions = {
 export class EditorToolbarComponent {
     protected readonly DrawingTools = DrawingTools;
     selected: DrawingTools = DrawingTools.SELECT;
+    editorLocked: boolean = false
 
     @Output()
     controlEmitter = new EventEmitter<DrawingTools>
@@ -36,5 +37,23 @@ export class EditorToolbarComponent {
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE
         }
+    }
+
+    lockEditor() {
+        if (this.editorLocked) {
+            console.log("Locked editor toolbar even though it is already locked.")
+        }
+        this.editorLocked = true;
+    }
+
+    unlockEditor() {
+        if (!this.editorLocked) {
+            console.log("Unlocked editor toolbar even though it is already unlocked.")
+        }
+        this.editorLocked = false;
+    }
+
+    reset() {
+        this.selected = DrawingTools.SELECT
     }
 }

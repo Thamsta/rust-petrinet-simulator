@@ -4,17 +4,17 @@
 
     <mat-divider vertical></mat-divider>
 
-    <button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)">
+    <button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
     </button>
 
-    <button appShortcut="P" matTooltip="Add Place (P)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)">
+    <button appShortcut="P" matTooltip="Add Place (P)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">circle_outline</mat-icon>
     </button>
-    <button appShortcut="T" matTooltip="Add Transition (T)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TRANSITION ? 'accent' : 'default' }}" aria-label="Transition" (click)="select(DrawingTools.TRANSITION)">
+    <button appShortcut="T" matTooltip="Add Transition (T)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.TRANSITION ? 'accent' : 'default' }}" aria-label="Transition" (click)="select(DrawingTools.TRANSITION)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">rectangle</mat-icon>
     </button>
-    <button appShortcut="A" matTooltip="Connect (A)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.ARC ? 'accent' : 'default' }}" (click)="select(DrawingTools.ARC)">
+    <button appShortcut="A" matTooltip="Connect (A)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.ARC ? 'accent' : 'default' }}" (click)="select(DrawingTools.ARC)" [disabled]="editorLocked">
         <mat-icon>east</mat-icon>
     </button>
 
@@ -35,7 +35,7 @@
         <mat-icon fontSet="material-icons-outlined">stop</mat-icon>
     </button>
     <mat-divider vertical></mat-divider>
-    <button appShortcut="M" matTooltip="Reachability Graph (M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG)">
+    <button appShortcut="M" matTooltip="Reachability Graph (M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">grain</mat-icon>
     </button>
 
