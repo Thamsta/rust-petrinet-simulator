@@ -1,23 +1,3 @@
-export enum DrawingTools {
-	SELECT = 'SELECT',
-	GARBAGE = 'GARBAGE',
-	TRANSITION = 'TRANSITION',
-	PLACE = 'PLACE',
-	ARC = 'ARC',
-	TOKEN_INC = 'TOKEN_INC',
-	TOKEN_DEC = 'TOKEN_DEC',
-	RUN = 'RUN',
-	STEP = 'STEP',
-	STOP = 'STOP',
-	PAUSE = 'PAUSE',
-	NAME = 'NAME',
-	RG = 'RG',
-}
-
-export function isPlayerCommand(tool: DrawingTools): boolean {
-	return Object.values([DrawingTools.RUN, DrawingTools.STEP, DrawingTools.STOP, DrawingTools.PAUSE]).includes(tool)
-}
-
 export type SimulationResponse = {
 	marking: number[],
 	firings: number[],

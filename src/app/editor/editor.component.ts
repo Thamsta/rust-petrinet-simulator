@@ -5,7 +5,7 @@ import {InfoBarComponent} from "../infobar/info-bar.component";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
-import {DrawingTools} from "../models";
+import {DrawingTools} from "../editor-toolbar/types";
 import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
@@ -63,7 +63,7 @@ export class EditorComponent implements AfterViewInit {
         let y = event.e.offsetY
         let target = this.getTarget(event)
 
-        let tool = this.toolbar.selected
+        let tool = this.toolbar.getCurrentTool()
 
         this.handleTextEditing(target, tool)
 
@@ -71,21 +71,28 @@ export class EditorComponent implements AfterViewInit {
             case DrawingTools.PLACE: {
                 if (target == undefined) {
                     this.canvas.addPlace(x, y)
+                    this.toolbar.usedTool()
                 }
                 break
             }
             case DrawingTools.TRANSITION: {
                 if (target == undefined) {
                     this.canvas.addTransition(x, y)
+                    this.toolbar.usedTool()
                 }
                 break
             }
             case DrawingTools.GARBAGE: {
                 this.canvas.deleteObject(target)
+                this.toolbar.usedTool()
                 break
             }
             case DrawingTools.ARC: {
-                this.canvas.addArcFromLastSelected(target)
+                let arc = this.canvas.addArcFromLastSelected(target)
+                if (arc != undefined) {
+                    // only count as "used" if an arc was actually placed.
+                    this.toolbar.usedTool()
+                }
                 break
             }
         }
@@ -127,22 +134,25 @@ export class EditorComponent implements AfterViewInit {
 
     /**
      * React on a changed tool.
-     * @param command
+     * @param tool
      */
-    async controlChanged(command: DrawingTools) {
+    async controlChanged(tool: DrawingTools) {
         this.leaveTextEditing(undefined)
 
         let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
-        switch (command) {
+        switch (tool) {
             case DrawingTools.GARBAGE:
                 this.canvas.deleteCurrentSelection()
+                this.toolbar.usedTool()
                 break;
             case DrawingTools.TOKEN_DEC:
             case DrawingTools.TOKEN_INC:
-                this.canvas.addOrRemoveTokenOfCurrentSelection(command)
+                this.canvas.addOrRemoveTokenOfCurrentSelection(tool)
+                this.toolbar.usedTool()
                 break;
             case DrawingTools.NAME:
                 this.canvas.toggleNames()
+                this.toolbar.usedTool()
                 break;
             case DrawingTools.RUN:
                 if (this.simulatorService.isPaused()) {

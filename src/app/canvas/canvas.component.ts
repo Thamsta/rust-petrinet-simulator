@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
-import {DrawingTools} from "../models"
+import {DrawingTools} from "../editor-toolbar/types"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {NetDTO} from "../dtos";
@@ -104,7 +104,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	addArcFromLastSelected(target: fabric.Object | undefined) {
-		this.addArc(this.lastSelected, target)
+		return this.addArc(this.lastSelected, target)
 	}
 
 	addArc(source: fabric.Object | undefined, target: fabric.Object | undefined) {

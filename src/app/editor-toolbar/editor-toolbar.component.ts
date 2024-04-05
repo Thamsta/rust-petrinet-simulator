@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {DrawingTools} from '../models';
+import {DrawingTools} from './types';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {NetCanvas} from "../canvas/canvas.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
@@ -26,17 +26,42 @@ export class EditorToolbarComponent {
     @Input() canvas!: NetCanvas; // for exporting the net
     @Input() windowManager!: WindowManagerComponent
 
+    ctrlPressed = false
+    // tools which should be kept in selection if conditions are met
+    keepableTools = [DrawingTools.PLACE, DrawingTools.TRANSITION, DrawingTools.ARC]
+
+    constructor() {
+        window.addEventListener('keyup', (e) => {
+            if (!e.ctrlKey) this.ctrlPressed = false
+            console.log("Ctrl Pressed: ", this.ctrlPressed)
+        });
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey) this.ctrlPressed = true
+            console.log("Ctrl Pressed: ", this.ctrlPressed)
+        });
+    }
 
     select(selected: DrawingTools) {
         this.selected = selected;
 
         this.controlEmitter.emit(selected)
-        if (selected == DrawingTools.STOP || selected == DrawingTools.RG || selected == DrawingTools.GARBAGE
-            || selected == DrawingTools.NAME || selected == DrawingTools.TOKEN_DEC || selected == DrawingTools.TOKEN_INC) {
-            this.selected = DrawingTools.SELECT
+        if (selected == DrawingTools.STOP || selected == DrawingTools.RG) {
+            this.reset()
         } else if (selected == DrawingTools.STEP) {
             this.selected = DrawingTools.PAUSE
         }
+    }
+
+    getCurrentTool() {
+        return this.selected
+    }
+
+    usedTool() {
+        if (this.ctrlPressed && this.keepableTools.includes(this.selected)) {
+            return
+        }
+
+        this.reset()
     }
 
     lockEditor() {
