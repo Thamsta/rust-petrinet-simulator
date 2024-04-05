@@ -3,7 +3,7 @@
         "beforeBuildCommand": "npx ng build",
         "beforeDevCommand": "npx ng serve",
         "devPath": "http://localhost:4200",
-        "distDir": "../dist"
+        "distDir": "../dist/petrinets"
     },
     "package": {
         "productName": "petrinets",
