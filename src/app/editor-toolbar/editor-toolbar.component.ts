@@ -33,11 +33,9 @@ export class EditorToolbarComponent {
     constructor() {
         window.addEventListener('keyup', (e) => {
             if (!e.ctrlKey) this.ctrlPressed = false
-            console.log("Ctrl Pressed: ", this.ctrlPressed)
         });
         window.addEventListener('keydown', (e) => {
             if (e.ctrlKey) this.ctrlPressed = true
-            console.log("Ctrl Pressed: ", this.ctrlPressed)
         });
     }
 
