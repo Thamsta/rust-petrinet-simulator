@@ -146,7 +146,9 @@ export class EditorComponent implements AfterViewInit {
                 this.toolbar.usedTool()
                 break;
             case DrawingTools.TOKEN_DEC:
+            case DrawingTools.TOKEN_DEC_5:
             case DrawingTools.TOKEN_INC:
+            case DrawingTools.TOKEN_INC_5:
                 this.canvas.addOrRemoveTokenOfCurrentSelection(tool)
                 this.toolbar.usedTool()
                 break;

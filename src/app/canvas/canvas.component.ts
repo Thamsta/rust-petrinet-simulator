@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
-import {DrawingTools} from "../editor-toolbar/types"
+import {DrawingTools, getDecIncValue} from "../editor-toolbar/types"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {NetDTO} from "../dtos";
@@ -151,16 +151,15 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		}
 	}
 
-    addOrRemoveTokenOfCurrentSelection(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC) {
-        this.getCurrentSelected().forEach(obj => {
+	addOrRemoveTokenOfCurrentSelection(tool: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_INC_5 | DrawingTools.TOKEN_DEC | DrawingTools.TOKEN_DEC_5) {
+        let amount = getDecIncValue(tool)
+
+		this.getCurrentSelected().forEach(obj => {
             if (obj instanceof Place || obj instanceof Arc) {
-                if (mode == DrawingTools.TOKEN_INC) {
-                    obj.increment()
-                } else {
-                    obj.decrement()
-                }
+                obj.add(amount)
             }
         })
+
         this.renderAll()
     }
 

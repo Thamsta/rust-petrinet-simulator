@@ -46,7 +46,6 @@ export class ShortcutDirective {
 		this.shift = this.shortcut.toLowerCase().startsWith("shift")
 		this.alt = this.shortcut.toLowerCase().startsWith("alt")
 		this.key = this.getKey()
-		console.log(this.key, this.ctrl)
 	}
 
 	private getKey() {

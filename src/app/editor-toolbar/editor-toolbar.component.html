@@ -45,8 +45,10 @@
     <button hidden="hidden" appShortcut="Backspace" (click)="select(DrawingTools.GARBAGE)"><mat-icon fontSet="material-icons-outlined">delete</mat-icon></button>
     <!-- toggle names -->
     <button hidden="hidden" appShortcut="N" (click)="select(DrawingTools.NAME)">Toggle Names</button>
-    <!-- increment token -->
+    <!-- increment token (1 / 5) -->
     <button hidden="hidden" appShortcut="+" (click)="select(DrawingTools.TOKEN_INC)"><mat-icon>add</mat-icon></button>
-    <!-- decrement token -->
+    <button hidden="hidden" appShortcut="Ctrl + +" (click)="select(DrawingTools.TOKEN_INC_5)"><mat-icon>add</mat-icon></button>
+    <!-- decrement token (1 / 5) -->
     <button hidden="hidden" appShortcut="-" (click)="select(DrawingTools.TOKEN_DEC)"><mat-icon>remove</mat-icon></button>
+    <button hidden="hidden" appShortcut="Ctrl + -" (click)="select(DrawingTools.TOKEN_DEC_5)"><mat-icon>remove</mat-icon></button>
 </mat-toolbar>
