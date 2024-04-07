@@ -3,6 +3,8 @@ import {DrawingTools} from './types';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {NetCanvas} from "../canvas/canvas.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
+import {MatDialog} from "@angular/material/dialog";
+import {EditorTooltipsComponent} from "../editor-tooltips/editor-tooltips.component";
 
 export const tooltipDelays: MatTooltipDefaultOptions = {
     showDelay: 400,
@@ -32,7 +34,7 @@ export class EditorToolbarComponent {
     // tools with an alternate mode
     altTools = [DrawingTools.TOKEN_INC, DrawingTools.TOKEN_DEC]
 
-    constructor() {
+    constructor(private dialog: MatDialog) {
         window.addEventListener('keyup', (e) => {
             if (!e.ctrlKey) this.ctrlPressed = false
         });
@@ -80,5 +82,11 @@ export class EditorToolbarComponent {
 
     reset() {
         this.selected = DrawingTools.SELECT
+    }
+
+    openEditorTooltips() {
+        this.dialog.open(EditorTooltipsComponent, {
+            //width: '400px',
+        });
     }
 }

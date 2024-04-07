@@ -24,6 +24,8 @@ import {FormsModule} from "@angular/forms";
 import {BaseToolbarComponent} from './base-toolbar/base-toolbar.component';
 import {ReachabilityGraphToolbarComponent} from './reachability-graph-toolbar/reachability-graph-toolbar.component';
 import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component';
+import {EditorTooltipsComponent} from './editor-tooltips/editor-tooltips.component';
+import {MatTableModule} from "@angular/material/table";
 
 @NgModule({
     declarations: [
@@ -40,6 +42,7 @@ import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component'
         BaseToolbarComponent,
         ReachabilityGraphToolbarComponent,
         EditorToolbarComponent,
+        EditorTooltipsComponent,
     ],
     imports: [
         BrowserModule,
@@ -52,7 +55,8 @@ import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component'
         MatTabsModule,
         MatDialogModule,
         MatCheckboxModule,
-        FormsModule
+        FormsModule,
+        MatTableModule
     ],
     providers: [],
     bootstrap: [AppComponent]
