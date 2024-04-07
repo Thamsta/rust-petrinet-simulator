@@ -38,13 +38,22 @@ export class ShortcutDirective {
 		return event.key.toLowerCase() == this.key
 			&& (event.ctrlKey || event.metaKey) == this.ctrl // meta key for macOS
 			&& event.shiftKey == this.shift
-			&& event.altKey == this.alt;
+			&& event.altKey == this.alt
 	}
 
 	private init() {
 		this.ctrl = this.shortcut.toLowerCase().startsWith("ctrl")
 		this.shift = this.shortcut.toLowerCase().startsWith("shift")
 		this.alt = this.shortcut.toLowerCase().startsWith("alt")
-		this.key = this.shortcut.toLowerCase().substring(this.shortcut.length - 1)
+		this.key = this.getKey()
+	}
+
+	private getKey() {
+		if (this.shortcut.endsWith("+")) {
+			// special handling for + because it is also used as separator
+			return "+"
+		}
+
+		return this.shortcut.toLowerCase().substring(this.shortcut.lastIndexOf("+") + 1).trim()
 	}
 }

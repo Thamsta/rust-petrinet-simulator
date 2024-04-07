@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
-import {DrawingTools} from "../models"
+import {DrawingTools, getDecIncValue} from "../editor-toolbar/types"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {NetDTO} from "../dtos";
@@ -104,7 +104,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	addArcFromLastSelected(target: fabric.Object | undefined) {
-		this.addArc(this.lastSelected, target)
+		return this.addArc(this.lastSelected, target)
 	}
 
 	addArc(source: fabric.Object | undefined, target: fabric.Object | undefined) {
@@ -151,16 +151,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		}
 	}
 
-	addOrRemoveToken(mode: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_DEC, obj: fabric.Object | undefined) {
-		if (obj instanceof Place || obj instanceof Arc) {
-			if (mode == DrawingTools.TOKEN_INC) {
-				obj.increment()
-			} else {
-				obj.decrement()
-			}
-			this.renderAll()
-		}
-	}
+	addOrRemoveTokenOfCurrentSelection(tool: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_INC_5 | DrawingTools.TOKEN_DEC | DrawingTools.TOKEN_DEC_5) {
+        let amount = getDecIncValue(tool)
+
+		this.getCurrentSelected().forEach(obj => {
+            if (obj instanceof Place || obj instanceof Arc) {
+                obj.add(amount)
+            }
+        })
+
+        this.renderAll()
+    }
 
 	private selectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.

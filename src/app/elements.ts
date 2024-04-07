@@ -31,8 +31,7 @@ interface Removable {
  * @interface
  */
 interface Countable {
-    increment(): void
-    decrement(): void
+    add(amount: number): void
     setAmount(amount: number): void
 }
 
@@ -292,16 +291,9 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         })
     }
 
-    increment() {
-        this.tokens++;
-        this.updateText()
-    }
-
-    decrement() {
-        if (this.tokens > 0) {
-            this.tokens--;
-        }
-        this.updateText()
+    add(amount: number) {
+        const newAmount = Math.max(this.tokens + amount, 0)
+        this.setAmount(newAmount)
     }
 
     setAmount(tokens: number) {
@@ -501,21 +493,13 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
         return [arrowTip1, arrowTip2];
     }
 
-    increment() {
-        this.weight++;
-        this.updateText();
-    }
-
-    decrement() {
-        if (this.weight > 1) {
-            this.weight--;
-        }
-        this.updateText();
+    add(amount: number) {
+        const newAmount = Math.max(this.weight + amount, 1)
+        this.setAmount(newAmount)
     }
 
     setAmount(amount: number): void {
-        this.weight = amount;
-        if (this.weight < 1) this.weight = 1
+        this.weight = Math.max(amount, 1)
         this.updateText()
     }
 
