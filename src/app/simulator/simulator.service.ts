@@ -25,7 +25,7 @@ export class SimulatorService {
 	simulationEmitter: EventEmitter<SimulationEvent> = new EventEmitter<SimulationEvent>();
 
 	private currentState: States = States.Stopped;
-    private currentStepSize: number = 10000
+    private currentUpdateTime: number = 10000
 	private startState: number[] = []
 
     async step(vector: number[], in_matrix: number[][], out_matrix: number[][]) {
@@ -41,25 +41,25 @@ export class SimulatorService {
 		})
 	}
 
-	async start(state: number[], in_matrix: number[][], out_matrix: number[][], steps: number) {
+	async start(state: number[], in_matrix: number[][], out_matrix: number[][], updateTime: number) {
         if (![States.Stopped, States.Paused].includes(this.currentState)) {
 			// only start the simulation if it is currently stopped or paused
             return
         }
 
 		this.currentState = States.Running
-		this.currentStepSize = steps
+		this.currentUpdateTime = updateTime
 		this.startState = state
 
-		this.invokeSimulationStart(state, in_matrix, out_matrix, steps).then(() => {
-			this.continueInternal(steps);
+		this.invokeSimulationStart(state, in_matrix, out_matrix, updateTime).then(() => {
+			this.continueInternal(updateTime);
 		}).catch(e => this.handleError(e))
 	}
 
     async continue() {
         if (this.currentState == States.Paused) {
             this.currentState = States.Running
-            await this.continueInternal(this.currentStepSize)
+            await this.continueInternal(this.currentUpdateTime)
         }
     }
 
@@ -81,8 +81,8 @@ export class SimulatorService {
 		return this.currentState == States.Paused
 	}
 
-	private async continueInternal(steps: number) {
-        const result = await this.invokeSimulationContinue(steps)
+	private async continueInternal(updateTime: number) {
+        const result = await this.invokeSimulationContinue(updateTime)
         // if we know that the simulation is deadlock, we request a pause
 		let nextState = result.deadlocked ? States.PauseRequested : this.currentState
 
@@ -96,16 +96,16 @@ export class SimulatorService {
             this.emitResult(result, States.Paused)
 			return
 		}
-		await this.continueInternal(steps)
+		await this.continueInternal(updateTime)
     }
 
-	private async invokeSimulationStart(vector: number[], in_matrix: number[][], out_matrix: number[][], steps: number): Promise<SimulationResponse> {
+	private async invokeSimulationStart(vector: number[], in_matrix: number[][], out_matrix: number[][], updateTime: number): Promise<SimulationResponse> {
         try {
             return await invoke<SimulationResponse>('simulate_start', {
                 marking: vector,
                 transitionInputs: in_matrix,
                 transitionOutputs: out_matrix,
-                steps: steps
+                updateTime: updateTime
             });
         } catch (error) {
             this.handleError(error)
@@ -113,9 +113,9 @@ export class SimulatorService {
         }
     }
 
-    private async invokeSimulationContinue(steps: number): Promise<SimulationResponse> {
+    private async invokeSimulationContinue(updateTime: number): Promise<SimulationResponse> {
         try {
-            return await invoke<SimulationResponse>('simulate_continue', {steps: steps});
+            return await invoke<SimulationResponse>('simulate_continue', {updateTime: updateTime});
         } catch (error) {
             this.handleError(error)
             return Promise.reject()

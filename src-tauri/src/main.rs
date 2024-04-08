@@ -23,14 +23,14 @@ fn simulate_start(
     marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
-    steps: i16,
+    update_time: i16,
 ) -> Result<SimulationResponse, String> {
-    return simulator::start_simulation(marking, transition_inputs, transition_outputs, steps);
+    return simulator::start_simulation(marking, transition_inputs, transition_outputs, update_time as u128);
 }
 
 #[tauri::command]
-fn simulate_continue(steps: i16) -> Result<SimulationResponse, String> {
-    return simulator::continue_simulation(steps);
+fn simulate_continue(update_time: i16) -> Result<SimulationResponse, String> {
+    return simulator::continue_simulation(update_time as u128);
 }
 
 #[tauri::command]

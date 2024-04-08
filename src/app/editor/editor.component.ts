@@ -161,7 +161,7 @@ export class EditorComponent implements AfterViewInit {
                     await this.simulatorService.continue()
                 } else {
                     this.lock()
-                    await this.startSimulationAsync(p, pxt_in, pxt_out, 1000)
+                    await this.startSimulationAsync(p, pxt_in, pxt_out, 100)
                 }
                 break;
             case DrawingTools.STEP:

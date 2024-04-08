@@ -31,8 +31,6 @@ export class EditorToolbarComponent {
     ctrlPressed = false
     // tools which should be kept in selection if conditions are met
     keepableTools = [DrawingTools.PLACE, DrawingTools.TRANSITION, DrawingTools.ARC]
-    // tools with an alternate mode
-    altTools = [DrawingTools.TOKEN_INC, DrawingTools.TOKEN_DEC]
 
     constructor(private dialog: MatDialog) {
         window.addEventListener('keyup', (e) => {

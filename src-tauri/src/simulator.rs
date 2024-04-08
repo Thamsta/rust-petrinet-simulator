@@ -30,7 +30,7 @@ pub(crate) fn start_simulation(
     marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
-    steps: i16,
+    update_time: u128,
 ) -> Result<SimulationResponse, String> {
     if transition_inputs.transition_count().is_zero() {
         return handle_no_transitions(marking);
@@ -54,13 +54,13 @@ pub(crate) fn start_simulation(
             state.t_effect = t_effect;
             state.deadlocked = false;
             state.firing_updates = firing_updates;
-            simulate(arr1(&marking), steps, state)
+            simulate(arr1(&marking), update_time, state)
         }
         Err(_) => Err("❌Could not acquire lock!".to_string()),
     };
 }
 
-pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, String> {
+pub(crate) fn continue_simulation(update_time: u128) -> Result<SimulationResponse, String> {
     return match SIMULATOR_STATE.lock() {
         Ok(state) => {
             if state.deadlocked {
@@ -68,7 +68,7 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
                 return Ok(SimulationResponse::new(state.state.to_vec(), vec![], true));
             }
             println!("↪️Continuing simulation.");
-            simulate(state.state.clone(), steps, state)
+            simulate(state.state.clone(), update_time, state)
         }
         Err(_) => Err("❌Could not acquire lock!".to_string()),
     };
@@ -76,7 +76,7 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
 
 fn simulate(
     marking: State,
-    steps: i16,
+    update_time: u128,
     mut lock: MutexGuard<SimulatorState>,
 ) -> Result<SimulationResponse, String> {
     let mut state_vec = marking.clone();
@@ -92,7 +92,9 @@ fn simulate(
     let mut active_transitions: InputState = Vec::new();
     let mut fired: usize = 0;
     let start = Instant::now();
-    for step in 0..steps {
+    let mut step: usize = 1;
+
+    while Instant::now().duration_since(start).as_millis() < update_time {
         active_transitions = find_active_transitions_from_firing_set(
             &state_vec,
             t_in,
@@ -103,7 +105,7 @@ fn simulate(
 
         if active_transitions.is_empty() {
             println!(
-                "☠️No active transitions after step {} with state {:?}.",
+                "☠️No active transitions at step {} with state {:?}.",
                 step, state_vec
             );
 
@@ -116,12 +118,13 @@ fn simulate(
         fired = select_transition(&active_transitions);
         t_heat[fired] += 1;
         state_vec = fire_transition(&state_vec, t_effect, fired);
+        step += 1;
     }
 
     let end = Instant::now();
     let took_ms = (end - start).as_millis();
 
-    println!("🔄Simulating {} steps took {}ms", steps, took_ms);
+    println!("🔄Simulating {} steps took {}ms.", step, took_ms);
 
     let result_marking = state_vec.to_vec();
     lock.state = state_vec;
