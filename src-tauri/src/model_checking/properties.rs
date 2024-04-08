@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
 use petgraph::algo::tarjan_scc;
+use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
-use petgraph::Direction;
 
-use crate::common::{RGProperties, RGResult, ReachabilityGraph};
+use crate::common::{ReachabilityGraph, RGProperties, RGResult};
 
 pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGProperties {
     let bounded_vector = get_bounded_vector(&result.rg);
@@ -64,7 +64,8 @@ fn get_bounded_vector(rg: &ReachabilityGraph) -> Vec<i16> {
     let mut max_values = vec![-1; length];
 
     for weight in rg.node_weights() {
-        max_values = max_values.iter()
+        max_values = max_values
+            .iter()
             .zip(weight.iter())
             .map(|(&x, &y)| x.max(y))
             .collect();

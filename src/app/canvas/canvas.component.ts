@@ -254,7 +254,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	setMarking(p: number[]) {
 		if (p.length == 0) return
 
-		let places = this.getPlaces()
+		let [places, _] = this.getPlacesAndTransitions()
 		for (let i = 0; i < places.length; i++) {
 			places[i].setAmount(p[i])
 		}

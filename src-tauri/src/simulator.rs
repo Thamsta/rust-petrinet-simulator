@@ -30,7 +30,7 @@ pub(crate) fn start_simulation(
     marking: InputState,
     transition_inputs: InputMatrix,
     transition_outputs: InputMatrix,
-    steps: i16,
+    update_time: u128,
 ) -> Result<SimulationResponse, String> {
     if transition_inputs.transition_count().is_zero() {
         return handle_no_transitions(marking);
@@ -41,26 +41,73 @@ pub(crate) fn start_simulation(
         return handle_no_transitions(marking);
     }
 
-    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs);
-    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs);
-    let t_effect: PTMatrix = &t_out - &t_in;
-    let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out);
+    let new_state = get_fresh_simulator_state(marking, transition_inputs, transition_outputs);
 
     println!("🆕Starting new simulation.");
 
     return match SIMULATOR_STATE.lock() {
         Ok(mut state) => {
-            state.t_in = t_in;
-            state.t_effect = t_effect;
-            state.deadlocked = false;
-            state.firing_updates = firing_updates;
-            simulate(arr1(&marking), steps, state)
+            state.t_in = new_state.t_in;
+            state.t_effect = new_state.t_effect;
+            state.deadlocked = new_state.deadlocked;
+            state.firing_updates = new_state.firing_updates;
+            simulate(new_state.state, update_time, state)
         }
         Err(_) => Err("❌Could not acquire lock!".to_string()),
     };
 }
 
-pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, String> {
+pub(crate) fn start_simulation_step(
+    marking: InputState,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
+) -> Result<SimulationResponse, String> {
+    if transition_inputs.transition_count().is_zero() {
+        return handle_no_transitions(marking);
+    }
+
+    if transition_inputs.place_count().is_zero() {
+        // TODO: correctly handle nets with no places
+        return handle_no_transitions(marking);
+    }
+
+    let new_state = get_fresh_simulator_state(marking, transition_inputs, transition_outputs);
+
+    println!("🆕Starting new simulation.");
+
+    return match SIMULATOR_STATE.lock() {
+        Ok(mut state) => {
+            state.t_in = new_state.t_in;
+            state.t_effect = new_state.t_effect;
+            state.deadlocked = new_state.deadlocked;
+            state.firing_updates = new_state.firing_updates;
+            simulate_step(new_state.state, state)
+        }
+        Err(_) => Err("❌Could not acquire lock!".to_string()),
+    };
+}
+
+fn get_fresh_simulator_state(
+    marking: InputState,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
+) -> SimulatorState {
+    let state = arr1(&marking);
+    let t_in: PTMatrix = input_matrix_to_matrix(&transition_inputs);
+    let t_out: PTMatrix = input_matrix_to_matrix(&transition_outputs);
+    let t_effect: PTMatrix = &t_out - &t_in;
+    let firing_updates: FiringUpdates = create_firing_updates(&t_in, &t_out);
+
+    SimulatorState {
+        state,
+        t_in,
+        t_effect,
+        deadlocked: false,
+        firing_updates,
+    }
+}
+
+pub(crate) fn continue_simulation(update_time: u128) -> Result<SimulationResponse, String> {
     return match SIMULATOR_STATE.lock() {
         Ok(state) => {
             if state.deadlocked {
@@ -68,7 +115,7 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
                 return Ok(SimulationResponse::new(state.state.to_vec(), vec![], true));
             }
             println!("↪️Continuing simulation.");
-            simulate(state.state.clone(), steps, state)
+            simulate(state.state.clone(), update_time, state)
         }
         Err(_) => Err("❌Could not acquire lock!".to_string()),
     };
@@ -76,23 +123,21 @@ pub(crate) fn continue_simulation(steps: i16) -> Result<SimulationResponse, Stri
 
 fn simulate(
     marking: State,
-    steps: i16,
+    update_time: u128,
     mut lock: MutexGuard<SimulatorState>,
 ) -> Result<SimulationResponse, String> {
     let mut state_vec = marking.clone();
-    let mut t_heat: InputState = Vec::new();
     let t_in = &lock.t_in;
     let t_effect = &lock.t_effect;
     let firing_updates = &lock.firing_updates;
-
-    for _ in 0..t_in.transition_count() {
-        t_heat.push(0);
-    }
+    let mut t_heat: InputState = vec![0; t_in.transition_count()];
 
     let mut active_transitions: InputState = Vec::new();
     let mut fired: usize = 0;
     let start = Instant::now();
-    for step in 0..steps {
+    let mut step: usize = 1;
+
+    while Instant::now().duration_since(start).as_millis() < update_time {
         active_transitions = find_active_transitions_from_firing_set(
             &state_vec,
             t_in,
@@ -101,9 +146,10 @@ fn simulate(
             &fired,
         );
 
+        // check if simulation is deadlocked
         if active_transitions.is_empty() {
             println!(
-                "☠️No active transitions after step {} with state {:?}.",
+                "☠️No active transitions at step {} with state {:?}.",
                 step, state_vec
             );
 
@@ -116,12 +162,70 @@ fn simulate(
         fired = select_transition(&active_transitions);
         t_heat[fired] += 1;
         state_vec = fire_transition(&state_vec, t_effect, fired);
+        step += 1;
+
+        // check if the marking is close to overflow
+        if step % 2000 == 0 && state_vec.iter().max().unwrap() > &30000 {
+            let result_marking = state_vec.to_vec();
+            println!("⚠️State {:?} is close to integer overflow. Marking simulation as deadlocked to prevent system panic.", result_marking);
+
+            lock.deadlocked = true;
+            lock.state = state_vec;
+            return Ok(SimulationResponse::new(result_marking, t_heat, true));
+        }
     }
 
     let end = Instant::now();
     let took_ms = (end - start).as_millis();
 
-    println!("🔄Simulating {} steps took {}ms", steps, took_ms);
+    println!("🔄Simulating {} steps took {}ms.", step, took_ms);
+
+    let result_marking = state_vec.to_vec();
+    lock.state = state_vec;
+
+    return Ok(SimulationResponse::new(result_marking, t_heat, false));
+}
+
+fn simulate_step(
+    marking: State,
+    mut lock: MutexGuard<SimulatorState>,
+) -> Result<SimulationResponse, String> {
+    let mut state_vec = marking.clone();
+    let t_in = &lock.t_in;
+    let t_effect = &lock.t_effect;
+    let heat = vec![0; t_in.transition_count()];
+
+    // check if the marking is close to overflow
+    if state_vec.iter().max().unwrap() > &30000 {
+        let result_marking = state_vec.to_vec();
+        println!("⚠️State {:?} is close to integer overflow. Marking simulation as deadlocked to prevent system panic.", result_marking);
+
+        lock.deadlocked = true;
+        lock.state = state_vec;
+        return Ok(SimulationResponse::new(result_marking, heat, true));
+    }
+
+    let start = Instant::now();
+    let active_transitions = find_active_transitions(&state_vec, t_in);
+
+    // check if simulation is deadlocked
+    if active_transitions.is_empty() {
+        println!("☠️No active transitions with state {:?}.", state_vec);
+
+        let result_marking = state_vec.to_vec();
+        lock.state = state_vec;
+        lock.deadlocked = true;
+        return Ok(SimulationResponse::new(result_marking, heat, true));
+    }
+
+    let fired = select_transition(&active_transitions);
+    let t_heat = (0..t_in.transition_count()).map(|i| if i == fired { 1 } else { 0 }).collect();
+    state_vec = fire_transition(&state_vec, t_effect, fired);
+
+    let end = Instant::now();
+    let took_ns = (end - start).as_nanos();
+
+    println!("🔄Simulating 1 step took {}ns.", took_ns);
 
     let result_marking = state_vec.to_vec();
     lock.state = state_vec;
