@@ -103,6 +103,7 @@ fn simulate(
             &fired,
         );
 
+        // check if simulation is deadlocked
         if active_transitions.is_empty() {
             println!(
                 "☠️No active transitions at step {} with state {:?}.",
@@ -119,6 +120,16 @@ fn simulate(
         t_heat[fired] += 1;
         state_vec = fire_transition(&state_vec, t_effect, fired);
         step += 1;
+
+        // check if the marking is close to overflow
+        if step % 2000 == 0 && state_vec.iter().max().unwrap() > &30000 {
+            let result_marking = state_vec.to_vec();
+            println!("⚠️State {:?} is close to integer overflow. Marking simulation as deadlocked to prevent system panic.", result_marking);
+
+            lock.deadlocked = true;
+            lock.state = state_vec;
+            return Ok(SimulationResponse::new(result_marking, t_heat, true));
+        }
     }
 
     let end = Instant::now();
