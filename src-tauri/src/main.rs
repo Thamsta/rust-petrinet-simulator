@@ -11,6 +11,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             simulate_start,
+            simulate_start_step,
             simulate_continue,
             check_properties
         ])
@@ -26,6 +27,15 @@ fn simulate_start(
     update_time: i16,
 ) -> Result<SimulationResponse, String> {
     return simulator::start_simulation(marking, transition_inputs, transition_outputs, update_time as u128);
+}
+
+#[tauri::command]
+fn simulate_start_step(
+    marking: InputState,
+    transition_inputs: InputMatrix,
+    transition_outputs: InputMatrix,
+) -> Result<SimulationResponse, String> {
+    return simulator::start_simulation_step(marking, transition_inputs, transition_outputs);
 }
 
 #[tauri::command]

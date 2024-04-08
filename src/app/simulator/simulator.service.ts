@@ -35,7 +35,7 @@ export class SimulatorService {
 		}
 
 		this.currentState = States.Running
-		this.invokeSimulationStart(vector, in_matrix, out_matrix, 1).then(result => {
+		this.invokeSimulationStartStep(vector, in_matrix, out_matrix).then(result => {
             this.emitResult(result, States.Paused)
 			this.currentState = States.Paused
 		})
@@ -106,6 +106,19 @@ export class SimulatorService {
                 transitionInputs: in_matrix,
                 transitionOutputs: out_matrix,
                 updateTime: updateTime
+            });
+        } catch (error) {
+            this.handleError(error)
+            return Promise.reject();
+        }
+    }
+
+	private async invokeSimulationStartStep(vector: number[], in_matrix: number[][], out_matrix: number[][]): Promise<SimulationResponse> {
+        try {
+            return await invoke<SimulationResponse>('simulate_start_step', {
+                marking: vector,
+                transitionInputs: in_matrix,
+                transitionOutputs: out_matrix,
             });
         } catch (error) {
             this.handleError(error)

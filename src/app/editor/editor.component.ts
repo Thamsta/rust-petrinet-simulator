@@ -180,10 +180,10 @@ export class EditorComponent implements AfterViewInit {
         }
     }
 
-    async startSimulationAsync(p: number[], pxt_in: number[][], pxt_out: number[][], steps: number) {
+    async startSimulationAsync(p: number[], pxt_in: number[][], pxt_out: number[][], updateTime: number) {
         try {
             await this.ngZone.runOutsideAngular(async () => {
-                this.simulatorService.start(p, pxt_in, pxt_out, steps).then(_ => {});
+                this.simulatorService.start(p, pxt_in, pxt_out, updateTime).then(_ => {});
             });
         } catch (error) {
             console.error('Error during simulation:', error);
