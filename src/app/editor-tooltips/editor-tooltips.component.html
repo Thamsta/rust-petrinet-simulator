@@ -1,28 +1,118 @@
-<div mat-dialog-title class="dialog-title">
-    <h2>Editor - Shortcuts</h2>
-</div>
+<link href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp" rel="stylesheet"/>
 <mat-dialog-content>
-    <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
+    <h2>Editor - Info</h2>
+    <p>
+        A slim and lightweight Petri net editor. Open, edit, simulate P/T-nets, generate and visualize their state spaces.
+    </p>
+
+    <p>
+        Place elements by selecting the respective place or transition tool followed by a click into the canvas.
+        Select the arc tool and then click two different elements to create an arc from the first to the second selected
+        element.
+        Edit tokens and arc weights by either double clicking and entering the desired amount, or by selecting the
+        elements
+        and using the +/- keys to in-/decrease the amount (also works with group selections).
+        Use <i class="material-icons" style="font-size:12px">backspace</i> / Delete to remove all currently selected
+        elements.
+    </p>
+    <p>
+        Open a new editor by selecting the <i class="material-icons-outlined" style="font-size:14px">note_add</i>. This
+        will open a new window with a blank editor. Switch between editor windows using the panel in the footer.
+        Save the currently opened net by selecting the <i class="material-icons-outlined" style="font-size:14px">save</i> icon.
+        To select the used file format, enter a full file name including the file type ending, e.g. <code>myNet.pnml</code>.
+        The OS save dialog should display all available file endings.
+        If no specific file ending is given, the default <code>.pnon</code> file format
+        (<em>Petri net object notation</em>) is used, which is a simple JSON serialization of the net.
+        Use the <i class="material-icons-outlined" style="font-size:14px">file_open</i> icon to open saved nets.
+        The import also supports the verbose <em>pnml</em>-standard.
+        It should work for many cases, however it is not guaranteed that all properties are considered or correctly
+        displayed if considered.
+    </p>
+    <p>
+        Simulate the current net by using the player-like icons
+        (<i class="material-icons-outlined" style="font-size:14px">play_arrow</i>
+        <i class="material-icons-outlined" style="font-size:14px">skip_next</i>
+        <i class="material-icons-outlined" style="font-size:14px">pause</i>
+        <i class="material-icons-outlined" style="font-size:14px">stop</i>).
+        Use play to start or continue a running simulation and step to execute a single step.
+        Stop will terminate any currently running simulation, resetting the state.
+        While a simulation is running, no elements can be added to the net, but the elements can still be moved.
+        During the simulation, transitions are colored according to the frequency in which they were fired.
+
+        When a deadlock occurs during the simulation, it halts in this state and indicates the deadlock with a
+        <i class="material-icons-outlined" style="font-size:14px">block</i> icon in the top left corner.
+    </p>
+    <p>
+        Use the <i class="material-icons" style="font-size:12px">grain</i> icon to start the state space generation.
+        After the generation is completed, a dialog opens that shows the size of the reachability graph and asks if
+        it should be visualized. Note that the visualization of large state spaces is very performance intensive.
+        The checkbox in this dialog controls whether the reachability graph should be opened in an extra window or
+        replace the previously opened reachability graph of this net, if it exists.
+        Use the former option e.g. to compare reachability graphs of different versions of a net and the latter when
+        only the current version is of importance.
+        Regardless of the visualization, the info-bar at the bottom of the editor is updated with the most current
+        results of the state space generation, including size of the reachability graph and the following properties:
+    </p>
+    <ul>
+        <li><b>Bounded:</b> The highest amount of tokens that can be on a single place in the entire state space,
+            ∞ if the net is unbounded</li>
+        <li><b>Liveness:</b> Whether all transitions are live, i.e. for each transition and from every state exists a
+            path on which this transition can be fired.</li>
+        <li><b>Reversibility:</b> Whether the initial state can be reached from every state.</li>
+    </ul>
+    <p>
+        Note that if the net is changed after the reachability graph generation, info-bar will display outdated information.
+    </p>
+
+    <mat-divider></mat-divider>
+
+    <br>
+
+    <h2>Shortcuts</h2>
+    <table mat-table [dataSource]="EDITOR_SHORTCUTS" class="mat-elevation-z8">
         <!-- Key Column -->
         <ng-container matColumnDef="key">
-            <th mat-header-cell *matHeaderCellDef> <b>Key</b> </th>
-            <td mat-cell *matCellDef="let element"> <b>{{element.key}}</b> </td>
+            <th mat-header-cell *matHeaderCellDef><b>Key</b></th>
+            <td mat-cell *matCellDef="let element"><b>{{ element.key }}</b></td>
         </ng-container>
 
         <!-- Name Column -->
         <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef> Name </th>
-            <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+            <th mat-header-cell *matHeaderCellDef> Name</th>
+            <td mat-cell *matCellDef="let element"> {{ element.name }}</td>
         </ng-container>
 
         <!-- Description Column -->
         <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef> Description </th>
-            <td mat-cell *matCellDef="let element"> <i>{{element.description}}</i> </td>
+            <th mat-header-cell *matHeaderCellDef> Description</th>
+            <td mat-cell *matCellDef="let element"><i>{{ element.description }}</i></td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
     </table>
+    <br/>
+    <h2>Simulation Shortcuts</h2>
+    <table mat-table [dataSource]="SIMULATION_SHORTCUTS" class="mat-elevation-z8">
+        <!-- Key Column -->
+        <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef><b>Key</b></th>
+            <td mat-cell *matCellDef="let element"><b>{{ element.key }}</b></td>
+        </ng-container>
 
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef> Name</th>
+            <td mat-cell *matCellDef="let element"> {{ element.name }}</td>
+        </ng-container>
+
+        <!-- Description Column -->
+        <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef> Description</th>
+            <td mat-cell *matCellDef="let element"><i>{{ element.description }}</i></td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
 </mat-dialog-content>
