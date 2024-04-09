@@ -1,0 +1,10 @@
+<h2 mat-dialog-title>Net already open</h2>
+<mat-dialog-content>
+    A net with the same internal id is already opened ({{data.name}}).
+    Replace the existing net (any changes will be lost) or open this net as a new net?
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-flat-button (click)="onClick(DuplicateNetStrategies.CANCEL)">Cancel</button>
+    <button mat-flat-button (click)="onClick(DuplicateNetStrategies.REPLACE)">Replace</button>
+    <button mat-flat-button (click)="onClick(DuplicateNetStrategies.NEW)">Open as new</button>
+</mat-dialog-actions>

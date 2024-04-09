@@ -50,8 +50,8 @@ export class EditorComponent implements AfterViewInit {
     ngAfterViewInit(): void {
         if (this.initNet === undefined) return
 
-        this.canvas.loadNet(this.initNet);
         this.id = this.initNet.id
+        this.canvas.loadNet(this.initNet);
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {

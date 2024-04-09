@@ -2,6 +2,11 @@ import {Component} from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
 import {FormControl} from "@angular/forms";
+import {
+    DuplicateNetStrategies,
+    LoadDuplicateDialogComponent
+} from "../load-duplicate-dialog/load-duplicate-dialog.component";
+import {MatDialog} from "@angular/material/dialog";
 
 @Component({
     selector: 'app-window-manager',
@@ -12,7 +17,7 @@ export class WindowManagerComponent {
     selected = new FormControl(0);
     openWindows: OpenWindow[] = []
 
-    constructor() {
+    constructor(private dialog: MatDialog) {
         this.openNewNet(undefined)
     }
 
@@ -20,8 +25,53 @@ export class WindowManagerComponent {
         if (net === undefined) {
             net = this.sampleNetDTO()
         }
+
+        let window = this.findExistingNet(net.id)
+        if (window == undefined) {
+            this.addAndSelectNet(net)
+            return
+        }
+
+
+        // a net with this specific id already exists. Ask user for strategy.
+        const dialogRef = this.dialog.open(LoadDuplicateDialogComponent, {data: {name: net.name}});
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result && result.strategy && net) {
+                switch (result.strategy) {
+                    case DuplicateNetStrategies.CANCEL:
+                        return
+                    case DuplicateNetStrategies.REPLACE:
+                        // remove the existing net
+                        this.removeTab(this.openWindows.indexOf(window!))
+                        break;
+                    case DuplicateNetStrategies.NEW:
+                        // give the net to be loaded new id and name
+                        net.id = uuidv4()
+                        net.name = this.incrementName(net.name)
+                        break;
+                }
+                this.addAndSelectNet(net)
+            }
+        });
+    }
+
+    private addAndSelectNet(net: NetDTO) {
         this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id})
         this.selected.setValue(this.openWindows.length - 1)
+    }
+
+    private incrementName(name: string) {
+        const regex = /\d+(?=\D*$)/;
+        const match = name.match(regex);
+
+        if (match) {
+            const number = parseInt(match[0]);
+            const incrementedNumber = number + 1;
+            return name.replace(regex, incrementedNumber.toString());
+        } else {
+            return name + '2';
+        }
     }
 
     openNewRG(rg: string, name: string, id: string, replaceExisting: boolean) {
@@ -54,12 +104,16 @@ export class WindowManagerComponent {
     }
 
     renameNet(name: string, id: string) {
-        let window = this.openWindows.find(window => window.id === id && window.type === WindowTypes.net);
+        let window = this.findExistingNet(id)
         if (window === undefined) {
             console.log("Tried to rename net with id", id, "but it is unknown. Known nets are", this.openWindows)
             return
         }
         window.name = name
+    }
+
+    private findExistingNet(id: string) {
+        return this.openWindows.find(window => window.id === id && window.type === WindowTypes.net);
     }
 
     protected readonly WindowTypes = WindowTypes;

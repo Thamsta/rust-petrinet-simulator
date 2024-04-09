@@ -9,6 +9,7 @@ import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 
 export interface NetCanvas {
 	name: string
+	id: string
 	getAllElements(): Object[]
 
     getTransitions(): Transition[]
@@ -39,6 +40,7 @@ export type NetRenameEvent = {
 })
 export class CanvasComponent implements AfterViewInit, NetCanvas {
 	name = "new"
+	id = ""
 
 	canvas: fabric.Canvas = new fabric.Canvas(null)
 
@@ -354,6 +356,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             a.setInfoText(arc.infoText)
 		})
 
+		this.id = net.id
 		this.name = net.name
 		this.isDirty = false
 		this.emitNameChange()

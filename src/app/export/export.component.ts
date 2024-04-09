@@ -2,7 +2,6 @@ import {Component, Input} from '@angular/core';
 import {save} from "@tauri-apps/api/dialog";
 import {writeTextFile} from "@tauri-apps/api/fs";
 import {NetCanvas} from "../canvas/canvas.component";
-import {v4 as uuidv4} from "uuid";
 
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
@@ -32,7 +31,9 @@ export class ExportComponent {
     }
 
     async exportNet() {
-        const netElements = this.canvas!.getAllElements()
+        if (!this.canvas) return
+
+        const netElements = this.canvas.getAllElements()
 
         const places = netElements.filter(obj => obj instanceof Place)
             .map(t => PlaceDTO.fromPlace(t as Place))
@@ -52,7 +53,7 @@ export class ExportComponent {
         const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1)
         const fileName = filePath.substring(filePath.lastIndexOf(path.sep) + 1, filePath.lastIndexOf('.'))
 
-        const net = new NetDTO(uuidv4(), "pt-net", fileName, places, transitions, arcs)
+        const net = new NetDTO(this.canvas.id, "pt-net", fileName, places, transitions, arcs)
 
         let output
         switch (fileEnding) {
@@ -68,7 +69,7 @@ export class ExportComponent {
 
         await writeTextFile(filePath, output);
 
-        this.canvas?.savedNet(fileName)
+        this.canvas.savedNet(fileName)
     }
 
     private async exportRG() {
