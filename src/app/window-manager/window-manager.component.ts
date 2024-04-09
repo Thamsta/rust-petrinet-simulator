@@ -10,32 +10,39 @@ import {FormControl} from "@angular/forms";
 })
 export class WindowManagerComponent {
     selected = new FormControl(0);
-    openWindows: OpenWindow[] = [
-        {type: WindowTypes.net, name: "new*", net: this.sampleNetDTO(), rg: undefined, rgId: ""}
-    ]
+    openWindows: OpenWindow[] = []
+
+    constructor() {
+        this.openNewNet(undefined)
+    }
 
     openNewNet(net: NetDTO | undefined) {
-        this.openWindows.push({type: WindowTypes.net, name: net?.name ?? "new*", net: net, rg: undefined, rgId: ""})
+        if (net === undefined) {
+            net = this.sampleNetDTO()
+        }
+        this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
     openNewRG(rg: string, name: string, id: string, replaceExisting: boolean) {
         if (replaceExisting) {
-            this.openWindows.map(window => window.rgId)
+            this.openWindows
+                .filter(window => window.type === WindowTypes.rg)
+                .map(window => window.id)
                 .forEach((rgId, index) => {
                     if (id === rgId) {
                         this.removeTab(index);
                     }
                 })
         }
-        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, rgId: id})
+        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
     removeTab(index: number) {
         this.openWindows.splice(index, 1);
         if (this.openWindows.length == 0) {
-            this.openWindows = [{type: WindowTypes.net, name: "new*", net: undefined, rg: undefined, rgId: ""}]
+            this.openNewNet(undefined)
         }
     }
 
@@ -46,6 +53,15 @@ export class WindowManagerComponent {
         return new NetDTO(uuidv4(), "pt-net", "net", [p], [t], [a])
     }
 
+    renameNet(name: string, id: string) {
+        let window = this.openWindows.find(window => window.id === id && window.type === WindowTypes.net);
+        if (window === undefined) {
+            console.log("Tried to rename net with id", id, "but it is unknown. Known nets are", this.openWindows)
+            return
+        }
+        window.name = name
+    }
+
     protected readonly WindowTypes = WindowTypes;
 }
 
@@ -54,7 +70,7 @@ export type OpenWindow = {
     name: string
     net: NetDTO | undefined
     rg: string | undefined
-    rgId: string
+    id: string
 }
 
 export enum WindowTypes {

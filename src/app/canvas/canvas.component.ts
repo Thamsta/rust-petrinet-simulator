@@ -15,11 +15,17 @@ export interface NetCanvas {
     getArcs(): Arc[]
 
 	loadNet(net: NetDTO): void
+	savedNet(name: string): void
 }
 
 export type CanvasEvent = {
     type: string
     source: IEvent<MouseEvent>
+}
+
+export type NetRenameEvent = {
+	name: string
+	dirty: boolean
 }
 
 /**
@@ -42,13 +48,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	gridSize = 20
 	gridEnabled = false
 
-    namesAreDisplayed = false;
+    namesAreDisplayed = false
     nameHandler = new ElementNameHandler()
+
+	isDirty = true
 
     @ViewChild('htmlCanvasElement') canvasElement!: ElementRef<HTMLCanvasElement>
 
     @Output()
     mouseEventEmitter = new EventEmitter<CanvasEvent>
+	@Output()
+	netRenameEmitter = new EventEmitter<NetRenameEvent>
 
     ngAfterViewInit() {
         this.canvas = new fabric.Canvas(this.canvasElement.nativeElement)
@@ -335,6 +345,14 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		})
 
 		this.renderAll();
+	}
+
+	savedNet(name: string): void {
+		this.isDirty = false
+		this.netRenameEmitter.emit({
+			name: name,
+			dirty: this.isDirty,
+		})
 	}
 
     getPlaces(): Place[] {

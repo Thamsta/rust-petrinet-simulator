@@ -6,7 +6,7 @@ import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
 import {DrawingTools} from "../editor-toolbar/types";
-import {CanvasComponent, CanvasEvent} from "../canvas/canvas.component";
+import {CanvasComponent, CanvasEvent, NetRenameEvent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {v4 as uuidv4} from "uuid";
@@ -51,6 +51,7 @@ export class EditorComponent implements AfterViewInit {
         if (this.initNet === undefined) return
 
         this.canvas.loadNet(this.initNet);
+        this.id = this.initNet.id
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
@@ -234,5 +235,10 @@ export class EditorComponent implements AfterViewInit {
 		if (event.type === 'mouse:down') {
             this.onClick(event.source)
         }
+    }
+
+    netRename(event: NetRenameEvent) {
+        let name = event.name + (event.dirty ? "*" : "")
+        this.windowManager.renameNet(name, this.id)
     }
 }

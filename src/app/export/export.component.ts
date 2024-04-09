@@ -8,6 +8,7 @@ import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {PnmlExporterService} from "../pnml/pnml-exporter.service";
 import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
+import {path} from "@tauri-apps/api";
 
 @Component({
     selector: 'app-export',
@@ -50,6 +51,7 @@ export class ExportComponent {
         if (!filePath.includes('.')) filePath += ".pnon"
 
         const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1)
+        const fileName = filePath.substring(filePath.lastIndexOf(path.sep) + 1, filePath.lastIndexOf('.'))
 
         let output
         switch (fileEnding) {
@@ -64,6 +66,8 @@ export class ExportComponent {
         }
 
         await writeTextFile(filePath, output);
+
+        this.canvas?.savedNet(fileName)
     }
 
     private async exportRG() {
