@@ -427,8 +427,8 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
     private objectModified(e: IEvent<MouseEvent>) {
         if (e.target instanceof Text) {
             e.target.updateFromText()
+			this.modifiedNet()
         }
-		//TODO: modified?
     }
 
     private renderAll() {
