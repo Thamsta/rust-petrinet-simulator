@@ -8,6 +8,7 @@ import {NetDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 
 export interface NetCanvas {
+	name: string
 	getAllElements(): Object[]
 
     getTransitions(): Transition[]
@@ -37,7 +38,10 @@ export type NetRenameEvent = {
 	styleUrls: ['./canvas.component.scss']
 })
 export class CanvasComponent implements AfterViewInit, NetCanvas {
+	name = "new"
+
 	canvas: fabric.Canvas = new fabric.Canvas(null)
+
 	lastSelected?: fabric.Object
 
 	isLocked = false
@@ -103,6 +107,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         let name = this.nameHandler.getNextTransitionName()
         let t = new Transition(x, y, name, this.canvas)
         t.showName(this.namesAreDisplayed)
+		this.modifiedNet()
 		return t
 	}
 
@@ -110,6 +115,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         let name = this.nameHandler.getNextPlaceName()
 		let p = new Place(x, y, name, this.canvas)
         p.showName(this.namesAreDisplayed)
+		this.modifiedNet()
         return p
 	}
 
@@ -123,6 +129,9 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			let arc = new Arc(source, target, this.canvas)
 			source.arcs.arcs_out.push(arc)
 			target.arcs.arcs_in.push(arc)
+
+			this.modifiedNet()
+
 			return arc
 		}
 
@@ -141,15 +150,12 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             this.lastSelected.destroy()
             this.canvas.remove(this.lastSelected)
             this.lastSelected.hasBorders = false
-        }
+        } else {
+			this.deleteObject(this.lastSelected)
+			this.lastSelected = undefined
+		}
 
-        this.deleteObject(this.lastSelected)
-        this.lastSelected = undefined
         this.renderAll()
-    }
-
-    deleteAll(objs: fabric.Object[]) {
-        objs.forEach(it => this.deleteObject(it))
     }
 
 	deleteObject(obj: fabric.Object | undefined) {
@@ -159,6 +165,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		if (obj && this.lastSelected == obj) {
 			this.lastSelected = undefined
 		}
+		this.modifiedNet()
 	}
 
 	addOrRemoveTokenOfCurrentSelection(tool: DrawingTools.TOKEN_INC | DrawingTools.TOKEN_INC_5 | DrawingTools.TOKEN_DEC | DrawingTools.TOKEN_DEC_5) {
@@ -169,6 +176,8 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
                 obj.add(amount)
             }
         })
+
+		this.modifiedNet()
 
         this.renderAll()
     }
@@ -269,6 +278,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			places[i].setAmount(p[i])
 		}
 
+		this.modifiedNet()
 		this.renderAll()
 	}
 
@@ -344,13 +354,29 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             a.setInfoText(arc.infoText)
 		})
 
+		this.name = net.name
+		this.isDirty = false
+		this.emitNameChange()
+
 		this.renderAll();
 	}
 
+	modifiedNet(): void {
+		if (this.isDirty) return
+
+		this.isDirty = true
+		this.emitNameChange()
+	}
+
 	savedNet(name: string): void {
+		this.name = name
 		this.isDirty = false
+		this.emitNameChange()
+	}
+
+	private emitNameChange() {
 		this.netRenameEmitter.emit({
-			name: name,
+			name: this.name,
 			dirty: this.isDirty,
 		})
 	}
@@ -391,6 +417,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			}
 		})
 
+		this.modifiedNet()
 		this.renderAll()
 	}
 
@@ -398,6 +425,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         if (e.target instanceof Text) {
             e.target.updateFromText()
         }
+		//TODO: modified?
     }
 
     private renderAll() {

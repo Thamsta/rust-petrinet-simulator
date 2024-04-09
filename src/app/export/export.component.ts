@@ -41,17 +41,18 @@ export class ExportComponent {
         const arcs = netElements.filter(obj => obj instanceof Arc)
             .map(t => ArcDTO.fromArc(t as Arc))
 
-        const net = new NetDTO(uuidv4(), "pt-net", "net-name", places, transitions, arcs)
-
         let filePath = await save({
             title: "Save Net",
             filters: [{name: "", extensions: ["pnon", "pnml"]}],
         });
+
         if (filePath == null) return;
         if (!filePath.includes('.')) filePath += ".pnon"
 
         const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1)
         const fileName = filePath.substring(filePath.lastIndexOf(path.sep) + 1, filePath.lastIndexOf('.'))
+
+        const net = new NetDTO(uuidv4(), "pt-net", fileName, places, transitions, arcs)
 
         let output
         switch (fileEnding) {
