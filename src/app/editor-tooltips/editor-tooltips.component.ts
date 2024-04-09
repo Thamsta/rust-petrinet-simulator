@@ -6,6 +6,11 @@ export interface ShortcutEntry {
   description: string;
 }
 
+export interface ShortcutTable {
+  title: string;
+  content: ShortcutEntry[]
+}
+
 const EDITOR_SHORTCUTS: ShortcutEntry[] = [
   {key: 'Ctrl + N', name: 'New', description: 'Opens a new editor window'},
   {key: 'Ctrl + S', name: 'Save', description: 'Saves the current net.'},
@@ -29,6 +34,11 @@ const SIMULATION_SHORTCUTS: ShortcutEntry[] = [
   {key: 'R', name: 'Stop', description: 'Stops and exits the current simulation.'},
 ];
 
+const SHORTCUT_TABLES: ShortcutTable[] = [
+  {title: "Editor", content: EDITOR_SHORTCUTS},
+  {title: "Simulation", content: SIMULATION_SHORTCUTS},
+]
+
 @Component({
   selector: 'app-editor-tooltips',
   templateUrl: './editor-tooltips.component.html',
@@ -36,7 +46,5 @@ const SIMULATION_SHORTCUTS: ShortcutEntry[] = [
 })
 export class EditorTooltipsComponent {
   displayedColumns: string[] = ['key', 'name', 'description'];
-  dataSource = SIMULATION_SHORTCUTS;
-  protected readonly EDITOR_SHORTCUTS = EDITOR_SHORTCUTS;
-  protected readonly SIMULATION_SHORTCUTS = SIMULATION_SHORTCUTS;
+  protected readonly SHORTCUTS_TABLES = SHORTCUT_TABLES;
 }
