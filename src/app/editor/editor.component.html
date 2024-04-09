@@ -1,5 +1,8 @@
-<app-editor-toolbar #toolbar (controlEmitter)="controlChanged($event)" [windowManager]="this.windowManager" [canvas]="this.canvas"></app-editor-toolbar>
-<mat-divider></mat-divider>
-<app-canvas #canvas (mouseEventEmitter)="canvasMouseEvent($event)"></app-canvas>
-<mat-divider></mat-divider>
-<app-infobar #infobar></app-infobar>
+<div class="editor">
+    <app-editor-toolbar #toolbar (controlEmitter)="controlChanged($event)" [windowManager]="this.windowManager"
+                        [canvas]="this.canvas"></app-editor-toolbar>
+    <mat-divider></mat-divider>
+    <app-canvas #canvas (mouseEventEmitter)="canvasMouseEvent($event)"></app-canvas>
+    <mat-divider></mat-divider>
+    <app-infobar #infobar></app-infobar>
+</div>
