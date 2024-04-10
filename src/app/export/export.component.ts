@@ -33,15 +33,6 @@ export class ExportComponent {
     async exportNet() {
         if (!this.canvas) return
 
-        const netElements = this.canvas.getAllElements()
-
-        const places = netElements.filter(obj => obj instanceof Place)
-            .map(t => PlaceDTO.fromPlace(t as Place))
-        const transitions = netElements.filter(obj => obj instanceof Transition)
-            .map(t => TransitionDTO.fromTransition(t as Transition))
-        const arcs = netElements.filter(obj => obj instanceof Arc)
-            .map(t => ArcDTO.fromArc(t as Arc))
-
         let filePath = await save({
             title: "Save Net",
             filters: [{name: "", extensions: ["pnon", "pnml"]}],
@@ -53,7 +44,7 @@ export class ExportComponent {
         const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1)
         const fileName = filePath.substring(filePath.lastIndexOf(path.sep) + 1, filePath.lastIndexOf('.'))
 
-        const net = new NetDTO(this.canvas.id, "pt-net", fileName, places, transitions, arcs)
+        const net = this.createNetDTO(this.canvas, fileName)
 
         let output
         switch (fileEnding) {
@@ -70,6 +61,19 @@ export class ExportComponent {
         await writeTextFile(filePath, output);
 
         this.canvas.savedNet(fileName)
+    }
+
+    private createNetDTO(canvas: NetCanvas, name: string): NetDTO {
+        const netElements = canvas.getAllElements()
+
+        const places = netElements.filter(obj => obj instanceof Place)
+            .map(t => PlaceDTO.fromPlace(t as Place))
+        const transitions = netElements.filter(obj => obj instanceof Transition)
+            .map(t => TransitionDTO.fromTransition(t as Transition))
+        const arcs = netElements.filter(obj => obj instanceof Arc)
+            .map(t => ArcDTO.fromArc(t as Arc))
+
+        return new NetDTO(canvas.id, "pt-net", name, places, transitions, arcs)
     }
 
     private async exportRG() {
