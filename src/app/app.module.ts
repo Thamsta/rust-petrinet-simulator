@@ -26,6 +26,7 @@ import {ReachabilityGraphToolbarComponent} from './reachability-graph-toolbar/re
 import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component';
 import {EditorTooltipsComponent} from './editor-tooltips/editor-tooltips.component';
 import {MatTableModule} from "@angular/material/table";
+import {LoadDuplicateDialogComponent} from './load-duplicate-dialog/load-duplicate-dialog.component';
 
 @NgModule({
     declarations: [
@@ -43,6 +44,7 @@ import {MatTableModule} from "@angular/material/table";
         ReachabilityGraphToolbarComponent,
         EditorToolbarComponent,
         EditorTooltipsComponent,
+        LoadDuplicateDialogComponent,
     ],
     imports: [
         BrowserModule,
