@@ -7,6 +7,7 @@ import {
     LoadDuplicateDialogComponent
 } from "../load-duplicate-dialog/load-duplicate-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
+import {SimulatorService} from "../simulator/simulator.service";
 
 @Component({
     selector: 'app-window-manager',
@@ -17,8 +18,14 @@ export class WindowManagerComponent {
     selected = new FormControl(0);
     openWindows: OpenWindow[] = []
 
-    constructor(private dialog: MatDialog) {
+    constructor(private dialog: MatDialog, private simulator: SimulatorService) {
         this.openNewNet(undefined)
+    }
+
+    tabChanged(event: number) {
+        this.selected.setValue(event)
+        // always cancel any running simulation when the tab is changed.
+        this.simulator.stop()
     }
 
     openNewNet(net: NetDTO | undefined) {

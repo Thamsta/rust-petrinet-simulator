@@ -280,7 +280,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			places[i].setAmount(p[i])
 		}
 
-		this.modifiedNet()
 		this.renderAll()
 	}
 
