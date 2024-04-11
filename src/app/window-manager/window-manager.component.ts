@@ -37,7 +37,7 @@ export class WindowManagerComponent {
 
     private saveCurrentWindow() {
         let i = this.selected.getRawValue()
-        if (i == null || this.openWindows.length == 0 || this.openWindows[i].type != WindowTypes.net) {
+        if (i == null || i >= this.openWindows.length || this.openWindows[i].type != WindowTypes.net) {
             return
         }
 
