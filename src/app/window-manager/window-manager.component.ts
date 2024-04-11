@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, QueryList, ViewChildren} from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
 import {FormControl} from "@angular/forms";
@@ -8,6 +8,7 @@ import {
 } from "../load-duplicate-dialog/load-duplicate-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
 import {SimulatorService} from "../simulator/simulator.service";
+import {EditorComponent} from "../editor/editor.component";
 
 @Component({
     selector: 'app-window-manager',
@@ -18,14 +19,38 @@ export class WindowManagerComponent {
     selected = new FormControl(0);
     openWindows: OpenWindow[] = []
 
+    @ViewChildren(EditorComponent)
+    editors!: QueryList<EditorComponent>
+
     constructor(private dialog: MatDialog, private simulator: SimulatorService) {
         this.openNewNet(undefined)
     }
 
     tabChanged(event: number) {
+        this.saveCurrentWindow()
+
         this.selected.setValue(event)
         // always cancel any running simulation when the tab is changed.
         this.simulator.stop()
+    }
+
+    private saveCurrentWindow() {
+        let i = this.selected.getRawValue()
+        if (i == null || this.openWindows.length == 0 || this.openWindows[i].type != WindowTypes.net) {
+            return
+        }
+
+        let netWindow = this.openWindows[i]
+        if (!netWindow) return
+
+        // a net was switched. Save the content.
+        let netEditor = this.editors.find(editor => editor.id === netWindow.id)
+        if (!netEditor) {
+            console.warn("Closed net editor with id " + netWindow.id + " that cannot be found. All changes are lost!")
+            return
+        }
+
+        netWindow.net = netEditor.getNetDTO()
     }
 
     openNewNet(net: NetDTO | undefined) {
@@ -64,6 +89,7 @@ export class WindowManagerComponent {
     }
 
     private addAndSelectNet(net: NetDTO) {
+        this.saveCurrentWindow()
         this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id})
         this.selected.setValue(this.openWindows.length - 1)
     }

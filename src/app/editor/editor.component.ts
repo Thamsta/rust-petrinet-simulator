@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, NgZone, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, NgZone, Output, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
 import {InfoBarComponent} from "../infobar/info-bar.component";
@@ -13,6 +13,12 @@ import {v4 as uuidv4} from "uuid";
 import {MatDialog} from "@angular/material/dialog";
 import {RgDialogComponent} from "../rg-dialog/rg-dialog.component";
 import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component";
+import {createNetDTO} from "../export/export.component";
+
+export type NetChangedEvent = {
+    id: string,
+    net: NetDTO,
+}
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -28,6 +34,9 @@ export class EditorComponent implements AfterViewInit {
     initNet: NetDTO | undefined
     @Input()
     windowManager!: WindowManagerComponent
+
+    @Output()
+    netChangedEmitter = new EventEmitter<NetChangedEvent>()
 
     id = uuidv4()
 
@@ -240,5 +249,9 @@ export class EditorComponent implements AfterViewInit {
     netRename(event: NetRenameEvent) {
         let name = event.name + (event.dirty ? "*" : "")
         this.windowManager.renameNet(name, this.id)
+    }
+
+    getNetDTO(): NetDTO {
+        return createNetDTO(this.canvas, this.canvas.name)
     }
 }
