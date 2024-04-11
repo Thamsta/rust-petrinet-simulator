@@ -139,8 +139,8 @@ export class WindowManagerComponent {
         let name = this.openWindows[index].name
         const dialogRef = this.dialog.open(CloseUnsavedDialogComponent, {data: {name: name}});
 
-        dialogRef.afterClosed().subscribe(close => {
-            if (!close) {
+        dialogRef.afterClosed().subscribe(result => {
+            if (!result.close) {
                 // cancel the closing.
                 return
             } else {
