@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, QueryList, ViewChildren} from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
 import {FormControl} from "@angular/forms";
@@ -7,6 +7,9 @@ import {
     LoadDuplicateDialogComponent
 } from "../load-duplicate-dialog/load-duplicate-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
+import {SimulatorService} from "../simulator/simulator.service";
+import {EditorComponent} from "../editor/editor.component";
+import {CloseUnsavedDialogComponent} from "../close-unsaved-dialog/close-unsaved-dialog.component";
 
 @Component({
     selector: 'app-window-manager',
@@ -17,8 +20,39 @@ export class WindowManagerComponent {
     selected = new FormControl(0);
     openWindows: OpenWindow[] = []
 
-    constructor(private dialog: MatDialog) {
+    @ViewChildren(EditorComponent)
+    editors!: QueryList<EditorComponent>
+
+    constructor(private dialog: MatDialog, private simulator: SimulatorService) {
         this.openNewNet(undefined)
+    }
+
+    tabChanged(event: number) {
+        this.saveCurrentWindow()
+
+        this.selected.setValue(event)
+        // always cancel any running simulation when the tab is changed.
+        this.simulator.stop()
+    }
+
+    private saveCurrentWindow() {
+        let i = this.selected.getRawValue()
+        if (i == null || i >= this.openWindows.length || this.openWindows[i].type != WindowTypes.net) {
+            return
+        }
+
+        let netWindow = this.openWindows[i]
+        if (!netWindow) return
+
+        // a net was switched. Save the content.
+        let netEditor = this.editors.find(editor => editor.id === netWindow.id)
+        if (!netEditor) {
+            console.warn("Closed net editor with id " + netWindow.id + " that cannot be found. All changes are lost!")
+            return
+        }
+
+        netWindow.net = netEditor.getNetDTO()
+        netWindow.isDirty = netEditor.isDirty()
     }
 
     openNewNet(net: NetDTO | undefined) {
@@ -43,7 +77,7 @@ export class WindowManagerComponent {
                         return
                     case DuplicateNetStrategies.REPLACE:
                         // remove the existing net
-                        this.removeTab(this.openWindows.indexOf(window!))
+                        this.closeTab(this.openWindows.indexOf(window!))
                         break;
                     case DuplicateNetStrategies.NEW:
                         // give the net to be loaded new id and name
@@ -57,7 +91,8 @@ export class WindowManagerComponent {
     }
 
     private addAndSelectNet(net: NetDTO) {
-        this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id})
+        this.saveCurrentWindow()
+        this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id, isDirty: false})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
@@ -81,15 +116,37 @@ export class WindowManagerComponent {
                 .map(window => window.id)
                 .forEach((rgId, index) => {
                     if (id === rgId) {
-                        this.removeTab(index);
+                        this.closeTab(index);
                     }
                 })
         }
-        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id})
+        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id, isDirty: false})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
-    removeTab(index: number) {
+    closeTab(index: number) {
+        if (!this.openWindows[index].isDirty) {
+            this.deleteTabUnchecked(index)
+            return
+        }
+
+        // window contains unsaved work, ask the user for confirmation to close
+        let name = this.openWindows[index].name
+        const dialogRef = this.dialog.open(CloseUnsavedDialogComponent, {data: {name: name}});
+
+        dialogRef.afterClosed().subscribe(close => {
+            if (!close) {
+                // cancel the closing.
+                return
+            } else {
+                this.deleteTabUnchecked(index)
+            }
+        });
+
+        return
+    }
+
+    private deleteTabUnchecked(index: number) {
         this.openWindows.splice(index, 1);
         if (this.openWindows.length == 0) {
             this.openNewNet(undefined)
@@ -103,13 +160,18 @@ export class WindowManagerComponent {
         return new NetDTO(uuidv4(), "pt-net", "net", [p], [t], [a])
     }
 
-    renameNet(name: string, id: string) {
+    renameNet(name: string, dirty: boolean, id: string) {
         let window = this.findExistingNet(id)
         if (window === undefined) {
             console.log("Tried to rename net with id", id, "but it is unknown. Known nets are", this.openWindows)
             return
         }
         window.name = name
+        window.isDirty = dirty
+    }
+
+    getDirtySuffix(isDirty: boolean) {
+        return isDirty ? "*" : ""
     }
 
     private findExistingNet(id: string) {
@@ -125,6 +187,7 @@ export type OpenWindow = {
     net: NetDTO | undefined
     rg: string | undefined
     id: string
+    isDirty: boolean
 }
 
 export enum WindowTypes {

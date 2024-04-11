@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, NgZone, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, NgZone, Output, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
 import {InfoBarComponent} from "../infobar/info-bar.component";
@@ -13,6 +13,12 @@ import {v4 as uuidv4} from "uuid";
 import {MatDialog} from "@angular/material/dialog";
 import {RgDialogComponent} from "../rg-dialog/rg-dialog.component";
 import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component";
+import {createNetDTO} from "../export/export.component";
+
+export type NetChangedEvent = {
+    id: string,
+    net: NetDTO,
+}
 
 /**
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
@@ -24,16 +30,19 @@ import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component
 })
 export class EditorComponent implements AfterViewInit {
 
-    @Input()
-    initNet: NetDTO | undefined
-    @Input()
-    windowManager!: WindowManagerComponent
+    @Input() initNet: NetDTO | undefined
+    @Input() initDirty!: boolean
+    @Input() windowManager!: WindowManagerComponent
+
+    @Output()
+    netChangedEmitter = new EventEmitter<NetChangedEvent>()
 
     id = uuidv4()
 
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: EditorToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
+
 
     constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
@@ -51,7 +60,7 @@ export class EditorComponent implements AfterViewInit {
         if (this.initNet === undefined) return
 
         this.id = this.initNet.id
-        this.canvas.loadNet(this.initNet);
+        this.canvas.loadNet(this.initNet, this.initDirty);
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
@@ -238,7 +247,14 @@ export class EditorComponent implements AfterViewInit {
     }
 
     netRename(event: NetRenameEvent) {
-        let name = event.name + (event.dirty ? "*" : "")
-        this.windowManager.renameNet(name, this.id)
+        this.windowManager.renameNet(event.name, event.dirty, this.id)
+    }
+
+    getNetDTO(): NetDTO {
+        return createNetDTO(this.canvas, this.canvas.name)
+    }
+
+    isDirty(): boolean {
+        return this.canvas.isDirty
     }
 }
