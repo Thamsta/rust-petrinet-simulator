@@ -27,6 +27,7 @@ import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component'
 import {EditorTooltipsComponent} from './editor-tooltips/editor-tooltips.component';
 import {MatTableModule} from "@angular/material/table";
 import {LoadDuplicateDialogComponent} from './load-duplicate-dialog/load-duplicate-dialog.component';
+import {CloseUnsavedDialogComponent} from './close-unsaved-dialog/close-unsaved-dialog.component';
 
 @NgModule({
     declarations: [
@@ -45,6 +46,7 @@ import {LoadDuplicateDialogComponent} from './load-duplicate-dialog/load-duplica
         EditorToolbarComponent,
         EditorTooltipsComponent,
         LoadDuplicateDialogComponent,
+        CloseUnsavedDialogComponent,
     ],
     imports: [
         BrowserModule,

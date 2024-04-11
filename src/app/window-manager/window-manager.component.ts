@@ -9,6 +9,7 @@ import {
 import {MatDialog} from "@angular/material/dialog";
 import {SimulatorService} from "../simulator/simulator.service";
 import {EditorComponent} from "../editor/editor.component";
+import {CloseUnsavedDialogComponent} from "../close-unsaved-dialog/close-unsaved-dialog.component";
 
 @Component({
     selector: 'app-window-manager',
@@ -76,7 +77,7 @@ export class WindowManagerComponent {
                         return
                     case DuplicateNetStrategies.REPLACE:
                         // remove the existing net
-                        this.removeTab(this.openWindows.indexOf(window!))
+                        this.closeTab(this.openWindows.indexOf(window!))
                         break;
                     case DuplicateNetStrategies.NEW:
                         // give the net to be loaded new id and name
@@ -115,7 +116,7 @@ export class WindowManagerComponent {
                 .map(window => window.id)
                 .forEach((rgId, index) => {
                     if (id === rgId) {
-                        this.removeTab(index);
+                        this.closeTab(index);
                     }
                 })
         }
@@ -123,7 +124,29 @@ export class WindowManagerComponent {
         this.selected.setValue(this.openWindows.length - 1)
     }
 
-    removeTab(index: number) {
+    closeTab(index: number) {
+        if (!this.openWindows[index].isDirty) {
+            this.deleteTabUnchecked(index)
+            return
+        }
+
+        // window contains unsaved work, ask the user for confirmation to close
+        let name = this.openWindows[index].name
+        const dialogRef = this.dialog.open(CloseUnsavedDialogComponent, {data: {name: name}});
+
+        dialogRef.afterClosed().subscribe(close => {
+            if (!close) {
+                // cancel the closing.
+                return
+            } else {
+                this.deleteTabUnchecked(index)
+            }
+        });
+
+        return
+    }
+
+    private deleteTabUnchecked(index: number) {
         this.openWindows.splice(index, 1);
         if (this.openWindows.length == 0) {
             this.openNewNet(undefined)

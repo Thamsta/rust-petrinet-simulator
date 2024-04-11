@@ -1,0 +1,9 @@
+<h2 mat-dialog-title>Close net?</h2>
+<mat-dialog-content>
+    The net {{data.name}} contains unsaved changes. Are you sure you want to close this tab?
+    Any changes will be lost.
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-flat-button (click)="onClick(false)">Cancel</button>
+    <button mat-flat-button (click)="onClick(true)">Close</button>
+</mat-dialog-actions>
