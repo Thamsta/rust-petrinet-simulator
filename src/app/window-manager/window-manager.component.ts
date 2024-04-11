@@ -119,14 +119,11 @@ export class WindowManagerComponent {
 
     openNewRG(rg: string, name: string, id: string, replaceExisting: boolean) {
         if (replaceExisting) {
-            this.openWindows
-                .filter(window => window.type === WindowTypes.rg)
-                .map(window => window.id)
-                .forEach((rgId, index) => {
-                    if (id === rgId) {
-                        this.closeTab(index);
-                    }
-                })
+            this.openWindows.forEach((window, index) => {
+                if (id === window.id && window.type == WindowTypes.rg) {
+                    this.closeTab(index);
+                }
+            })
         }
         this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id, isDirty: false})
         this.selected.setValue(this.openWindows.length - 1)
