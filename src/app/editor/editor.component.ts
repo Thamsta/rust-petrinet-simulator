@@ -212,7 +212,7 @@ export class EditorComponent implements AfterViewInit {
 
             dialogRef.afterClosed().subscribe(result => {
                 if (result && result.confirmed) {
-                    this.windowManager.openNewRG(response.dot_graph,"📊 new", this.id, result.checkboxChecked)
+                    this.windowManager.openNewRG(response.dot_graph,"📊 new", this.id, result.replaceExisting)
                 }
             });
         }, (error) => {

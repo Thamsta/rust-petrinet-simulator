@@ -7,6 +7,9 @@ export enum DuplicateNetStrategies {
     NEW,
 }
 
+/**
+ * A dialog to display when a net that is already opened is opened again. Provides different handling strategies.
+ */
 @Component({
     selector: 'app-load-duplicate-dialog',
     templateUrl: './load-duplicate-dialog.component.html',

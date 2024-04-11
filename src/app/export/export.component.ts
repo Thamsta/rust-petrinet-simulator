@@ -2,13 +2,17 @@ import {Component, Input} from '@angular/core';
 import {save} from "@tauri-apps/api/dialog";
 import {writeTextFile} from "@tauri-apps/api/fs";
 import {NetCanvas} from "../canvas/canvas.component";
-
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {PnmlExporterService} from "../pnml/pnml-exporter.service";
 import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
 import {path} from "@tauri-apps/api";
 
+/**
+ * This component is responsible for exporting the content that is currently visible into a file.
+ * Opens a save file dialog and supports different file extensions.
+ * Comes with a button and shortcut.
+ */
 @Component({
     selector: 'app-export',
     templateUrl: './export.component.html',
@@ -48,8 +52,12 @@ export class ExportComponent {
 
         let output
         switch (fileEnding) {
-            case 'pnon': output = JSON.stringify(net); break
-            case 'pnml': output = new PnmlExporterService().createXml(net); break
+            case 'pnon':
+                output = JSON.stringify(net);
+                break
+            case 'pnml':
+                output = new PnmlExporterService().createXml(net);
+                break
         }
 
         if (!output) {

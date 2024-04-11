@@ -1,7 +1,9 @@
 ![release](https://github.com/Thamsta/rust-petrinet-simulator/actions/workflows/rust.yml/badge.svg?branch=main)
 
 # RustNet Simulator
-A P/T net editor, simulator and property checker running on Rust and an Angular frontend.
+A modern and lightweight open source Petri net editor. Open, edit, simulate P/T-nets, generate and visualize their state
+spaces.
+Running on Rust and an Angular frontend.
 
 ## Requirements
 

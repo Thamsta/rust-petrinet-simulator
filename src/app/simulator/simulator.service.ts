@@ -17,6 +17,13 @@ type SimulationEvent = {
     deadlocked: boolean,
 }
 
+/**
+ * Service that handles the communication with the actual simulator backend.
+ * Contains an internal state machine that represents the state of the simulator and handles all simulation requests,
+ * including invalid calls (e.g. continuing a non-existing simulation).
+ * Only a single simulation may run at a time.
+ * If a different / new simulation should be started, the previous simulation must be stopped or paused first.
+ */
 @Injectable({
     providedIn: 'root'
 })

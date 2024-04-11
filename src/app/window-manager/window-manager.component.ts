@@ -11,6 +11,14 @@ import {SimulatorService} from "../simulator/simulator.service";
 import {EditorComponent} from "../editor/editor.component";
 import {CloseUnsavedDialogComponent} from "../close-unsaved-dialog/close-unsaved-dialog.component";
 
+/**
+ * The window manager is the outermost component of the tool and contains all other components that should be treated
+ * as windows, e.g. open editors.
+ * The window manager is responsible for opening and closing any kind of window and handling all related tasks like
+ * saving the content of a window before it is closed or replacing windows by ID.
+ * Only a single window is active and rendered at a time, all other windows are removed from the DOM whenever the focus
+ * shifts on another window.
+ */
 @Component({
     selector: 'app-window-manager',
     templateUrl: './window-manager.component.html',

@@ -4,6 +4,10 @@ import {v4 as uuidv4} from "uuid";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
+/**
+ * A canvas capable of displaying a reachability graph.
+ * Needs an input graph in .dot format.
+ */
 @Component({
   selector: 'app-reachability-graph',
   templateUrl: './reachability-graph.component.html',
