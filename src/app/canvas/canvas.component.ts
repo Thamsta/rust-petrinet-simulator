@@ -16,7 +16,12 @@ export interface NetCanvas {
     getPlaces(): Place[]
     getArcs(): Arc[]
 
-	loadNet(net: NetDTO): void
+	/**
+	 * Wipes the canvas and loads the given net
+	 * @param net The net to be loaded
+	 * @param loadDirty Whether the net should immediately be considered dirty
+	 */
+	loadNet(net: NetDTO, loadDirty: boolean): void
 	savedNet(name: string): void
 }
 
@@ -327,7 +332,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             .filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
     }
 
-	loadNet(net: NetDTO): void {
+	loadNet(net: NetDTO, loadDirty: boolean): void {
 		this.deleteAllElements()
 		let map = new Map<string, Transition | Place>()
 		net.places.forEach(place => {
@@ -357,7 +362,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 		this.id = net.id
 		this.name = net.name
-		this.isDirty = false
+		this.isDirty = loadDirty
 		this.emitNameChange()
 
 		this.renderAll();

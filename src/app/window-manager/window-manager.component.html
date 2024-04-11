@@ -2,11 +2,11 @@
     <mat-tab-group mat-stretch-tabs="false" preserveContent="false" headerPosition="below" [selectedIndex]="selected.value" (selectedIndexChange)="tabChanged($event)">
         <mat-tab *ngFor="let openWindow of openWindows; let index = index">
             <ng-template matTabLabel>
-                {{openWindow.name}}
+                {{openWindow.name + getDirtySuffix(openWindow.isDirty)}}
                 <button (click)="removeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
             </ng-template>
             <ng-template matTabContent>
-                <app-editor *ngIf="openWindow.type===WindowTypes.net" [windowManager]="this" [initNet]="openWindow.net"></app-editor>
+                <app-editor *ngIf="openWindow.type===WindowTypes.net" [windowManager]="this" [initNet]="openWindow.net" [initDirty]="openWindow.isDirty"></app-editor>
                 <app-reachability-graph *ngIf="openWindow.type===WindowTypes.rg" [windowManager]="this" [graph]="openWindow.rg"></app-reachability-graph>
             </ng-template>
         </mat-tab>

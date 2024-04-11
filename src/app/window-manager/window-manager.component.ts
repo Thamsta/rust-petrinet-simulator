@@ -51,6 +51,7 @@ export class WindowManagerComponent {
         }
 
         netWindow.net = netEditor.getNetDTO()
+        netWindow.isDirty = netEditor.isDirty()
     }
 
     openNewNet(net: NetDTO | undefined) {
@@ -90,7 +91,7 @@ export class WindowManagerComponent {
 
     private addAndSelectNet(net: NetDTO) {
         this.saveCurrentWindow()
-        this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id})
+        this.openWindows.push({type: WindowTypes.net, name: net.name ?? "new*", net: net, rg: undefined, id: net.id, isDirty: false})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
@@ -118,7 +119,7 @@ export class WindowManagerComponent {
                     }
                 })
         }
-        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id})
+        this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id, isDirty: false})
         this.selected.setValue(this.openWindows.length - 1)
     }
 
@@ -136,13 +137,18 @@ export class WindowManagerComponent {
         return new NetDTO(uuidv4(), "pt-net", "net", [p], [t], [a])
     }
 
-    renameNet(name: string, id: string) {
+    renameNet(name: string, dirty: boolean, id: string) {
         let window = this.findExistingNet(id)
         if (window === undefined) {
             console.log("Tried to rename net with id", id, "but it is unknown. Known nets are", this.openWindows)
             return
         }
         window.name = name
+        window.isDirty = dirty
+    }
+
+    getDirtySuffix(isDirty: boolean) {
+        return isDirty ? "*" : ""
     }
 
     private findExistingNet(id: string) {
@@ -158,6 +164,7 @@ export type OpenWindow = {
     net: NetDTO | undefined
     rg: string | undefined
     id: string
+    isDirty: boolean
 }
 
 export enum WindowTypes {

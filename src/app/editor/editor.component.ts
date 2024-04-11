@@ -30,10 +30,9 @@ export type NetChangedEvent = {
 })
 export class EditorComponent implements AfterViewInit {
 
-    @Input()
-    initNet: NetDTO | undefined
-    @Input()
-    windowManager!: WindowManagerComponent
+    @Input() initNet: NetDTO | undefined
+    @Input() initDirty!: boolean
+    @Input() windowManager!: WindowManagerComponent
 
     @Output()
     netChangedEmitter = new EventEmitter<NetChangedEvent>()
@@ -43,6 +42,7 @@ export class EditorComponent implements AfterViewInit {
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: EditorToolbarComponent
     @ViewChild('infobar') infobar!: InfoBarComponent
+
 
     constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
@@ -60,7 +60,7 @@ export class EditorComponent implements AfterViewInit {
         if (this.initNet === undefined) return
 
         this.id = this.initNet.id
-        this.canvas.loadNet(this.initNet);
+        this.canvas.loadNet(this.initNet, this.initDirty);
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
@@ -247,11 +247,14 @@ export class EditorComponent implements AfterViewInit {
     }
 
     netRename(event: NetRenameEvent) {
-        let name = event.name + (event.dirty ? "*" : "")
-        this.windowManager.renameNet(name, this.id)
+        this.windowManager.renameNet(event.name, event.dirty, this.id)
     }
 
     getNetDTO(): NetDTO {
         return createNetDTO(this.canvas, this.canvas.name)
+    }
+
+    isDirty(): boolean {
+        return this.canvas.isDirty
     }
 }
