@@ -299,7 +299,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	setTransitionHeat(firings: number[]) {
 		let [_, transitions] = this.getPlacesAndTransitions()
-		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 1)
+		let sum = Math.max(1, firings.reduce((accumulator, currentValue) => accumulator + currentValue, 0))
 
 		firings.map(value => value / sum)
 			.map(value => toHeatColor(value))
