@@ -35,14 +35,18 @@ export class SimulatorService {
     private currentUpdateTime: number = 10000
 	private startState: number[] = []
 
-    async step(vector: number[], in_matrix: number[][], out_matrix: number[][]) {
+    async step(state: number[], in_matrix: number[][], out_matrix: number[][]) {
 		if (this.currentState == States.Running) {
 			this.pause() // while running, the step command is essentially the same as pausing.
 			return
 		}
 
+		if (this.currentState == States.Stopped) {
+			this.startState = state
+		}
+
 		this.currentState = States.Running
-		this.invokeSimulationStartStep(vector, in_matrix, out_matrix).then(result => {
+		this.invokeSimulationStep(state, in_matrix, out_matrix).then(result => {
             this.emitResult(result, States.Paused)
 			this.currentState = States.Paused
 		})
@@ -120,7 +124,7 @@ export class SimulatorService {
         }
     }
 
-	private async invokeSimulationStartStep(vector: number[], in_matrix: number[][], out_matrix: number[][]): Promise<SimulationResponse> {
+	private async invokeSimulationStep(vector: number[], in_matrix: number[][], out_matrix: number[][]): Promise<SimulationResponse> {
         try {
             return await invoke<SimulationResponse>('simulate_start_step', {
                 marking: vector,
