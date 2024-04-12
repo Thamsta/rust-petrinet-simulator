@@ -188,7 +188,6 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
 
     updateTextPosition() {
         const infoLength = getLongestLineLength(this.infoText.text)
-        const nameLength = getLongestLineLength(this.nameText.text)
 
         this.infoText.set({
             left: this.left! - (infoLength * 4 * scale),
@@ -262,8 +261,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         }
     }
 
-    handleGrouping(group: fabric.Group): void {
-        group.add(this.tokenText)
+    handleGrouping(_: fabric.Group): void {
         this.updateTextPosition() // recalculate text so it uses the relative coordinates of the group
     }
 
