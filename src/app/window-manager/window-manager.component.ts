@@ -4,8 +4,8 @@ import {v4 as uuidv4} from "uuid";
 import {FormControl} from "@angular/forms";
 import {
     DuplicateNetStrategies,
-    LoadDuplicateDialogComponent
-} from "../load-duplicate-dialog/load-duplicate-dialog.component";
+    ImportDuplicateDialogComponent
+} from "../import-duplicate-dialog/import-duplicate-dialog.component";
 import {MatDialog} from "@angular/material/dialog";
 import {SimulatorService} from "../simulator/simulator.service";
 import {EditorComponent} from "../editor/editor.component";
@@ -76,7 +76,7 @@ export class WindowManagerComponent {
 
 
         // a net with this specific id already exists. Ask user for strategy.
-        const dialogRef = this.dialog.open(LoadDuplicateDialogComponent, {data: {name: net.name}});
+        const dialogRef = this.dialog.open(ImportDuplicateDialogComponent, {data: {name: net.name}});
 
         dialogRef.afterClosed().subscribe(result => {
             if (result && result.strategy && net) {

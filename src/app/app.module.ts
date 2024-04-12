@@ -17,7 +17,6 @@ import {EditorComponent} from './editor/editor.component';
 import {WindowManagerComponent} from './window-manager/window-manager.component';
 import {MatTabsModule} from "@angular/material/tabs";
 import {ReachabilityGraphComponent} from './reachability-graph/reachability-graph.component';
-import {RgDialogComponent} from './rg-dialog/rg-dialog.component';
 import {MatDialogModule} from "@angular/material/dialog";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {FormsModule} from "@angular/forms";
@@ -26,8 +25,10 @@ import {ReachabilityGraphToolbarComponent} from './reachability-graph-toolbar/re
 import {EditorToolbarComponent} from './editor-toolbar/editor-toolbar.component';
 import {EditorTooltipsComponent} from './editor-tooltips/editor-tooltips.component';
 import {MatTableModule} from "@angular/material/table";
-import {LoadDuplicateDialogComponent} from './load-duplicate-dialog/load-duplicate-dialog.component';
+import {ImportDuplicateDialogComponent} from './import-duplicate-dialog/import-duplicate-dialog.component';
 import {CloseUnsavedDialogComponent} from './close-unsaved-dialog/close-unsaved-dialog.component';
+import {EditorRgInfobarComponent} from './editor-rg-infobar/editor-rg-infobar.component';
+import {EditorOpenRgDialogComponent} from './editor-open-rg-dialog/editor-open-rg-dialog.component';
 
 @NgModule({
     declarations: [
@@ -40,13 +41,14 @@ import {CloseUnsavedDialogComponent} from './close-unsaved-dialog/close-unsaved-
         EditorComponent,
         WindowManagerComponent,
         ReachabilityGraphComponent,
-        RgDialogComponent,
         BaseToolbarComponent,
         ReachabilityGraphToolbarComponent,
         EditorToolbarComponent,
         EditorTooltipsComponent,
-        LoadDuplicateDialogComponent,
+        ImportDuplicateDialogComponent,
         CloseUnsavedDialogComponent,
+        EditorRgInfobarComponent,
+        EditorOpenRgDialogComponent,
     ],
     imports: [
         BrowserModule,

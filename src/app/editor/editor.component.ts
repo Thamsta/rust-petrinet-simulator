@@ -11,9 +11,9 @@ import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {v4 as uuidv4} from "uuid";
 import {MatDialog} from "@angular/material/dialog";
-import {RgDialogComponent} from "../rg-dialog/rg-dialog.component";
 import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component";
 import {createNetDTO} from "../export/export.component";
+import {EditorOpenRgDialogComponent} from "../editor-open-rg-dialog/editor-open-rg-dialog.component";
 
 export type NetChangedEvent = {
     id: string,
@@ -206,7 +206,7 @@ export class EditorComponent implements AfterViewInit {
             let stateString = response.states == 1 ? "state" : "states"
             let edgeString = response.edges == 1 ? "edge" : "edges"
 
-            const dialogRef = this.dialog.open(RgDialogComponent, {
+            const dialogRef = this.dialog.open(EditorOpenRgDialogComponent, {
                 data: { checkboxText: `Reachability graph has ${response.states} ${stateString} and ${response.edges} ${edgeString}. Visualize in new window?` }
             });
 

@@ -11,13 +11,13 @@ export enum DuplicateNetStrategies {
  * A dialog to display when a net that is already opened is opened again. Provides different handling strategies.
  */
 @Component({
-    selector: 'app-load-duplicate-dialog',
-    templateUrl: './load-duplicate-dialog.component.html',
-    styleUrls: ['./load-duplicate-dialog.component.scss']
+    selector: 'app-import-duplicate-dialog',
+    templateUrl: './import-duplicate-dialog.component.html',
+    styleUrls: ['./import-duplicate-dialog.component.scss']
 })
-export class LoadDuplicateDialogComponent {
+export class ImportDuplicateDialogComponent {
     constructor(
-        public dialogRef: MatDialogRef<LoadDuplicateDialogComponent>,
+        public dialogRef: MatDialogRef<ImportDuplicateDialogComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any
     ) {
     }
