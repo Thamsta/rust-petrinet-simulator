@@ -1,7 +1,6 @@
 import {AfterViewInit, Component, EventEmitter, Input, NgZone, Output, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
 import {Arc, Place, Text} from "../elements";
-import {InfoBarComponent} from "../infobar/info-bar.component";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
@@ -14,6 +13,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component";
 import {createNetDTO} from "../export/export.component";
 import {EditorOpenRgDialogComponent} from "../editor-open-rg-dialog/editor-open-rg-dialog.component";
+import {EditorRgInfobarComponent} from "../editor-rg-infobar/editor-rg-infobar.component";
 
 export type NetChangedEvent = {
     id: string,
@@ -41,7 +41,9 @@ export class EditorComponent implements AfterViewInit {
 
     @ViewChild('canvas') canvas!: CanvasComponent
     @ViewChild('toolbar') toolbar!: EditorToolbarComponent
-    @ViewChild('infobar') infobar!: InfoBarComponent
+    @ViewChild('infobar') rgInfobar!: EditorRgInfobarComponent
+
+    hideRGInfobar: boolean = true
 
 
     constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
@@ -187,6 +189,9 @@ export class EditorComponent implements AfterViewInit {
             case DrawingTools.RG:
                 this.rg(p, pxt_in, pxt_out)
                 break;
+            case DrawingTools.RG_INFO:
+                this.toggleRGInfo()
+                break;
         }
     }
 
@@ -202,7 +207,7 @@ export class EditorComponent implements AfterViewInit {
 
     private rg(p: number[], pxt_in: number[][], pxt_out: number[][]) {
         this.rgService.createRG(p, pxt_in, pxt_out).then(response => {
-            this.infobar.updateRGInfos(response)
+            this.rgInfobar.updateRGInfos(response)
             let stateString = response.states == 1 ? "state" : "states"
             let edgeString = response.edges == 1 ? "edge" : "edges"
 
@@ -216,7 +221,7 @@ export class EditorComponent implements AfterViewInit {
                 }
             });
         }, (error) => {
-            this.infobar.updateOnError(error)
+            this.rgInfobar.updateOnError(error)
         })
     }
 
@@ -256,5 +261,9 @@ export class EditorComponent implements AfterViewInit {
 
     isDirty(): boolean {
         return this.canvas.isDirty
+    }
+
+    private toggleRGInfo() {
+        this.hideRGInfobar = !this.hideRGInfobar
     }
 }

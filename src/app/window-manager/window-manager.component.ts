@@ -25,6 +25,8 @@ import {CloseUnsavedDialogComponent} from "../close-unsaved-dialog/close-unsaved
     styleUrls: ['./window-manager.component.scss']
 })
 export class WindowManagerComponent {
+    static height = 50
+
     selected = new FormControl(0);
     openWindows: OpenWindow[] = []
 

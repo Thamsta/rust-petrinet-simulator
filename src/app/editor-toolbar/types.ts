@@ -14,6 +14,7 @@ export enum DrawingTools {
     PAUSE,
     NAME,
     RG,
+    RG_INFO
 }
 
 export function getDecIncValue(tool: DrawingTools): number {

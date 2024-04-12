@@ -6,6 +6,7 @@ import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {NetDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
+import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
 export interface NetCanvas {
 	name: string
@@ -87,14 +88,14 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	onWindowResize = () => {
 		this.canvas.setDimensions({
 			width: window.innerWidth,
-			height: window.innerHeight - 90 - BaseToolbarComponent.height
+			height: window.innerHeight - BaseToolbarComponent.height - WindowManagerComponent.height
 		})
 	}
 
 	private setupCanvas = () => {
 		this.canvas.setDimensions({
 			width: window.innerWidth,
-			height: window.innerHeight - 90 - BaseToolbarComponent.height
+			height: window.innerHeight - BaseToolbarComponent.height - WindowManagerComponent.height
 		})
 		this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
 

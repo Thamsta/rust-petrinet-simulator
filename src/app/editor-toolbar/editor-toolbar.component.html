@@ -7,7 +7,6 @@
     <button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
     </button>
-
     <button appShortcut="P" matTooltip="Add Place (P)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">circle_outline</mat-icon>
     </button>
@@ -34,13 +33,19 @@
     <button appShortcut="R" matTooltip="Stop (R)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.STOP)">
         <mat-icon fontSet="material-icons-outlined">stop</mat-icon>
     </button>
+
     <mat-divider vertical></mat-divider>
+
     <button appShortcut="M" matTooltip="Reachability Graph (M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">grain</mat-icon>
     </button>
+    <button appShortcut="Ctrl + M" matTooltip="RG Info (Ctrl + M)" mat-icon-button class="material-symbols-outlined" (click)="select(DrawingTools.RG_INFO)" [disabled]="editorLocked">
+        <mat-icon fontSet="material-icons-outlined">analytics</mat-icon>
+    </button>
+
     <mat-divider vertical></mat-divider>
     <button appShortcut="I" matTooltip="Info (I)" mat-icon-button class="material-symbols-outlined" (click)="toggleEditorTooltips()">
-        <mat-icon fontSet="material-icons-outlined">info</mat-icon>
+        <mat-icon fontSet="material-icons-outlined">help</mat-icon>
     </button>
 
     <!-- hidden buttons for shortcuts -->
