@@ -1,18 +1,26 @@
 import {Component} from '@angular/core';
 import {RGResponse} from "../models";
 
+export interface ResultEntry {
+    key: string
+    value: string
+}
+
 @Component({
     selector: 'app-editor-rg-infobar',
     templateUrl: './editor-rg-infobar.component.html',
     styleUrls: ['./editor-rg-infobar.component.scss']
 })
 export class EditorRgInfobarComponent {
-    states: string = "";
-    edges: string = "";
-    reversible: string = "";
-    live: string = "";
-    bounded: string = "";
     message: string = "";
+
+    rgResult: ResultEntry[] | undefined = undefined;
+    displayedColumns: string[] = ['key', 'value'];
+
+    deleteInfos() {
+        this.rgResult = undefined
+        this.message = ""
+    }
 
     updateRGInfos(infos: RGResponse) {
         console.log("updating with", infos)
@@ -20,29 +28,33 @@ export class EditorRgInfobarComponent {
             this.updateOnUnbounded(infos)
             return
         }
-        this.states = this.formatNumber(infos.states)
-        this.edges = this.formatNumber(infos.edges)
-        this.reversible = String(infos.reversible)
-        this.live = String(infos.liveness)
-        this.bounded = String(infos.bounded)
-        this.message = infos.message
+
+        this.update(
+            this.formatNumber(infos.states),
+            this.formatNumber(infos.edges),
+            String(infos.bounded),
+            infos.liveness ? "✔️" : "❌",
+            infos.reversible ? "✔️" : "❌",
+            infos.message
+        )
     }
 
     updateOnUnbounded(infos: RGResponse) {
-        this.states = "∞"
-        this.edges = "∞"
-        this.reversible = ""
-        this.live = ""
-        this.bounded = "false"
-        this.message = infos.message ? infos.message : "net is unbounded"
+        this.update("∞", "∞", "❌", "", "", infos.message ? infos.message : "net is unbounded")
+    }
+
+    private update(states: string, edges: string, bounded: string, live: string, reversible: string, message: string) {
+        this.rgResult = []
+        this.rgResult.push({key: "States", value: states})
+        this.rgResult.push({key: "Edges", value: edges})
+        this.rgResult.push({key: "k-Bounded", value: bounded})
+        this.rgResult.push({key: "Liveness", value: live})
+        this.rgResult.push({key: "Reversible", value: reversible})
+        this.message = message
     }
 
     updateOnError(_: any) {
-        this.states = ""
-        this.edges = ""
-        this.reversible = ""
-        this.live = ""
-        this.message = ""
+        this.rgResult = []
     }
 
     private formatNumber(num: number): string {

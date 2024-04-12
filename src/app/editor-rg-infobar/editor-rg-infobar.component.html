@@ -1,7 +1,26 @@
 <div class="overlay">
     <div class="overlay-content">
-        <h2>Info Overlay</h2>
-        <p>This is some information displayed in the overlay.</p>
-        <p>You can customize this content as needed.</p>
+        <h2>Reachability Graph</h2>
+        <div *ngIf="rgResult != undefined; else noResult">
+            <table mat-table [dataSource]="rgResult">
+                <ng-container matColumnDef="key">
+                    <th mat-header-cell *matHeaderCellDef><b>Key</b></th>
+                    <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="value">
+                    <th mat-header-cell *matHeaderCellDef>Name</th>
+                    <td mat-cell *matCellDef="let element"> {{ element.value }}</td>
+                </ng-container>
+
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+            {{message}}
+        </div>
     </div>
 </div>
+
+
+<ng-template #noResult>
+    No results. Start the Reachability Graph generation!
+</ng-template>
