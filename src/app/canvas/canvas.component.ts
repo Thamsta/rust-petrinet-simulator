@@ -99,6 +99,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
 
 		// extra canvas settings
+		this.canvas.renderOnAddRemove = false
 		this.canvas.preserveObjectStacking = true
 	}
 
@@ -115,6 +116,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         let t = new Transition(x, y, name, this.canvas)
         t.showName(this.namesAreDisplayed)
 		this.modifiedNet()
+		this.renderAll()
 		return t
 	}
 
@@ -123,6 +125,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		let p = new Place(x, y, name, this.canvas)
         p.showName(this.namesAreDisplayed)
 		this.modifiedNet()
+		this.renderAll()
         return p
 	}
 
@@ -138,6 +141,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			target.arcs.arcs_in.push(arc)
 
 			this.modifiedNet()
+			this.renderAll()
 
 			return arc
 		}
@@ -299,7 +303,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	setTransitionHeat(firings: number[]) {
 		let [_, transitions] = this.getPlacesAndTransitions()
-		let sum = firings.reduce((accumulator, currentValue) => accumulator + currentValue, 1)
+		let sum = Math.max(1, firings.reduce((accumulator, currentValue) => accumulator + currentValue, 0))
 
 		firings.map(value => value / sum)
 			.map(value => toHeatColor(value))
@@ -368,7 +372,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll();
 	}
 
-	modifiedNet(): void {
+	private modifiedNet(): void {
 		if (this.isDirty) return
 
 		this.isDirty = true
@@ -408,13 +412,13 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
     toggleNames() {
         this.namesAreDisplayed = !this.namesAreDisplayed
-        this.showNames(this.namesAreDisplayed)
+        this.updateShowNames()
         this.renderAll()
     }
 
-    private showNames(show: boolean) {
-        this.getPlaces().forEach(p => p.showName(show))
-        this.getTransitions().forEach(t => t.showName(show))
+    private updateShowNames() {
+        this.getPlaces().forEach(p => p.showName(this.namesAreDisplayed))
+        this.getTransitions().forEach(t => t.showName(this.namesAreDisplayed))
     }
 
 	private deleteAllElements(): void {
@@ -436,7 +440,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
     }
 
     private renderAll() {
-        this.canvas.renderAll()
+        this.canvas.requestRenderAll()
     }
 
     getCurrentSelected() {

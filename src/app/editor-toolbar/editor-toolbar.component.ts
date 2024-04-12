@@ -3,7 +3,7 @@ import {DrawingTools} from './types';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {NetCanvas} from "../canvas/canvas.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
-import {MatDialog} from "@angular/material/dialog";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {EditorTooltipsComponent} from "../editor-tooltips/editor-tooltips.component";
 
 export const tooltipDelays: MatTooltipDefaultOptions = {
@@ -12,6 +12,9 @@ export const tooltipDelays: MatTooltipDefaultOptions = {
     touchendHideDelay: 1000,
 };
 
+/**
+ * The toolbar of the editor, containing the buttons and commands to control the editor.
+ */
 @Component({
   selector: 'app-editor-toolbar',
   templateUrl: './editor-toolbar.component.html',
@@ -22,6 +25,8 @@ export class EditorToolbarComponent {
     protected readonly DrawingTools = DrawingTools;
     selected: DrawingTools = DrawingTools.SELECT;
     editorLocked: boolean = false
+
+    infoDialog: MatDialogRef<EditorTooltipsComponent> | undefined = undefined
 
     @Output()
     controlEmitter = new EventEmitter<DrawingTools>
@@ -82,9 +87,15 @@ export class EditorToolbarComponent {
         this.selected = DrawingTools.SELECT
     }
 
-    openEditorTooltips() {
-        this.dialog.open(EditorTooltipsComponent, {
-            //width: '400px',
-        });
+    toggleEditorTooltips() {
+        if (this.infoDialog != undefined) {
+            // it's already open, close it.
+            this.infoDialog.close()
+            this.infoDialog = undefined
+            return
+        }
+
+        this.infoDialog = this.dialog.open(EditorTooltipsComponent);
+        this.infoDialog.afterClosed().subscribe(_ => this.infoDialog = undefined)
     }
 }

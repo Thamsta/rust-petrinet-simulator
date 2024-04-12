@@ -5,6 +5,11 @@ import {NetDTO} from "../dtos";
 import {PnmlImporterService} from "../pnml/pnml-importer.service";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 
+/**
+ * This component is responsible for importing content from a file.
+ * Opens an open-file dialog and supports different file extensions.
+ * Comes with a button and shortcut.
+ */
 @Component({
     selector: 'app-import',
     templateUrl: './import.component.html',

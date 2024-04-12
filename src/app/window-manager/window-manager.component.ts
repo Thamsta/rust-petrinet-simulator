@@ -11,6 +11,14 @@ import {SimulatorService} from "../simulator/simulator.service";
 import {EditorComponent} from "../editor/editor.component";
 import {CloseUnsavedDialogComponent} from "../close-unsaved-dialog/close-unsaved-dialog.component";
 
+/**
+ * The window manager is the outermost component of the tool and contains all other components that should be treated
+ * as windows, e.g. open editors.
+ * The window manager is responsible for opening and closing any kind of window and handling all related tasks like
+ * saving the content of a window before it is closed or replacing windows by ID.
+ * Only a single window is active and rendered at a time, all other windows are removed from the DOM whenever the focus
+ * shifts on another window.
+ */
 @Component({
     selector: 'app-window-manager',
     templateUrl: './window-manager.component.html',
@@ -111,14 +119,11 @@ export class WindowManagerComponent {
 
     openNewRG(rg: string, name: string, id: string, replaceExisting: boolean) {
         if (replaceExisting) {
-            this.openWindows
-                .filter(window => window.type === WindowTypes.rg)
-                .map(window => window.id)
-                .forEach((rgId, index) => {
-                    if (id === rgId) {
-                        this.closeTab(index);
-                    }
-                })
+            this.openWindows.forEach((window, index) => {
+                if (id === window.id && window.type == WindowTypes.rg) {
+                    this.closeTab(index);
+                }
+            })
         }
         this.openWindows.push({type: WindowTypes.rg, name: name, net: undefined, rg: rg, id: id, isDirty: false})
         this.selected.setValue(this.openWindows.length - 1)
@@ -134,8 +139,8 @@ export class WindowManagerComponent {
         let name = this.openWindows[index].name
         const dialogRef = this.dialog.open(CloseUnsavedDialogComponent, {data: {name: name}});
 
-        dialogRef.afterClosed().subscribe(close => {
-            if (!close) {
+        dialogRef.afterClosed().subscribe(result => {
+            if (!result.close) {
                 // cancel the closing.
                 return
             } else {
