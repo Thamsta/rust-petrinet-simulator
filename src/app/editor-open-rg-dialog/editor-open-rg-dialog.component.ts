@@ -8,11 +8,13 @@ import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 })
 export class EditorOpenRgDialogComponent {
     replaceExisting: boolean = true;
+    isBounded: boolean;
 
     constructor(
         public dialogRef: MatDialogRef<EditorOpenRgDialogComponent>,
         @Inject(MAT_DIALOG_DATA) public data: any
     ) {
+        this.isBounded = data.isBounded
     }
 
     onClick(confirmed: boolean) {

@@ -55,6 +55,7 @@ export class EditorRgInfobarComponent {
 
     updateOnError(_: any) {
         this.rgResult = []
+        this.message = "Error occurred during reachability graph generation."
     }
 
     private formatNumber(num: number): string {

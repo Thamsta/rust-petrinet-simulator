@@ -212,7 +212,10 @@ export class EditorComponent implements AfterViewInit {
             let edgeString = response.edges == 1 ? "edge" : "edges"
 
             const dialogRef = this.dialog.open(EditorOpenRgDialogComponent, {
-                data: { checkboxText: `Reachability graph has ${response.states} ${stateString} and ${response.edges} ${edgeString}. Visualize in new window?` }
+                data: {
+                    isBounded: response.bounded >= 0,
+                    checkboxText: `Reachability graph has ${response.states} ${stateString} and ${response.edges} ${edgeString}. Visualize in new window?`
+                }
             });
 
             dialogRef.afterClosed().subscribe(result => {
