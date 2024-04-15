@@ -1,0 +1,21 @@
+<h2 mat-dialog-title>RG generation completed</h2>
+<div *ngIf="isBounded; else unbounded">
+    <mat-dialog-content>{{ data.checkboxText }}</mat-dialog-content>
+    <mat-dialog-content>
+        <mat-checkbox [(ngModel)]="replaceExisting">Replace opened RG of this net (if exists)</mat-checkbox>
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+        <button mat-flat-button (click)="onClick(false)" cdkFocusInitial>No</button>
+        <button mat-flat-button (click)="onClick(true)">Yes</button>
+    </mat-dialog-actions>
+</div>
+
+
+<ng-template #unbounded>
+    <mat-dialog-content>
+        Reachability graph is unbounded.
+    </mat-dialog-content>
+    <mat-dialog-actions align="end">
+        <button mat-flat-button (click)="onClick(false)" cdkFocusInitial>Ok</button>
+    </mat-dialog-actions>
+</ng-template>

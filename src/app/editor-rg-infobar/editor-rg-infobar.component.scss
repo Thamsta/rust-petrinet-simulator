@@ -1,0 +1,17 @@
+.overlay {
+  position: absolute;
+  top: 85px; /* Adjust as needed */
+  right: 20px; /* Adjust as needed */
+  width: 250px; /* Set width as needed */
+  height: fit-content; /* Set height as needed */
+  background-color: white;
+  border: 1px solid #ccc;
+  z-index: 9999; /* Ensure the overlay appears above other content */
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); /* Add shadow for better visibility */
+}
+
+/* Text styling */
+.overlay-content {
+  font-size: 14px;
+}

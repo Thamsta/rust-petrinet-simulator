@@ -1,8 +1,9 @@
 <div class="editor">
     <app-editor-toolbar #toolbar (controlEmitter)="controlChanged($event)" [windowManager]="this.windowManager"
-                        [canvas]="this.canvas"></app-editor-toolbar>
+    [canvas]="this.canvas"></app-editor-toolbar>
     <mat-divider></mat-divider>
     <app-canvas #canvas (mouseEventEmitter)="canvasMouseEvent($event)" (netRenameEmitter)="netRename($event)"></app-canvas>
     <mat-divider></mat-divider>
-    <app-infobar #infobar></app-infobar>
+    <!-- positioning of the overlay does not matter. -->
+    <app-editor-rg-infobar [hidden]="hideRGInfobar" #infobar></app-editor-rg-infobar>
 </div>
