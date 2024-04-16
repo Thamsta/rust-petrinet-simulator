@@ -4,7 +4,7 @@ import {Arc, Place, Text} from "../elements";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
-import {DrawingTools} from "../editor-toolbar/types";
+import {DrawingTools} from "../editor-toolbar/editor-toolbar.models";
 import {CanvasComponent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
@@ -71,7 +71,6 @@ export class EditorComponent implements AfterViewInit {
     }
 
     copy() {
-        console.log("Copying")
         this.clipboard?.copy()
     }
 

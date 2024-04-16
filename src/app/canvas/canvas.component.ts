@@ -1,7 +1,7 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
-import {DrawingTools, getDecIncValue} from "../editor-toolbar/types"
+import {DrawingTools, getDecIncValue} from "../editor-toolbar/editor-toolbar.models"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";

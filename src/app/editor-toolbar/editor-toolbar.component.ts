@@ -1,5 +1,5 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {DrawingTools} from './types';
+import {DrawingTools} from './editor-toolbar.models';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
