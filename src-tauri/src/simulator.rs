@@ -219,7 +219,9 @@ fn simulate_step(
     }
 
     let fired = select_transition(&active_transitions);
-    let t_heat = (0..t_in.transition_count()).map(|i| if i == fired { 1 } else { 0 }).collect();
+    let t_heat = (0..t_in.transition_count())
+        .map(|i| if i == fired { 1 } else { 0 })
+        .collect();
     state_vec = fire_transition(&state_vec, t_effect, fired);
 
     let end = Instant::now();
