@@ -11,6 +11,7 @@ import {gridEnabled, gridSize} from "../config";
 import {ElementNameHandler} from "./shared/elementNameHandler";
 import {CanvasEvent, NetCanvas, NetRenameEvent} from "./shared/canvas.model";
 import {ElementCache} from "./shared/elementCache";
+import {ImportService} from "./shared/import.service";
 
 /**
  * A wrapper class around an HTML canvas that is enriched with knowledge about Petri nets.
@@ -30,7 +31,9 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	isLocked = false
 	isDeadlocked = false // show notice on canvas if deadlocked
+
 	elementCache = new ElementCache()
+	importer = new ImportService(this)
 
     namesAreDisplayed = false
     nameHandler = new ElementNameHandler()
@@ -211,28 +214,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		return [xGrid, yGrid]
 	}
 
-    getPlacesAndTransitions(): [Place[], Transition[]] {
-        if (this.elementCache.isActive) {
-			return this.elementCache.getElements()
-        }
-		let objects = this.canvas.getObjects()
-		let places: Place[] = []
-		let transitions: Transition[] = []
-
-		objects.forEach(object => {
-			if (object instanceof Place) {
-				places.push(object)
-			} else if (object instanceof Transition) {
-				transitions.push(object)
-			}
-		})
-
-		places.sort((p1, p2) => (p1.id > p2.id ? -1 : 1))
-		transitions.sort((t1, t2) => (t1.id > t2.id ? -1 : 1))
-
-		return [places, transitions]
-	}
-
 	lock() {
         let [places, transitions] = this.getPlacesAndTransitions()
 		this.isLocked = true
@@ -303,44 +284,15 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-    getAllElements(): Object[] {
-        return this.canvas.getObjects()
-            .filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
-    }
-
 	loadNet(net: NetDTO, loadDirty: boolean): void {
 		this.deleteAllElements()
-		let map = new Map<string, Transition | Place>()
-		net.places.forEach(place => {
-			let p = this.addPlace(place.position.x, place.position.y)
-			p.setAmount(place.initialMarking)
-			p.id = place.id
-            p.setInfoText(place.infoText)
-			map.set(p.id, p)
-		})
-		net.transitions.forEach(transition => {
-			let t = this.addTransition(transition.position.x, transition.position.y)
-			t.id = transition.id
-            t.setInfoText(transition.infoText)
-			map.set(t.id, t)
-		})
-		net.arcs.forEach(arc => {
-			let from = map.get(arc.source)
-			let to = map.get(arc.target)
 
-			let a = this.addArc(from, to)
-			if (a == undefined) return;
-
-			a.weight = +arc.text
-			a.id = arc.id
-            a.setInfoText(arc.infoText)
-		})
+		this.importer.loadNet(net, loadDirty)
 
 		this.id = net.id
-		this.name = net.name
 		this.isDirty = loadDirty
+		this.name = net.name
 		this.emitNameChange()
-
 		this.renderAll();
 	}
 
@@ -351,7 +303,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.emitNameChange()
 	}
 
-	savedNet(name: string): void {
+	onSavedNet(name: string): void {
 		this.name = name
 		this.isDirty = false
 		this.emitNameChange()
@@ -362,6 +314,33 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			name: this.name,
 			dirty: this.isDirty,
 		})
+	}
+
+	getAllElements(): Object[] {
+		return this.canvas.getObjects()
+			.filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
+	}
+
+	getPlacesAndTransitions(): [Place[], Transition[]] {
+		if (this.elementCache.isActive) {
+			return this.elementCache.getElements()
+		}
+		let objects = this.canvas.getObjects()
+		let places: Place[] = []
+		let transitions: Transition[] = []
+
+		objects.forEach(object => {
+			if (object instanceof Place) {
+				places.push(object)
+			} else if (object instanceof Transition) {
+				transitions.push(object)
+			}
+		})
+
+		places.sort((p1, p2) => (p1.id > p2.id ? -1 : 1))
+		transitions.sort((t1, t2) => (t1.id > t2.id ? -1 : 1))
+
+		return [places, transitions]
 	}
 
     getPlaces(): Place[] {
@@ -382,6 +361,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             .map(it => it as Arc)
     }
 
+	getCurrentSelected() {
+		if (this.lastSelected === undefined) {
+			return []
+		}
+		if (this.lastSelected instanceof fabric.Group) {
+			return this.lastSelected.getObjects()
+		}
+
+		return [this.lastSelected]
+	}
+
     toggleNames() {
         this.namesAreDisplayed = !this.namesAreDisplayed
         this.updateShowNames()
@@ -393,7 +383,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         this.getTransitions().forEach(t => t.showName(this.namesAreDisplayed))
     }
 
-	private deleteAllElements(): void {
+	deleteAllElements(): void {
 		this.canvas.getObjects().forEach(obj => {
 			if (obj instanceof Transition || obj instanceof Place) {
 				obj.remove(this.canvas)
@@ -411,18 +401,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         }
     }
 
-    private renderAll() {
+    renderAll() {
         this.canvas.requestRenderAll()
-    }
-
-    getCurrentSelected() {
-        if (this.lastSelected === undefined) {
-            return []
-        }
-        if (this.lastSelected instanceof fabric.Group) {
-            return this.lastSelected.getObjects()
-        }
-
-        return [this.lastSelected]
     }
 }

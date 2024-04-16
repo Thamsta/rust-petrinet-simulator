@@ -17,7 +17,7 @@ export interface NetCanvas {
      * @param loadDirty Whether the net should immediately be considered dirty
      */
     loadNet(net: NetDTO, loadDirty: boolean): void
-    savedNet(name: string): void
+    onSavedNet(name: string): void
 }
 
 export type CanvasEvent = {

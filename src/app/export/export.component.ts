@@ -68,7 +68,7 @@ export class ExportComponent {
 
         await writeTextFile(filePath, output);
 
-        this.canvas.savedNet(fileName)
+        this.canvas.onSavedNet(fileName)
     }
 
     private async exportRG() {
