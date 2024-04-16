@@ -177,7 +177,8 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     }
 
     handleGrouping(group: fabric.Group): void {
-        group.add(this.infoText)
+        if (!group.contains(this.infoText)) group.add(this.infoText)
+        if (!group.contains(this.nameText)) group.add(this.nameText)
         this.updateTextPosition()
     }
 
@@ -261,7 +262,10 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         }
     }
 
-    handleGrouping(_: fabric.Group): void {
+    handleGrouping(group: fabric.Group): void {
+        if (!group.contains(this.infoText)) group.add(this.infoText)
+        if (!group.contains(this.nameText)) group.add(this.nameText)
+        if (!group.contains(this.tokenText)) group.add(this.tokenText)
         this.updateTextPosition() // recalculate text so it uses the relative coordinates of the group
     }
 

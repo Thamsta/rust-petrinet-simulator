@@ -1,40 +1,17 @@
 import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
-import {DrawingTools, getDecIncValue} from "../editor-toolbar/types"
+import {DrawingTools, getDecIncValue} from "../editor-toolbar/editor-toolbar.models"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
-import {NetDTO} from "../dtos";
+import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
-
-export interface NetCanvas {
-	name: string
-	id: string
-	getAllElements(): Object[]
-
-    getTransitions(): Transition[]
-    getPlaces(): Place[]
-    getArcs(): Arc[]
-
-	/**
-	 * Wipes the canvas and loads the given net
-	 * @param net The net to be loaded
-	 * @param loadDirty Whether the net should immediately be considered dirty
-	 */
-	loadNet(net: NetDTO, loadDirty: boolean): void
-	savedNet(name: string): void
-}
-
-export type CanvasEvent = {
-    type: string
-    source: IEvent<MouseEvent>
-}
-
-export type NetRenameEvent = {
-	name: string
-	dirty: boolean
-}
+import {gridEnabled, gridSize} from "../config";
+import {ElementNameHandler} from "./shared/elementNameHandler";
+import {CanvasEvent, NetCanvas, NetRenameEvent} from "./shared/canvas.model";
+import {ElementCache} from "./shared/elementCache";
+import {ImportService} from "./shared/import.service";
 
 /**
  * A wrapper class around an HTML canvas that is enriched with knowledge about Petri nets.
@@ -54,11 +31,9 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	isLocked = false
 	isDeadlocked = false // show notice on canvas if deadlocked
-    places: Place[] = [] // cache places ands transitions while locked.
-    transitions: Transition[] = []
 
-	gridSize = 20
-	gridEnabled = false
+	elementCache = new ElementCache()
+	importer = new ImportService(this)
 
     namesAreDisplayed = false
     nameHandler = new ElementNameHandler()
@@ -78,10 +53,10 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         // mouse:down is a special event
 		this.canvas.on('mouse:down', e => this.onClick(e))
 
-	    this.canvas.on('selection:created', e => this.selectCreate(e))
-	    this.canvas.on('selection:cleared', e => this.selectClear(e))
-	    this.canvas.on('object:moving', e => this.objectMoving(e))
-	    this.canvas.on('object:modified', e => this.objectModified(e))
+	    this.canvas.on('selection:created', e => this.onSelectCreate(e))
+	    this.canvas.on('selection:cleared', e => this.onSelectClear(e))
+	    this.canvas.on('object:moving', e => this.onObjectMoving(e))
+	    this.canvas.on('object:modified', e => this.onObjectModified(e))
 		window.addEventListener('resize', this.onWindowResize)
     }
 
@@ -106,6 +81,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	private onClick(event: IEvent<MouseEvent>) {
 		if (this.isLocked) {
+			// ignore all clicks when the editor is locked.
 			return
 		}
 
@@ -194,7 +170,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         this.renderAll()
     }
 
-	private selectClear(_: IEvent<MouseEvent>) {
+	private onSelectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.
         let [places, transitions] = this.getPlacesAndTransitions()
 		places.forEach(obj => obj.updateTextPosition())
@@ -203,7 +179,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	private objectMoving(e: IEvent<MouseEvent>) {
+	private onObjectMoving(e: IEvent<MouseEvent>) {
 		let target = e.target!
 		if (target instanceof fabric.Group) {
 			// TODO: fix grid placement for groups
@@ -215,7 +191,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	moveObj(obj: fabric.Object) {
-		if (this.gridEnabled) {
+		if (gridEnabled) {
 			let [left, top] = this.toGridCoordinate(obj.left!, obj.top!)
 			obj.set({top: top, left: left})
 		}
@@ -233,31 +209,9 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	private toGridCoordinate(x: number, y: number): [number, number] {
-		let xGrid = Math.round(x / this.gridSize) * this.gridSize
-		let yGrid = Math.round(y / this.gridSize) * this.gridSize
+		let xGrid = Math.round(x / gridSize) * gridSize
+		let yGrid = Math.round(y / gridSize) * gridSize
 		return [xGrid, yGrid]
-	}
-
-    getPlacesAndTransitions(): [Place[], Transition[]] {
-        if (this.isLocked) {
-            return [this.places, this.transitions]
-        }
-		let objects = this.canvas.getObjects()
-		let places: Place[] = []
-		let transitions: Transition[] = []
-
-		objects.forEach(object => {
-			if (object instanceof Place) {
-				places.push(object)
-			} else if (object instanceof Transition) {
-				transitions.push(object)
-			}
-		})
-
-		places.sort((p1, p2) => (p1.id > p2.id ? -1 : 1))
-		transitions.sort((t1, t2) => (t1.id > t2.id ? -1 : 1))
-
-		return [places, transitions]
 	}
 
 	lock() {
@@ -266,8 +220,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.canvas.setBackgroundColor(canvas_color_simulating, () => {
 			this.renderAll()
 		})
-        this.places = places
-        this.transitions = transitions
+		this.elementCache.cache(places, transitions)
 	}
 
 	unlock() {
@@ -276,8 +229,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.canvas.setBackgroundColor(canvas_color, () => {
 		})
 		this.isLocked = false
-        this.places = []
-        this.transitions = []
+		this.elementCache.flush()
 
 		this.renderAll()
 	}
@@ -289,15 +241,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		for (let i = 0; i < places.length; i++) {
 			places[i].setAmount(p[i])
 		}
-
-		this.renderAll()
-	}
-
-	private resetTransitionHeat() {
-		let transitions = this.getTransitions()
-		transitions.forEach(transition => {
-			transition.set({fill: fill_color})
-		})
 
 		this.renderAll()
 	}
@@ -315,12 +258,25 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	private selectCreate(e: IEvent<MouseEvent>) {
+	private resetTransitionHeat() {
+		let transitions = this.getTransitions()
+		transitions.forEach(transition => {
+			transition.set({fill: fill_color})
+		})
+
+		this.renderAll()
+	}
+
+	onSelectCreate(e: IEvent<MouseEvent>) {
 		let group = e.selected![0]!.group
 		if (group == undefined) {
 			return
 		}
 
+		this.handleGrouping(group)
+	}
+
+	handleGrouping(group: fabric.Group) {
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
 			if (obj instanceof Arc || obj instanceof Place || obj instanceof Transition) {
@@ -328,49 +284,24 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			}
 		})
 
-        this.lastSelected = group
+		this.lastSelected = group
 		this.renderAll()
 	}
 
-    getAllElements(): Object[] {
-        return this.canvas.getObjects()
-            .filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
-    }
-
 	loadNet(net: NetDTO, loadDirty: boolean): void {
 		this.deleteAllElements()
-		let map = new Map<string, Transition | Place>()
-		net.places.forEach(place => {
-			let p = this.addPlace(place.position.x, place.position.y)
-			p.setAmount(place.initialMarking)
-			p.id = place.id
-            p.setInfoText(place.infoText)
-			map.set(p.id, p)
-		})
-		net.transitions.forEach(transition => {
-			let t = this.addTransition(transition.position.x, transition.position.y)
-			t.id = transition.id
-            t.setInfoText(transition.infoText)
-			map.set(t.id, t)
-		})
-		net.arcs.forEach(arc => {
-			let from = map.get(arc.source)
-			let to = map.get(arc.target)
 
-			let a = this.addArc(from, to)
-			if (a == undefined) return;
-
-			a.weight = +arc.text
-			a.id = arc.id
-            a.setInfoText(arc.infoText)
-		})
+		this.importer.loadNet(net)
 
 		this.id = net.id
-		this.name = net.name
 		this.isDirty = loadDirty
+		this.name = net.name
 		this.emitNameChange()
-
 		this.renderAll();
+	}
+
+	insertDTOs(places: PlaceDTO[], transitions: TransitionDTO[], arcs: ArcDTO[]) {
+		return this.importer.loadElements(places, transitions, arcs, false)
 	}
 
 	private modifiedNet(): void {
@@ -380,7 +311,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.emitNameChange()
 	}
 
-	savedNet(name: string): void {
+	onSavedNet(name: string): void {
 		this.name = name
 		this.isDirty = false
 		this.emitNameChange()
@@ -391,6 +322,33 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			name: this.name,
 			dirty: this.isDirty,
 		})
+	}
+
+	getAllElements(): Object[] {
+		return this.canvas.getObjects()
+			.filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
+	}
+
+	getPlacesAndTransitions(): [Place[], Transition[]] {
+		if (this.elementCache.isActive) {
+			return this.elementCache.getElements()
+		}
+		let objects = this.canvas.getObjects()
+		let places: Place[] = []
+		let transitions: Transition[] = []
+
+		objects.forEach(object => {
+			if (object instanceof Place) {
+				places.push(object)
+			} else if (object instanceof Transition) {
+				transitions.push(object)
+			}
+		})
+
+		places.sort((p1, p2) => (p1.id > p2.id ? -1 : 1))
+		transitions.sort((t1, t2) => (t1.id > t2.id ? -1 : 1))
+
+		return [places, transitions]
 	}
 
     getPlaces(): Place[] {
@@ -411,6 +369,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             .map(it => it as Arc)
     }
 
+	getCurrentSelected() {
+		if (this.lastSelected === undefined) {
+			return []
+		}
+		if (this.lastSelected instanceof fabric.Group) {
+			return this.lastSelected.getObjects()
+		}
+
+		return [this.lastSelected]
+	}
+
     toggleNames() {
         this.namesAreDisplayed = !this.namesAreDisplayed
         this.updateShowNames()
@@ -422,7 +391,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         this.getTransitions().forEach(t => t.showName(this.namesAreDisplayed))
     }
 
-	private deleteAllElements(): void {
+	deleteAllElements(): void {
 		this.canvas.getObjects().forEach(obj => {
 			if (obj instanceof Transition || obj instanceof Place) {
 				obj.remove(this.canvas)
@@ -433,40 +402,14 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-    private objectModified(e: IEvent<MouseEvent>) {
+    private onObjectModified(e: IEvent<MouseEvent>) {
         if (e.target instanceof Text) {
             e.target.updateFromText()
 			this.modifiedNet()
         }
     }
 
-    private renderAll() {
+    renderAll() {
         this.canvas.requestRenderAll()
-    }
-
-    getCurrentSelected() {
-        if (this.lastSelected === undefined) {
-            return []
-        }
-        if (this.lastSelected instanceof fabric.Group) {
-            return this.lastSelected.getObjects()
-        }
-
-        return [this.lastSelected]
-    }
-}
-
-class ElementNameHandler {
-    place = 0
-    transition = 0
-
-    getNextPlaceName(): string {
-        this.place++
-        return "p" + this.place
-    }
-
-    getNextTransitionName(): string {
-        this.transition++
-        return "t" + this.transition
     }
 }

@@ -35,7 +35,7 @@ export class TransitionDTO {
 
     static fromTransition(transition: Transition) {
         let id = transition.id
-        let position = new Position(transition.left!, transition.top!)
+        let position = getAbsolutePosition(transition)
         let infoText = transition.infoText.text ?? ""
         return new this(id, position, infoText);
     }
@@ -55,7 +55,7 @@ export class PlaceDTO {
 
     static fromPlace(place: Place) {
         let id = place.id
-        let position = new Position(place.left!, place.top!)
+        let position = getAbsolutePosition(place)
         let initialMarking = place.tokens
         let infoText = place.infoText.text ?? ""
         return new this(id, position, initialMarking, infoText);
@@ -92,4 +92,16 @@ export class ArcDTO {
         this.text = text
         this.infoText = infoText
     }
+}
+
+export function getAbsolutePosition(obj: Place | Transition) {
+    let group = obj.group;
+    if (group == undefined) {
+        return new Position(obj.left!, obj.top!)
+    }
+
+    // consider relative position to the group center. A 0.5 constant is added by fabricJS..
+    const xOffset = group.left! + (group.width! / 2) - 0.5
+    const yOffset = group.top! + (group.height! / 2) - 0.5
+    return new Position(xOffset + obj.left!, yOffset + obj.top!)
 }

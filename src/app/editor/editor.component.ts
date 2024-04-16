@@ -4,8 +4,8 @@ import {Arc, Place, Text} from "../elements";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
-import {DrawingTools} from "../editor-toolbar/types";
-import {CanvasComponent, CanvasEvent, NetRenameEvent} from "../canvas/canvas.component";
+import {DrawingTools} from "../editor-toolbar/editor-toolbar.models";
+import {CanvasComponent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {v4 as uuidv4} from "uuid";
@@ -14,6 +14,8 @@ import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component
 import {createNetDTO} from "../export/export.component";
 import {EditorOpenRgDialogComponent} from "../editor-open-rg-dialog/editor-open-rg-dialog.component";
 import {EditorRgInfobarComponent} from "../editor-rg-infobar/editor-rg-infobar.component";
+import {CanvasEvent, NetRenameEvent} from "../canvas/shared/canvas.model";
+import {ClipboardService} from "./clipboard.service";
 
 export type NetChangedEvent = {
     id: string,
@@ -45,6 +47,8 @@ export class EditorComponent implements AfterViewInit {
 
     hideRGInfobar: boolean = true
 
+    clipboard: ClipboardService | undefined
+
 
     constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
@@ -63,6 +67,15 @@ export class EditorComponent implements AfterViewInit {
 
         this.id = this.initNet.id
         this.canvas.loadNet(this.initNet, this.initDirty);
+        this.clipboard = new ClipboardService(this.canvas)
+    }
+
+    copy() {
+        this.clipboard?.copy()
+    }
+
+    paste() {
+        this.clipboard?.paste()
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
@@ -92,11 +105,6 @@ export class EditorComponent implements AfterViewInit {
                     this.canvas.addTransition(x, y)
                     this.toolbar.usedTool()
                 }
-                break
-            }
-            case DrawingTools.GARBAGE: {
-                this.canvas.deleteObject(target)
-                this.toolbar.usedTool()
                 break
             }
             case DrawingTools.ARC: {
@@ -153,6 +161,14 @@ export class EditorComponent implements AfterViewInit {
 
         let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
         switch (tool) {
+            case DrawingTools.COPY:
+                this.copy()
+                this.toolbar.usedTool()
+                break;
+            case DrawingTools.PASTE:
+                this.paste()
+                this.toolbar.usedTool()
+                break;
             case DrawingTools.GARBAGE:
                 this.canvas.deleteCurrentSelection()
                 this.toolbar.usedTool()

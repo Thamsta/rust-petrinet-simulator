@@ -1,7 +1,7 @@
 import {Component, Input} from '@angular/core';
-import {NetCanvas} from "../canvas/canvas.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
+import {NetCanvas} from "../canvas/shared/canvas.model";
 
 @Component({
   selector: 'app-base-toolbar',

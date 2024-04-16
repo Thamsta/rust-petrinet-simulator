@@ -48,8 +48,11 @@
         <mat-icon fontSet="material-icons-outlined">help</mat-icon>
     </button>
 
-    <!-- hidden buttons for shortcuts -->
+    <!-- hidden buttons that are only accessible via shortcuts -->
 
+    <!-- copy / paste -->
+    <button hidden="hidden" appShortcut="Ctrl + C" (click)="select(DrawingTools.COPY)">Copy</button>
+    <button hidden="hidden" appShortcut="Ctrl + V" (click)="select(DrawingTools.PASTE)" [disabled]="editorLocked">Paste</button>
     <!-- delete -->
     <button hidden="hidden" appShortcut="Backspace" (click)="select(DrawingTools.GARBAGE)"><mat-icon fontSet="material-icons-outlined">delete</mat-icon></button>
     <button hidden="hidden" appShortcut="Delete" (click)="select(DrawingTools.GARBAGE)"><mat-icon fontSet="material-icons-outlined">delete</mat-icon></button>

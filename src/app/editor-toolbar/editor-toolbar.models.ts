@@ -1,5 +1,7 @@
 export enum DrawingTools {
     SELECT,
+    COPY,
+    PASTE,
     GARBAGE,
     TRANSITION,
     PLACE,
@@ -30,8 +32,4 @@ export function getDecIncValue(tool: DrawingTools): number {
     }
     
     return 0
-}
-
-export function isPlayerCommand(tool: DrawingTools): boolean {
-    return Object.values([DrawingTools.RUN, DrawingTools.STEP, DrawingTools.STOP, DrawingTools.PAUSE]).includes(tool)
 }
