@@ -107,11 +107,6 @@ export class EditorComponent implements AfterViewInit {
                 }
                 break
             }
-            case DrawingTools.GARBAGE: {
-                this.canvas.deleteObject(target)
-                this.toolbar.usedTool()
-                break
-            }
             case DrawingTools.ARC: {
                 let arc = this.canvas.addArcFromLastSelected(target)
                 if (arc != undefined) {
@@ -166,6 +161,14 @@ export class EditorComponent implements AfterViewInit {
 
         let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
         switch (tool) {
+            case DrawingTools.COPY:
+                this.copy()
+                this.toolbar.usedTool()
+                break;
+            case DrawingTools.PASTE:
+                this.paste()
+                this.toolbar.usedTool()
+                break;
             case DrawingTools.GARBAGE:
                 this.canvas.deleteCurrentSelection()
                 this.toolbar.usedTool()
