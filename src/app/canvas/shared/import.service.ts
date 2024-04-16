@@ -1,5 +1,5 @@
 import {CanvasComponent} from "../canvas.component";
-import {NetDTO} from "../../dtos";
+import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../../dtos";
 import {Place, Transition} from "../../elements";
 
 export class ImportService {
@@ -9,22 +9,29 @@ export class ImportService {
         this.canvas = canvas;
     }
 
-    loadNet(net: NetDTO, loadDirty: boolean): void {
+    loadNet(net: NetDTO): void {
+        this.loadElements(net.places, net.transitions, net.arcs, true)
+    }
+
+    loadElements(places: PlaceDTO[], transitions: TransitionDTO[], arcs: ArcDTO[], keepIds: boolean): (Place|Transition)[] {
         let map = new Map<string, Transition | Place>()
-        net.places.forEach(place => {
+
+        places.forEach(place => {
             let p = this.canvas.addPlace(place.position.x, place.position.y)
             p.setAmount(place.initialMarking)
-            p.id = place.id
             p.setInfoText(place.infoText)
-            map.set(p.id, p)
+            if (keepIds) p.id = place.id
+            map.set(place.id, p)
         })
-        net.transitions.forEach(transition => {
+
+        transitions.forEach(transition => {
             let t = this.canvas.addTransition(transition.position.x, transition.position.y)
-            t.id = transition.id
+            if(keepIds) t.id = transition.id
             t.setInfoText(transition.infoText)
-            map.set(t.id, t)
+            map.set(transition.id, t)
         })
-        net.arcs.forEach(arc => {
+
+        arcs.forEach(arc => {
             let from = map.get(arc.source)
             let to = map.get(arc.target)
 
@@ -32,8 +39,10 @@ export class ImportService {
             if (a == undefined) return;
 
             a.weight = +arc.text
-            a.id = arc.id
+            if (keepIds) a.id = arc.id
             a.setInfoText(arc.infoText)
         })
+
+        return Array.from(map.values())
     }
 }

@@ -7,3 +7,6 @@
     <!-- positioning of the overlay does not matter. -->
     <app-editor-rg-infobar [hidden]="hideRGInfobar" #infobar></app-editor-rg-infobar>
 </div>
+
+<button hidden="hidden" appShortcut="ctrl + C" (click)="copy()">Copy</button>
+<button hidden="hidden" appShortcut="ctrl + V" (click)="paste()">Paste</button>

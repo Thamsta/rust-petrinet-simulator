@@ -4,7 +4,7 @@ import {IEvent} from "fabric/fabric-impl"
 import {DrawingTools, getDecIncValue} from "../editor-toolbar/types"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
-import {NetDTO} from "../dtos";
+import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {gridEnabled, gridSize} from "../config";
@@ -287,13 +287,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	loadNet(net: NetDTO, loadDirty: boolean): void {
 		this.deleteAllElements()
 
-		this.importer.loadNet(net, loadDirty)
+		this.importer.loadNet(net)
 
 		this.id = net.id
 		this.isDirty = loadDirty
 		this.name = net.name
 		this.emitNameChange()
 		this.renderAll();
+	}
+
+	insertDTOs(places: PlaceDTO[], transitions: TransitionDTO[], arcs: ArcDTO[]) {
+		return this.importer.loadElements(places, transitions, arcs, false)
 	}
 
 	private modifiedNet(): void {

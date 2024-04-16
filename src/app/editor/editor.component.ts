@@ -15,6 +15,7 @@ import {createNetDTO} from "../export/export.component";
 import {EditorOpenRgDialogComponent} from "../editor-open-rg-dialog/editor-open-rg-dialog.component";
 import {EditorRgInfobarComponent} from "../editor-rg-infobar/editor-rg-infobar.component";
 import {CanvasEvent, NetRenameEvent} from "../canvas/shared/canvas.model";
+import {ClipboardService} from "./clipboard.service";
 
 export type NetChangedEvent = {
     id: string,
@@ -46,6 +47,8 @@ export class EditorComponent implements AfterViewInit {
 
     hideRGInfobar: boolean = true
 
+    clipboard: ClipboardService | undefined
+
 
     constructor(private dialog: MatDialog, private simulatorService: SimulatorService, private rgService: ReachabilityGraphService, private ngZone: NgZone) {
         simulatorService.simulationEmitter.subscribe(event => {
@@ -64,6 +67,16 @@ export class EditorComponent implements AfterViewInit {
 
         this.id = this.initNet.id
         this.canvas.loadNet(this.initNet, this.initDirty);
+        this.clipboard = new ClipboardService(this.canvas)
+    }
+
+    copy() {
+        console.log("Copying")
+        this.clipboard?.copy()
+    }
+
+    paste() {
+        this.clipboard?.paste()
     }
 
     private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
