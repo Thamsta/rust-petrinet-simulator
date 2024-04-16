@@ -267,12 +267,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	private onSelectCreate(e: IEvent<MouseEvent>) {
+	onSelectCreate(e: IEvent<MouseEvent>) {
 		let group = e.selected![0]!.group
 		if (group == undefined) {
 			return
 		}
 
+		this.handleGrouping(group)
+	}
+
+	handleGrouping(group: fabric.Group) {
+		console.log(group)
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
 			if (obj instanceof Arc || obj instanceof Place || obj instanceof Transition) {
@@ -280,7 +285,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			}
 		})
 
-        this.lastSelected = group
+		this.lastSelected = group
 		this.renderAll()
 	}
 

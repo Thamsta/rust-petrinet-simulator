@@ -1,6 +1,6 @@
 import {CanvasComponent} from "../canvas.component";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../../dtos";
-import {Place, Transition} from "../../elements";
+import {Arc, Place, Transition} from "../../elements";
 
 export class ImportService {
     private canvas: CanvasComponent;
@@ -13,8 +13,9 @@ export class ImportService {
         this.loadElements(net.places, net.transitions, net.arcs, true)
     }
 
-    loadElements(places: PlaceDTO[], transitions: TransitionDTO[], arcs: ArcDTO[], keepIds: boolean): (Place|Transition)[] {
+    loadElements(places: PlaceDTO[], transitions: TransitionDTO[], arcs: ArcDTO[], keepIds: boolean): (Place|Transition|Arc)[] {
         let map = new Map<string, Transition | Place>()
+        let loadedElements: (Place|Transition|Arc)[] = []
 
         places.forEach(place => {
             let p = this.canvas.addPlace(place.position.x, place.position.y)
@@ -22,6 +23,7 @@ export class ImportService {
             p.setInfoText(place.infoText)
             if (keepIds) p.id = place.id
             map.set(place.id, p)
+            loadedElements.push(p)
         })
 
         transitions.forEach(transition => {
@@ -29,6 +31,7 @@ export class ImportService {
             if(keepIds) t.id = transition.id
             t.setInfoText(transition.infoText)
             map.set(transition.id, t)
+            loadedElements.push(t)
         })
 
         arcs.forEach(arc => {
@@ -41,8 +44,9 @@ export class ImportService {
             a.weight = +arc.text
             if (keepIds) a.id = arc.id
             a.setInfoText(arc.infoText)
+            loadedElements.push(a)
         })
 
-        return Array.from(map.values())
+        return loadedElements
     }
 }
