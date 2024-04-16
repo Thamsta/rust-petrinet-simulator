@@ -6,7 +6,7 @@ mod tests {
 
     #[test]
     fn single_firing() {
-        // Simple net (1)-->[ ]
+        // Simple net (1)──>███
         let result = check_properties(vec![1], vec![vec![1]], vec![vec![0]]);
 
         let expected = ExpectedRGResponse {
@@ -23,7 +23,7 @@ mod tests {
 
     #[test]
     fn unbounded() {
-        // Unbounded net [ ]-->(1)
+        // Unbounded net ███──>(1)
         let result = check_properties(vec![1], vec![vec![0]], vec![vec![1]]);
 
         let expected = ExpectedRGResponse {
@@ -40,8 +40,8 @@ mod tests {
 
     #[test]
     fn circle() {
-        // Circle   ┌-->[ ]->(1)
-        //         (0)<-[ ]<--┘
+        // Circle   ┌──>███─>(1)
+        //         (0)<─███<──┘
         let result = check_properties(
             vec![0,1],
             vec![vec![0, 1], vec![1, 0]],
@@ -62,8 +62,8 @@ mod tests {
 
     #[test]
     fn circle_larger_marking() {
-        // Circle   ┌-->[ ]->(9)
-        //         (9)<-[ ]<--┘
+        // Circle   ┌──>███─>(9)
+        //         (9)<─███<──┘
         let result = check_properties(
             vec![9,9],
             vec![vec![0, 1], vec![1, 0]],
@@ -84,8 +84,8 @@ mod tests {
 
     #[test]
     fn circle_with_sink() {
-        // Circle   ┌-->[ ]->(1)-->[ ]-->(0)
-        //         (0)<-[ ]<--┘
+        // Circle   ┌──>███─>(1)──>███──>(0)
+        //         (0)<─███<──┘
         let result = check_properties(
             vec![0, 1, 0],
             vec![vec![0, 1, 0], vec![1, 0, 0], vec![0, 1, 0]],
@@ -134,8 +134,8 @@ mod tests {
 
     #[test]
     fn bounded_reversible() {
-        // Circle   ┌-->[ ]->(1)   [ ]<--(0)
-        //         (0)<-[ ]<--┘
+        // Circle   ┌──>███─>(1)   ███<──(0)
+        //         (0)<─███<──┘
 
         let result = check_properties(
             vec![0, 1, 0],
