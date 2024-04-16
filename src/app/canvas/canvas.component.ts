@@ -277,7 +277,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	handleGrouping(group: fabric.Group) {
-		console.log(group)
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
 			if (obj instanceof Arc || obj instanceof Place || obj instanceof Transition) {
