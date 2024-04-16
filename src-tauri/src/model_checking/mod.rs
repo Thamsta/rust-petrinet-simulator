@@ -3,6 +3,7 @@ use std::time::Instant;
 use crate::common::*;
 
 mod coverability;
+mod mod_test;
 mod properties;
 mod reachability;
 

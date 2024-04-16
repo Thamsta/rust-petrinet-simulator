@@ -26,7 +26,12 @@ fn simulate_start(
     transition_outputs: InputMatrix,
     update_time: i16,
 ) -> Result<SimulationResponse, String> {
-    return simulator::start_simulation(marking, transition_inputs, transition_outputs, update_time as u128);
+    return simulator::start_simulation(
+        marking,
+        transition_inputs,
+        transition_outputs,
+        update_time as u128,
+    );
 }
 
 #[tauri::command]
