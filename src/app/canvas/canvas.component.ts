@@ -8,34 +8,9 @@ import {NetDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {gridEnabled, gridSize} from "../config";
-
-export interface NetCanvas {
-	name: string
-	id: string
-	getAllElements(): Object[]
-
-    getTransitions(): Transition[]
-    getPlaces(): Place[]
-    getArcs(): Arc[]
-
-	/**
-	 * Wipes the canvas and loads the given net
-	 * @param net The net to be loaded
-	 * @param loadDirty Whether the net should immediately be considered dirty
-	 */
-	loadNet(net: NetDTO, loadDirty: boolean): void
-	savedNet(name: string): void
-}
-
-export type CanvasEvent = {
-    type: string
-    source: IEvent<MouseEvent>
-}
-
-export type NetRenameEvent = {
-	name: string
-	dirty: boolean
-}
+import {ElementNameHandler} from "./shared/elementNameHandler";
+import {CanvasEvent, NetCanvas, NetRenameEvent} from "./shared/canvas.model";
+import {ElementCache} from "./shared/elementCache";
 
 /**
  * A wrapper class around an HTML canvas that is enriched with knowledge about Petri nets.
@@ -55,8 +30,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	isLocked = false
 	isDeadlocked = false // show notice on canvas if deadlocked
-    places: Place[] = [] // cache places ands transitions while locked.
-    transitions: Transition[] = []
+	elementCache = new ElementCache()
 
     namesAreDisplayed = false
     nameHandler = new ElementNameHandler()
@@ -76,10 +50,10 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         // mouse:down is a special event
 		this.canvas.on('mouse:down', e => this.onClick(e))
 
-	    this.canvas.on('selection:created', e => this.selectCreate(e))
-	    this.canvas.on('selection:cleared', e => this.selectClear(e))
-	    this.canvas.on('object:moving', e => this.objectMoving(e))
-	    this.canvas.on('object:modified', e => this.objectModified(e))
+	    this.canvas.on('selection:created', e => this.onSelectCreate(e))
+	    this.canvas.on('selection:cleared', e => this.onSelectClear(e))
+	    this.canvas.on('object:moving', e => this.onObjectMoving(e))
+	    this.canvas.on('object:modified', e => this.onObjectModified(e))
 		window.addEventListener('resize', this.onWindowResize)
     }
 
@@ -104,6 +78,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	private onClick(event: IEvent<MouseEvent>) {
 		if (this.isLocked) {
+			// ignore all clicks when the editor is locked.
 			return
 		}
 
@@ -192,7 +167,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         this.renderAll()
     }
 
-	private selectClear(_: IEvent<MouseEvent>) {
+	private onSelectClear(_: IEvent<MouseEvent>) {
 		// after a group was disbanded, update text position of places.
         let [places, transitions] = this.getPlacesAndTransitions()
 		places.forEach(obj => obj.updateTextPosition())
@@ -201,7 +176,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	private objectMoving(e: IEvent<MouseEvent>) {
+	private onObjectMoving(e: IEvent<MouseEvent>) {
 		let target = e.target!
 		if (target instanceof fabric.Group) {
 			// TODO: fix grid placement for groups
@@ -237,8 +212,8 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
     getPlacesAndTransitions(): [Place[], Transition[]] {
-        if (this.isLocked) {
-            return [this.places, this.transitions]
+        if (this.elementCache.isActive) {
+			return this.elementCache.getElements()
         }
 		let objects = this.canvas.getObjects()
 		let places: Place[] = []
@@ -264,8 +239,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.canvas.setBackgroundColor(canvas_color_simulating, () => {
 			this.renderAll()
 		})
-        this.places = places
-        this.transitions = transitions
+		this.elementCache.cache(places, transitions)
 	}
 
 	unlock() {
@@ -274,8 +248,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.canvas.setBackgroundColor(canvas_color, () => {
 		})
 		this.isLocked = false
-        this.places = []
-        this.transitions = []
+		this.elementCache.flush()
 
 		this.renderAll()
 	}
@@ -287,15 +260,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		for (let i = 0; i < places.length; i++) {
 			places[i].setAmount(p[i])
 		}
-
-		this.renderAll()
-	}
-
-	private resetTransitionHeat() {
-		let transitions = this.getTransitions()
-		transitions.forEach(transition => {
-			transition.set({fill: fill_color})
-		})
 
 		this.renderAll()
 	}
@@ -313,7 +277,16 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	private selectCreate(e: IEvent<MouseEvent>) {
+	private resetTransitionHeat() {
+		let transitions = this.getTransitions()
+		transitions.forEach(transition => {
+			transition.set({fill: fill_color})
+		})
+
+		this.renderAll()
+	}
+
+	private onSelectCreate(e: IEvent<MouseEvent>) {
 		let group = e.selected![0]!.group
 		if (group == undefined) {
 			return
@@ -431,7 +404,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-    private objectModified(e: IEvent<MouseEvent>) {
+    private onObjectModified(e: IEvent<MouseEvent>) {
         if (e.target instanceof Text) {
             e.target.updateFromText()
 			this.modifiedNet()
@@ -451,20 +424,5 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         }
 
         return [this.lastSelected]
-    }
-}
-
-class ElementNameHandler {
-    place = 0
-    transition = 0
-
-    getNextPlaceName(): string {
-        this.place++
-        return "p" + this.place
-    }
-
-    getNextTransitionName(): string {
-        this.transition++
-        return "t" + this.transition
     }
 }

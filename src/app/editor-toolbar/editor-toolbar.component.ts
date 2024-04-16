@@ -1,10 +1,10 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {DrawingTools} from './types';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
-import {NetCanvas} from "../canvas/canvas.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {EditorTooltipsComponent} from "../editor-tooltips/editor-tooltips.component";
+import {NetCanvas} from "../canvas/shared/canvas.model";
 
 export const tooltipDelays: MatTooltipDefaultOptions = {
     showDelay: 400,

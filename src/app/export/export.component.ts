@@ -1,12 +1,12 @@
 import {Component, Input} from '@angular/core';
 import {save} from "@tauri-apps/api/dialog";
 import {writeTextFile} from "@tauri-apps/api/fs";
-import {NetCanvas} from "../canvas/canvas.component";
 import {Arc, Place, Transition} from "../elements";
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {PnmlExporterService} from "../pnml/pnml-exporter.service";
 import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
 import {path} from "@tauri-apps/api";
+import {NetCanvas} from "../canvas/shared/canvas.model";
 
 /**
  * This component is responsible for exporting the content that is currently visible into a file.

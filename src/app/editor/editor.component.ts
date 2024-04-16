@@ -5,7 +5,7 @@ import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
 import {DrawingTools} from "../editor-toolbar/types";
-import {CanvasComponent, CanvasEvent, NetRenameEvent} from "../canvas/canvas.component";
+import {CanvasComponent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {v4 as uuidv4} from "uuid";
@@ -14,6 +14,7 @@ import {EditorToolbarComponent} from "../editor-toolbar/editor-toolbar.component
 import {createNetDTO} from "../export/export.component";
 import {EditorOpenRgDialogComponent} from "../editor-open-rg-dialog/editor-open-rg-dialog.component";
 import {EditorRgInfobarComponent} from "../editor-rg-infobar/editor-rg-infobar.component";
+import {CanvasEvent, NetRenameEvent} from "../canvas/shared/canvas.model";
 
 export type NetChangedEvent = {
     id: string,
