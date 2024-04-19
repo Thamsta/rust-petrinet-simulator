@@ -7,6 +7,10 @@
     <button appShortcut="S" matTooltip="Select (S)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.SELECT ? 'accent' : 'default' }}" (click)="select(DrawingTools.SELECT)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">mouse</mat-icon>
     </button>
+    <app-coloring></app-coloring>
+
+    <mat-divider vertical></mat-divider>
+
     <button appShortcut="P" matTooltip="Add Place (P)" mat-icon-button class="material-symbols-outlined" color="{{ selected == DrawingTools.PLACE ? 'accent' : 'default' }}" aria-label="Place" (click)="select(DrawingTools.PLACE)" [disabled]="editorLocked">
         <mat-icon fontSet="material-icons-outlined">circle_outline</mat-icon>
     </button>

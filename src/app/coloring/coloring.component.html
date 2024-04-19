@@ -1,0 +1,22 @@
+<button appShortcut="C" matTooltip="Color (C)" mat-icon-button class="material-symbols-outlined"
+        (click)="isOpen = !isOpen"
+        type="button" cdkOverlayOrigin #trigger="cdkOverlayOrigin">
+    <mat-icon fontSet="material-icons-outlined">format_color_fill</mat-icon>
+</button>
+
+<ng-template #colorPicker
+             cdkConnectedOverlay
+             [cdkConnectedOverlayOrigin]="trigger"
+             [cdkConnectedOverlayOpen]="isOpen">
+    <div class="example-list">
+        <button class="color-picker" style="background-color: #fcffcc;" (click)="selectColor('#fcffcc')"></button>
+        <button class="color-picker" style="background-color: #ffccce;" (click)="selectColor('#ffccce')"></button>
+        <button class="color-picker" style="background-color: #ccebff;" (click)="selectColor('#ccebff')"></button>
+        <button class="color-picker" style="background-color: #cfc;" (click)="selectColor('#cfc')"></button>
+        <br />
+        <button class="color-picker" style="background-color: #f8ccff;" (click)="selectColor('#f8ccff')"></button>
+        <button class="color-picker" style="background-color: #ffe9cc;" (click)="selectColor('#ffe9cc')"></button>
+        <button class="color-picker" style="background-color: #d9ffcc;" (click)="selectColor('#d9ffcc')"></button>
+        <button class="color-picker" style="background-color: #ccffff;" (click)="selectColor('#ccffff')"></button>
+    </div>
+</ng-template>

@@ -48,6 +48,11 @@ interface WithInfoText {
     setInfoText(text: string): void
 }
 
+interface Colorizable {
+    setColor(color: string): void
+    resetColor(): void
+}
+
 /**
  * A point of cartesian coordinates.
  * @interface
@@ -152,7 +157,7 @@ const nameTextOptions = {
  * @class
  * @implements Removable
  */
-export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText {
+export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText, Colorizable {
     id = uuidv4();
 
     arcs: Connectable = new Connectable()
@@ -169,6 +174,13 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
         this.nameText = new NameText(name, this)
         this.updateTextPosition()
         canvas.add(this.infoText, this.nameText, this)
+    }
+
+    setColor(color: string): void {
+        this.fill = color
+    }
+    resetColor(): void {
+        this.fill = fill_color
     }
 
     setInfoText(text: string): void {
