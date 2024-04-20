@@ -155,7 +155,7 @@ const nameTextOptions = {
 /**
  * Represents a Transition
  * @class
- * @implements Removable
+ * @implements {Removable, Groupable, WithInfoText, Colorizable}
  */
 export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText, Colorizable {
     id = uuidv4();
@@ -231,7 +231,7 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
 /**
  * Represents a Place. Has a number of tokens which can be changed.
  * @class
- * @implements {Removable, Countable, Groupable}
+ * @implements {Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable}
  */
 export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable {
     id = uuidv4();
