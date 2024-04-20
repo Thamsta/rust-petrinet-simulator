@@ -1,4 +1,5 @@
-![release](https://github.com/Thamsta/rust-petrinet-simulator/actions/workflows/rust.yml/badge.svg?branch=main)
+![build](https://github.com/Thamsta/rust-petrinet-simulator/actions/workflows/rust.yml/badge.svg?branch=main)
+![release](https://img.shields.io/github/v/release/Thamsta/rust-petrinet-simulator?display_name=release&sort=semver)
 
 # RustNet Simulator
 A modern and lightweight open source Petri net editor. Open, edit, simulate P/T-nets, generate and visualize their state
