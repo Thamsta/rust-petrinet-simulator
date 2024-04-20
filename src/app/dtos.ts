@@ -32,18 +32,21 @@ export class TransitionDTO {
     id: string
     position: Position
     infoText: string
+    color: string
 
     static fromTransition(transition: Transition) {
         let id = transition.id
         let position = getAbsolutePosition(transition)
         let infoText = transition.infoText.text ?? ""
-        return new this(id, position, infoText);
+        let color = transition.color
+        return new this(id, position, infoText, color);
     }
 
-    constructor(id: string, position: Position, infoText: string) {
+    constructor(id: string, position: Position, infoText: string, color: string) {
         this.id = id;
         this.position = position;
-        this.infoText = infoText
+        this.infoText = infoText;
+        this.color = color
     }
 }
 
@@ -52,20 +55,23 @@ export class PlaceDTO {
     position: Position
     initialMarking: number
     infoText: string
+    color: string
 
     static fromPlace(place: Place) {
         let id = place.id
         let position = getAbsolutePosition(place)
         let initialMarking = place.tokens
         let infoText = place.infoText.text ?? ""
-        return new this(id, position, initialMarking, infoText);
+        let color = place.fill as string
+        return new this(id, position, initialMarking, infoText, color);
     }
 
-    constructor(id: string, position: Position, initialMarking: number, infoText: string) {
+    constructor(id: string, position: Position, initialMarking: number, infoText: string, color: string) {
         this.id = id;
         this.position = position;
         this.initialMarking = initialMarking;
         this.infoText = infoText;
+        this.color = color;
     }
 }
 

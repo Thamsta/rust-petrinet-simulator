@@ -21,6 +21,7 @@ export class ImportService {
             let p = this.canvas.addPlace(place.position.x, place.position.y)
             p.setAmount(place.initialMarking)
             p.setInfoText(place.infoText)
+            p.setColor(place.color)
             if (keepIds) p.id = place.id
             map.set(place.id, p)
             loadedElements.push(p)
@@ -30,6 +31,7 @@ export class ImportService {
             let t = this.canvas.addTransition(transition.position.x, transition.position.y)
             if(keepIds) t.id = transition.id
             t.setInfoText(transition.infoText)
+            t.setColor(transition.color)
             map.set(transition.id, t)
             loadedElements.push(t)
         })
