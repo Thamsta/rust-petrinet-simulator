@@ -3,7 +3,7 @@ import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {DrawingTools, getDecIncValue} from "../editor-toolbar/editor-toolbar.models"
 import {Arc, baseOptions, Place, Text, Transition} from "../elements"
-import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
+import {canvas_color, canvas_color_simulating, toHeatColor} from "../colors"
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
@@ -226,8 +226,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	unlock() {
 		this.isDeadlocked = false
 		this.resetTransitionHeat()
-		this.canvas.setBackgroundColor(canvas_color, () => {
-		})
+		this.canvas.setBackgroundColor(canvas_color, () => {})
 		this.isLocked = false
 		this.elementCache.flush()
 
@@ -261,7 +260,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	private resetTransitionHeat() {
 		let transitions = this.getTransitions()
 		transitions.forEach(transition => {
-			transition.set({fill: fill_color})
+			transition.set({fill: transition.color})
 		})
 
 		this.renderAll()

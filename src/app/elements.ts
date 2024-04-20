@@ -164,6 +164,8 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     infoText: InfoText
     nameText: NameText
 
+    color: string = fill_color
+
     constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
         super({
             left: x,
@@ -177,16 +179,18 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     }
 
     setColor(color: string): void {
+        this.color = color
         // @ts-ignore
         this.set({
-            fill: color
+            fill: this.color
         })
     }
 
     resetColor(): void {
+        this.color = fill_color
         // @ts-ignore
         this.set({
-            fill: fill_color
+            fill: this.color
         })
     }
 
