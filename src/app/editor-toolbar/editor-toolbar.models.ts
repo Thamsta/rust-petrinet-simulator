@@ -1,5 +1,6 @@
 export enum DrawingTools {
     SELECT,
+    COLOR,
     COPY,
     PASTE,
     GARBAGE,

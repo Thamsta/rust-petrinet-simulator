@@ -1,10 +1,11 @@
-import {Component, EventEmitter, Input, Output} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {DrawingTools} from './editor-toolbar.models';
 import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {EditorTooltipsComponent} from "../editor-tooltips/editor-tooltips.component";
 import {NetCanvas} from "../canvas/shared/canvas.model";
+import {ColoringComponent} from "../coloring/coloring.component";
 
 export const tooltipDelays: MatTooltipDefaultOptions = {
     showDelay: 400,
@@ -33,6 +34,9 @@ export class EditorToolbarComponent {
     @Input() canvas!: NetCanvas; // for exporting the net
     @Input() windowManager!: WindowManagerComponent
 
+    @ViewChild('color')
+    colorPicker!: ColoringComponent
+
     ctrlPressed = false
     // tools which should be kept in selection if conditions are met
     keepableTools = [DrawingTools.PLACE, DrawingTools.TRANSITION, DrawingTools.ARC]
@@ -47,7 +51,7 @@ export class EditorToolbarComponent {
     }
 
     select(selected: DrawingTools) {
-        this.selected = selected;
+        this.selected = selected
 
         this.controlEmitter.emit(selected)
         if (selected == DrawingTools.STOP || selected == DrawingTools.RG) {
@@ -67,6 +71,10 @@ export class EditorToolbarComponent {
         }
 
         this.reset()
+    }
+
+    getCurrentlySelectedColor() {
+        return this.colorPicker.color
     }
 
     lockEditor() {

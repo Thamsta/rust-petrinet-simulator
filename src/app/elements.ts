@@ -177,10 +177,17 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     }
 
     setColor(color: string): void {
-        this.fill = color
+        // @ts-ignore
+        this.set({
+            fill: color
+        })
     }
+
     resetColor(): void {
-        this.fill = fill_color
+        // @ts-ignore
+        this.set({
+            fill: fill_color
+        })
     }
 
     setInfoText(text: string): void {
@@ -226,7 +233,7 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
  * @class
  * @implements {Removable, Countable, Groupable}
  */
-export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText {
+export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable {
     id = uuidv4();
 
     tokens= 0
@@ -255,6 +262,20 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         canvas.bringToFront(this.infoText)
         canvas.bringToFront(this.nameText)
         canvas.bringToFront(this.tokenText)
+    }
+
+    setColor(color: string): void {
+        // @ts-ignore
+        this.set({
+            fill: color
+        })
+    }
+
+    resetColor(): void {
+        // @ts-ignore
+        this.set({
+            fill: fill_color
+        })
     }
 
     setInfoText(text: string): void {
