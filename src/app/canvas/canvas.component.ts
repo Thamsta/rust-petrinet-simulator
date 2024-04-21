@@ -2,8 +2,8 @@ import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} f
 import {fabric} from 'fabric'
 import {IEvent} from "fabric/fabric-impl"
 import {DrawingTools, getDecIncValue} from "../editor-toolbar/editor-toolbar.models"
-import {Arc, baseOptions, Place, Text, Transition} from "../elements"
-import {canvas_color, canvas_color_simulating, fill_color, toHeatColor} from "../colors"
+import {Arc, baseOptions, isNetElement, NetElement, Place, Text, Transition} from "../elements"
+import {canvas_color, canvas_color_simulating, toHeatColor} from "../colors"
 import {ArcDTO, NetDTO, PlaceDTO, TransitionDTO} from "../dtos";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
@@ -143,11 +143,12 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			this.lastSelected = undefined
 		}
 
+		this.canvas.discardActiveObject()
         this.renderAll()
     }
 
 	deleteObject(obj: fabric.Object | undefined) {
-		if (obj instanceof Place || obj instanceof Transition || obj instanceof Arc) {
+		if (isNetElement(obj)) {
 			obj.remove(this.canvas)
 		}
 		if (obj && this.lastSelected == obj) {
@@ -226,8 +227,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	unlock() {
 		this.isDeadlocked = false
 		this.resetTransitionHeat()
-		this.canvas.setBackgroundColor(canvas_color, () => {
-		})
+		this.canvas.setBackgroundColor(canvas_color, () => {})
 		this.isLocked = false
 		this.elementCache.flush()
 
@@ -261,7 +261,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	private resetTransitionHeat() {
 		let transitions = this.getTransitions()
 		transitions.forEach(transition => {
-			transition.set({fill: fill_color})
+			transition.set({fill: transition.color})
 		})
 
 		this.renderAll()
@@ -273,19 +273,35 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			return
 		}
 
-		this.handleGrouping(group)
+		let objects = group.getObjects().filter(it => isNetElement(it))
+		if (objects.length == group.getObjects().length) {
+			this.handleGrouping(group)
+			return
+		}
+
+		// if the group contained more than net elements, the bounds are calculated weirdly.
+		// thus, we recreate the group only with NetElements.
+		this.canvas.discardActiveObject()
+
+		let activeSelection = new fabric.ActiveSelection(objects);
+		activeSelection.canvas = this.canvas
+		activeSelection.setCoords()
+
+		this.canvas.setActiveObject(activeSelection)
 	}
 
 	handleGrouping(group: fabric.Group) {
+		console.log("called handleGrouping")
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
-			if (obj instanceof Arc || obj instanceof Place || obj instanceof Transition) {
+			if (isNetElement(obj)) {
 				obj.handleGrouping(group!)
 			}
 		})
 
 		this.lastSelected = group
 		this.renderAll()
+		// TODO: potentially delete and re-create group to fix bounds.
 	}
 
 	loadNet(net: NetDTO, loadDirty: boolean): void {
@@ -324,9 +340,10 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		})
 	}
 
-	getAllElements(): Object[] {
+	getAllElements(): NetElement[] {
 		return this.canvas.getObjects()
-			.filter(value => [Transition, Place, Arc].some(clazz => value instanceof clazz))
+			.filter(obj => isNetElement(obj))
+			.map(obj => obj as NetElement)
 	}
 
 	getPlacesAndTransitions(): [Place[], Transition[]] {

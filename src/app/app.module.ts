@@ -28,6 +28,8 @@ import {ImportDuplicateDialogComponent} from './import-duplicate-dialog/import-d
 import {CloseUnsavedDialogComponent} from './close-unsaved-dialog/close-unsaved-dialog.component';
 import {EditorRgInfobarComponent} from './editor-rg-infobar/editor-rg-infobar.component';
 import {EditorOpenRgDialogComponent} from './editor-open-rg-dialog/editor-open-rg-dialog.component';
+import {ColoringComponent} from './coloring/coloring.component';
+import {CdkConnectedOverlay, CdkOverlayOrigin} from "@angular/cdk/overlay";
 
 @NgModule({
     declarations: [
@@ -47,6 +49,7 @@ import {EditorOpenRgDialogComponent} from './editor-open-rg-dialog/editor-open-r
         CloseUnsavedDialogComponent,
         EditorRgInfobarComponent,
         EditorOpenRgDialogComponent,
+        ColoringComponent,
     ],
     imports: [
         BrowserModule,
@@ -60,7 +63,9 @@ import {EditorOpenRgDialogComponent} from './editor-open-rg-dialog/editor-open-r
         MatDialogModule,
         MatCheckboxModule,
         FormsModule,
-        MatTableModule
+        MatTableModule,
+        CdkOverlayOrigin,
+        CdkConnectedOverlay
     ],
     providers: [],
     bootstrap: [AppComponent]

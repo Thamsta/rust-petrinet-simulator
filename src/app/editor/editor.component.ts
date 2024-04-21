@@ -1,6 +1,6 @@
 import {AfterViewInit, Component, EventEmitter, Input, NgZone, Output, ViewChild} from '@angular/core';
 import {fabric} from "fabric";
-import {Arc, Place, Text} from "../elements";
+import {Arc, Place, Text, Transition} from "../elements";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
 import {IEvent} from "fabric/fabric-impl";
@@ -161,6 +161,18 @@ export class EditorComponent implements AfterViewInit {
 
         let [p, pxt_in, pxt_out] = this.getNetAsMatrix()
         switch (tool) {
+            case DrawingTools.COLOR:
+                let color = this.toolbar.getCurrentlySelectedColor();
+                this.canvas.getCurrentSelected().forEach(it => {
+                    console.log(it)
+                    if (it instanceof Place || it instanceof Transition) {
+                        it.setColor(color)
+                    }
+                })
+                this.canvas.renderAll()
+                this.canvas.canvas.renderAll()
+                this.toolbar.usedTool()
+                break;
             case DrawingTools.COPY:
                 this.copy()
                 this.toolbar.usedTool()
