@@ -1,6 +1,6 @@
 import {fabric} from "fabric";
 import {v4 as uuidv4} from "uuid";
-import {fill_color, line_color} from "./colors";
+import {fill_color, inverse_text_color, line_color, text_color} from "./colors";
 import {Canvas} from "fabric/fabric-impl";
 import {scale} from "./config";
 
@@ -277,6 +277,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         this.set({
             fill: color
         })
+        this.updateTextColor()
     }
 
     resetColor(): void {
@@ -284,6 +285,11 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         this.set({
             fill: fill_color
         })
+        this.updateTextColor()
+    }
+
+    private updateTextColor() {
+        this.tokenText.updateTextColor(this.fill == "#000000")
     }
 
     setInfoText(text: string): void {
@@ -572,6 +578,13 @@ export class Text extends fabric.IText {
 
     updateFromText() {
         this.parent.updateTextFromString(this.text ? this.text : "");
+    }
+
+    updateTextColor(inverted: boolean) {
+        // @ts-ignore
+        this.set({
+            fill: inverted ? inverse_text_color : text_color
+        })
     }
 }
 
