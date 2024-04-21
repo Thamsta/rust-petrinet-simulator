@@ -143,6 +143,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			this.lastSelected = undefined
 		}
 
+		this.canvas.discardActiveObject()
         this.renderAll()
     }
 
