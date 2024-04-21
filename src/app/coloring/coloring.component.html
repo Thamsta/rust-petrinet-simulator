@@ -1,0 +1,16 @@
+<button appShortcut="C" matTooltip="Color (C)" mat-icon-button class="material-symbols-outlined"
+        (click)="isOpen = !isOpen"
+        type="button" cdkOverlayOrigin #trigger="cdkOverlayOrigin">
+    <mat-icon fontSet="material-icons-outlined">format_color_fill</mat-icon>
+</button>
+
+<ng-template cdkConnectedOverlay
+             [cdkConnectedOverlayOrigin]="trigger"
+             [cdkConnectedOverlayOpen]="isOpen">
+    <div class="color-list">
+        <span *ngFor="let color of COLORS; let i = index">
+            <button class="color-picker" style="background-color: {{ color }};" (click)="selectColor(color)"></button>
+            <br *ngIf="(i + 1) % 5 === 0 && i !== COLORS.length - 1">
+        </span>
+    </div>
+</ng-template>

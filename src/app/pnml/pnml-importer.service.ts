@@ -10,6 +10,7 @@ import {
 } from "./types";
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {Parser} from "xml2js";
+import {fill_color} from "../colors";
 
 export class PnmlImporterService {
 
@@ -67,7 +68,7 @@ export class PnmlImporterService {
         let initialMarking = this.getMarking(pnmlPlace.initialMarking)
         let inscription = ""
         this.idToUUIDMap.set(pnmlPlace.$.id, uuid)
-        return new PlaceDTO(uuid, position, initialMarking, inscription)
+        return new PlaceDTO(uuid, position, initialMarking, inscription, fill_color)
     }
 
     private getMarking(initialMarking: PnmlInitialMarking[] | undefined): number {
@@ -89,18 +90,19 @@ export class PnmlImporterService {
         let position = this.createPosition(pnmlTransition.graphics[0])
         let inscription = this.getTransitionInscription(pnmlTransition)
         this.idToUUIDMap.set(pnmlTransition.$.id, uuid)
-        return new TransitionDTO(uuid, position, inscription)
+        return new TransitionDTO(uuid, position, inscription, fill_color)
     }
 
     private getTransitionInscription(pnmlTransition: PnmlTransition): string {
-        // TODO: what if a transition is both up- and downlink?
+        let inscription = ""
         if (pnmlTransition.downlink) {
-            return pnmlTransition.downlink[0].text[0]
+            inscription += pnmlTransition.downlink[0].text[0]
         }
         if (pnmlTransition.uplink) {
-            return pnmlTransition.uplink[0].text[0]
+            if (inscription != "") inscription += "\n"
+            inscription += pnmlTransition.uplink[0].text[0]
         }
-        return ""
+        return inscription
     }
 
     private createArcs(pnmlArcs: PnmlArc[]): ArcDTO[] {

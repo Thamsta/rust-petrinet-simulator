@@ -10,6 +10,7 @@ import {MatDialog} from "@angular/material/dialog";
 import {SimulatorService} from "../simulator/simulator.service";
 import {EditorComponent} from "../editor/editor.component";
 import {CloseUnsavedDialogComponent} from "../close-unsaved-dialog/close-unsaved-dialog.component";
+import {fill_color} from "../colors";
 
 /**
  * The window manager is the outermost component of the tool and contains all other components that should be treated
@@ -161,8 +162,8 @@ export class WindowManagerComponent {
     }
 
     sampleNetDTO(): NetDTO {
-        let p = new PlaceDTO(uuidv4(), new Position(150, 200), 1, "");
-        let t = new TransitionDTO(uuidv4(), new Position(350, 200), "");
+        let p = new PlaceDTO(uuidv4(), new Position(150, 200), 1, "", fill_color);
+        let t = new TransitionDTO(uuidv4(), new Position(350, 200), "", fill_color);
         let a = new ArcDTO(uuidv4(), p.id, t.id, "1", "")
         return new NetDTO(uuidv4(), "pt-net", "net", [p], [t], [a])
     }

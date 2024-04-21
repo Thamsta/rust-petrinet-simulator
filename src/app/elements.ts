@@ -1,10 +1,14 @@
 import {fabric} from "fabric";
 import {v4 as uuidv4} from "uuid";
-import {fill_color, line_color} from "./colors";
+import {fill_color, inverse_text_color, line_color, text_color} from "./colors";
 import {Canvas} from "fabric/fabric-impl";
 import {scale} from "./config";
 
 export type NetElement = Place | Transition | Arc
+
+export function isNetElement(object: any): object is NetElement {
+    return (object instanceof Place || object instanceof Transition || object instanceof Arc)
+}
 
 /**
  * Represents an element that can be included in a group selection and
@@ -46,6 +50,11 @@ interface TextEditable {
  */
 interface WithInfoText {
     setInfoText(text: string): void
+}
+
+interface Colorizable {
+    setColor(color: string): void
+    resetColor(): void
 }
 
 /**
@@ -150,14 +159,16 @@ const nameTextOptions = {
 /**
  * Represents a Transition
  * @class
- * @implements Removable
+ * @implements {Removable, Groupable, WithInfoText, Colorizable}
  */
-export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText {
+export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText, Colorizable {
     id = uuidv4();
 
     arcs: Connectable = new Connectable()
     infoText: InfoText
     nameText: NameText
+
+    color: string = fill_color
 
     constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
         super({
@@ -169,6 +180,22 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
         this.nameText = new NameText(name, this)
         this.updateTextPosition()
         canvas.add(this.infoText, this.nameText, this)
+    }
+
+    setColor(color: string): void {
+        this.color = color
+        // @ts-ignore
+        this.set({
+            fill: this.color
+        })
+    }
+
+    resetColor(): void {
+        this.color = fill_color
+        // @ts-ignore
+        this.set({
+            fill: this.color
+        })
     }
 
     setInfoText(text: string): void {
@@ -212,9 +239,9 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
 /**
  * Represents a Place. Has a number of tokens which can be changed.
  * @class
- * @implements {Removable, Countable, Groupable}
+ * @implements {Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable}
  */
-export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText {
+export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable {
     id = uuidv4();
 
     tokens= 0
@@ -243,6 +270,26 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         canvas.bringToFront(this.infoText)
         canvas.bringToFront(this.nameText)
         canvas.bringToFront(this.tokenText)
+    }
+
+    setColor(color: string): void {
+        // @ts-ignore
+        this.set({
+            fill: color
+        })
+        this.updateTextColor()
+    }
+
+    resetColor(): void {
+        // @ts-ignore
+        this.set({
+            fill: fill_color
+        })
+        this.updateTextColor()
+    }
+
+    private updateTextColor() {
+        this.tokenText.updateTextColor(this.fill == "#000000")
     }
 
     setInfoText(text: string): void {
@@ -531,6 +578,13 @@ export class Text extends fabric.IText {
 
     updateFromText() {
         this.parent.updateTextFromString(this.text ? this.text : "");
+    }
+
+    updateTextColor(inverted: boolean) {
+        // @ts-ignore
+        this.set({
+            fill: inverted ? inverse_text_color : text_color
+        })
     }
 }
 

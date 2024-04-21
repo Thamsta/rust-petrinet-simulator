@@ -2,6 +2,8 @@ import * as chroma from "chroma-js";
 
 export const line_color = '#282828'
 export const fill_color = '#ffffff'
+export const text_color = '#000000'
+export const inverse_text_color = '#ffffff'
 export const canvas_color = '#ffffff'
 export const canvas_color_simulating = '#f6f4eb'
 
