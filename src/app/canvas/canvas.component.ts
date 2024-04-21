@@ -68,10 +68,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	private setupCanvas = () => {
-		this.canvas.setDimensions({
-			width: window.innerWidth,
-			height: window.innerHeight - BaseToolbarComponent.height - WindowManagerComponent.height
-		})
+		this.onWindowResize()
 		this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
 
 		// extra canvas settings
@@ -273,7 +270,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			return
 		}
 
-		let objects = group.getObjects().filter(it => isNetElement(it))
+		let objects = group.getObjects().filter(it => it instanceof Place || it instanceof Transition)
 		if (objects.length == group.getObjects().length) {
 			this.handleGrouping(group)
 			return
@@ -301,7 +298,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 		this.lastSelected = group
 		this.renderAll()
-		// TODO: potentially delete and re-create group to fix bounds.
 	}
 
 	loadNet(net: NetDTO, loadDirty: boolean): void {
