@@ -54,7 +54,6 @@ export class ClipboardService {
         activeSelection.setCoords()
 
         this.canvas.canvas.setActiveObject(activeSelection)
-        this.canvas.handleGrouping(addedElements[0].group!)
         this.canvas.renderAll()
 
         this.moveClipboard()

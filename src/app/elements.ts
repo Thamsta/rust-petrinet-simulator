@@ -6,6 +6,10 @@ import {scale} from "./config";
 
 export type NetElement = Place | Transition | Arc
 
+export function isNetElement(object: any): object is NetElement {
+    return (object instanceof Place || object instanceof Transition || object instanceof Arc)
+}
+
 /**
  * Represents an element that can be included in a group selection and
  * has special behaviour that needs to be considered when it is added

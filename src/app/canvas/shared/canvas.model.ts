@@ -1,11 +1,11 @@
-import {Arc, Place, Transition} from "../../elements";
+import {Arc, NetElement, Place, Transition} from "../../elements";
 import {NetDTO} from "../../dtos";
 import {IEvent} from "fabric/fabric-impl";
 
 export interface NetCanvas {
     name: string
     id: string
-    getAllElements(): Object[]
+    getAllElements(): NetElement[]
 
     getTransitions(): Transition[]
     getPlaces(): Place[]
