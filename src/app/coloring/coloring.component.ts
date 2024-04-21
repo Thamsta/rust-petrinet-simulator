@@ -13,12 +13,11 @@ export class ColoringComponent {
     @Output()
     colorChangeEmitter: EventEmitter<ColorSelectEvent> = new EventEmitter<ColorSelectEvent>();
 
-    isOpen = true;
+    isOpen = false;
     color = "#ffffff"
 
     selectColor(color: string) {
         this.color = color
-        //this.canvas.getTransitions().forEach(t => t.setColor(color))
         this.colorChangeEmitter.emit({color})
     }
 }
