@@ -33,6 +33,7 @@ const EDITOR_SHORTCUTS: ShortcutEntry[] = [
         description: 'Adds an arc between the next two valid selected components. Press ctrl while clicking to add multiple arcs.'
     },
     {key: 'N', name: 'Names', description: 'Toggles the display of element names.'},
+    {key: 'C', name: 'Color', description: 'Toggles the color palette.'},
     {
         key: '+',
         name: 'Increase',
