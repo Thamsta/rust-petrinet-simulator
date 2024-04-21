@@ -4,19 +4,13 @@
     <mat-icon fontSet="material-icons-outlined">format_color_fill</mat-icon>
 </button>
 
-<ng-template #colorPicker
-             cdkConnectedOverlay
+<ng-template cdkConnectedOverlay
              [cdkConnectedOverlayOrigin]="trigger"
              [cdkConnectedOverlayOpen]="isOpen">
-    <div class="example-list">
-        <button class="color-picker" style="background-color: #fcffcc;" (click)="selectColor('#fcffcc')"></button>
-        <button class="color-picker" style="background-color: #ffccce;" (click)="selectColor('#ffccce')"></button>
-        <button class="color-picker" style="background-color: #ccebff;" (click)="selectColor('#ccebff')"></button>
-        <button class="color-picker" style="background-color: #cfc;" (click)="selectColor('#cfc')"></button>
-        <br />
-        <button class="color-picker" style="background-color: #f8ccff;" (click)="selectColor('#f8ccff')"></button>
-        <button class="color-picker" style="background-color: #ffe9cc;" (click)="selectColor('#ffe9cc')"></button>
-        <button class="color-picker" style="background-color: #ccffff;" (click)="selectColor('#ccffff')"></button>
-        <button class="color-picker" style="background-color: #ffffff;" (click)="selectColor('#ffffff')"></button>
+    <div class="color-list">
+        <span *ngFor="let color of COLORS; let i = index">
+            <button class="color-picker" style="background-color: {{ color }};" (click)="selectColor(color)"></button>
+            <br *ngIf="(i + 1) % 5 === 0 && i !== COLORS.length - 1">
+        </span>
     </div>
 </ng-template>
