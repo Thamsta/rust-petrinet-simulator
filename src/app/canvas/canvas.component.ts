@@ -288,7 +288,6 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	}
 
 	handleGrouping(group: fabric.Group) {
-		console.log("called handleGrouping")
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
 			if (isNetElement(obj)) {
@@ -423,6 +422,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
     }
 
     renderAll() {
+		console.debug("Manual render called.")
         this.canvas.requestRenderAll()
     }
 }

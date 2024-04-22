@@ -1,17 +1,10 @@
 import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
 import {DrawingTools} from './editor-toolbar.models';
-import {MAT_TOOLTIP_DEFAULT_OPTIONS, MatTooltipDefaultOptions} from "@angular/material/tooltip";
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {EditorTooltipsComponent} from "../editor-tooltips/editor-tooltips.component";
 import {NetCanvas} from "../canvas/shared/canvas.model";
 import {ColoringComponent} from "../coloring/coloring.component";
-
-export const tooltipDelays: MatTooltipDefaultOptions = {
-    showDelay: 400,
-    hideDelay: 100,
-    touchendHideDelay: 1000,
-};
 
 /**
  * The toolbar of the editor, containing the buttons and commands to control the editor.
@@ -19,7 +12,6 @@ export const tooltipDelays: MatTooltipDefaultOptions = {
 @Component({
   selector: 'app-editor-toolbar',
   templateUrl: './editor-toolbar.component.html',
-    providers: [{provide: MAT_TOOLTIP_DEFAULT_OPTIONS, useValue: tooltipDelays}],
     styleUrls: ['./editor-toolbar.component.scss']
 })
 export class EditorToolbarComponent {

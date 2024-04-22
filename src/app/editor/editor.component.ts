@@ -164,7 +164,6 @@ export class EditorComponent implements AfterViewInit {
             case DrawingTools.COLOR:
                 let color = this.toolbar.getCurrentlySelectedColor();
                 this.canvas.getCurrentSelected().forEach(it => {
-                    console.log(it)
                     if (it instanceof Place || it instanceof Transition) {
                         it.setColor(color)
                     }
