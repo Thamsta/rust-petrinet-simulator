@@ -423,6 +423,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
     }
 
     renderAll() {
+		console.debug("Manual render called.")
         this.canvas.requestRenderAll()
     }
 }

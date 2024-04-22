@@ -9,7 +9,6 @@ import {MatButtonModule} from "@angular/material/button";
 import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {MatDividerModule} from "@angular/material/divider";
 import {ShortcutDirective} from './directives/shortcut.directive';
-import {MatTooltipModule} from "@angular/material/tooltip";
 import {ExportComponent} from './export/export.component';
 import {ImportComponent} from './import/import.component';
 import {EditorComponent} from './editor/editor.component';
@@ -58,7 +57,6 @@ import {CdkConnectedOverlay, CdkOverlayOrigin} from "@angular/cdk/overlay";
         MatButtonModule,
         BrowserAnimationsModule,
         MatDividerModule,
-        MatTooltipModule,
         MatTabsModule,
         MatDialogModule,
         MatCheckboxModule,
