@@ -24,3 +24,9 @@ The application will automatically reload if you change any of the source files.
 ## Build
 
 See `https://tauri.app/v1/guides/building/`
+
+## License
+
+GNU General Public License v3.0 or later
+
+See [COPYING](COPYING) to see the full text.
