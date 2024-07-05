@@ -9,7 +9,7 @@ Running on Rust and an Angular frontend.
 ## Requirements
 
 Required: 
-* [Rust](https://www.rust-lang.org/tools/install) (tested with 1.73.0)
+* [Rust](https://www.rust-lang.org/tools/install) (tested with 1.79.0)
 * [npm](https://www.npmjs.com/package/npm) (tested with npm 10.8.1 and node 22.4.0). 
 * Tauri-CLI: Install via Cargo using `cargo install tauri-cli`. See also [Tauri Prerequisites](https://tauri.app/v1/guides/getting-started/prerequisites) when having trouble related to Tauri.
 
