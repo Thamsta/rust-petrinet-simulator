@@ -192,7 +192,7 @@ pub struct RGResponse {
 /// An internal struct that describes the result of a RG generation
 pub struct RGResult {
     pub rg: ReachabilityGraph,
-    pub has_deadlocks: bool,
+    pub has_deadlock: bool,
 }
 
 #[derive(Debug)]

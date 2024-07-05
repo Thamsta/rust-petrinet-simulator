@@ -11,14 +11,14 @@ use crate::common::{ReachabilityGraph, RGProperties, RGResult};
 pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGProperties {
     let bounded_vector = get_bounded_vector(&result.rg);
     let k_bounded = bounded_vector.clone().into_iter().max().unwrap();
-    if result.has_deadlocks {
+    if result.has_deadlock {
         println!("Deadlock occurred during RG generation. Skip checking properties");
         return RGProperties {
             liveness: false,
             reversible: false,
             bounded_vec: bounded_vector,
             k_bounded: k_bounded,
-            has_deadlock: result.has_deadlocks,
+            has_deadlock: result.has_deadlock,
         };
     }
 
@@ -43,7 +43,7 @@ pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGPrope
         reversible,
         bounded_vec: bounded_vector,
         k_bounded: k_bounded,
-        has_deadlock: result.has_deadlocks,
+        has_deadlock: result.has_deadlock,
     };
 }
 
