@@ -78,7 +78,7 @@ pub(super) fn create_rg(
 
     return Ok(RGResult {
         rg: graph,
-        had_deadlocks: has_deadlock,
+        has_deadlocks: has_deadlock,
     });
 }
 

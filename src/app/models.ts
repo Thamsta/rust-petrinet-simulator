@@ -10,7 +10,8 @@ export type RGResponse = {
 	reversible: boolean,
     liveness: boolean,
     bounded: number,
-	bounded_vec: number[]
+	bounded_vec: number[],
+    has_deadlock: boolean,
     dot_graph: string,
     message: string,
 }

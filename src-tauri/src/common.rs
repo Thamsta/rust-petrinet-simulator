@@ -184,6 +184,7 @@ pub struct RGResponse {
     pub liveness: bool,
     pub bounded: i16,
     pub bounded_vec: Vec<i16>,
+    pub has_deadlock: bool,
     pub dot_graph: String,
     pub message: String,
 }
@@ -191,7 +192,7 @@ pub struct RGResponse {
 /// An internal struct that describes the result of a RG generation
 pub struct RGResult {
     pub rg: ReachabilityGraph,
-    pub had_deadlocks: bool,
+    pub has_deadlocks: bool,
 }
 
 #[derive(Debug)]
@@ -200,6 +201,7 @@ pub struct RGProperties {
     pub reversible: bool,
     pub bounded_vec: Vec<i16>,
     pub k_bounded: i16,
+    pub has_deadlock: bool,
 }
 
 impl RGResponse {
@@ -211,6 +213,7 @@ impl RGResponse {
             liveness: false,
             bounded: -1,
             bounded_vec: Vec::new(),
+            has_deadlock: false,
             dot_graph: "".to_string(),
             message: "Graph is unbounded".to_string(),
         }
@@ -229,6 +232,7 @@ impl RGResponse {
             liveness: properties.liveness,
             bounded: properties.k_bounded,
             bounded_vec: properties.bounded_vec.clone(),
+            has_deadlock: properties.has_deadlock,
             dot_graph,
             message,
         }

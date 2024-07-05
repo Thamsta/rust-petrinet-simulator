@@ -16,6 +16,7 @@ mod tests {
             liveness: false,
             bounded: 1,
             bounded_vec: vec![1],
+            has_deadlock: true,
         };
 
         assert_result(result, expected);
@@ -33,6 +34,7 @@ mod tests {
             liveness: false,
             bounded: -1,
             bounded_vec: vec![],
+            has_deadlock: false,
         };
 
         assert_result(result, expected);
@@ -55,6 +57,7 @@ mod tests {
             liveness: true,
             bounded: 1,
             bounded_vec: vec![1, 1],
+            has_deadlock: false,
         };
 
         assert_result(result, expected);
@@ -77,6 +80,7 @@ mod tests {
             liveness: true,
             bounded: 18,
             bounded_vec: vec![18, 18],
+            has_deadlock: false,
         };
 
         assert_result(result, expected);
@@ -99,6 +103,7 @@ mod tests {
             liveness: false,
             bounded: 1,
             bounded_vec: vec![1, 1, 1],
+            has_deadlock: true,
         };
 
         assert_result(result, expected);
@@ -127,6 +132,7 @@ mod tests {
             liveness: true,
             bounded: 1,
             bounded_vec: vec![1, 1, 1, 1, 1],
+            has_deadlock: false,
         };
 
         assert_result(result, expected);
@@ -150,6 +156,7 @@ mod tests {
             liveness: false,
             bounded: 1,
             bounded_vec: vec![1, 1, 0],
+            has_deadlock: false,
         };
 
         assert_result(result, expected);
@@ -164,6 +171,7 @@ mod tests {
                 assert_eq!(rg.bounded_vec, expected.bounded_vec);
                 assert_eq!(rg.reversible, expected.reversible);
                 assert_eq!(rg.liveness, expected.liveness);
+                assert_eq!(rg.has_deadlock, expected.has_deadlock)
             }
             Err(msg) => {
                 panic!("Failed: {}", msg)
@@ -179,4 +187,5 @@ struct ExpectedRGResponse {
     pub liveness: bool,
     pub bounded: i16,
     pub bounded_vec: Vec<i16>,
+    pub has_deadlock: bool,
 }
