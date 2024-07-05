@@ -35,21 +35,23 @@ export class EditorRgInfobarComponent {
             String(infos.bounded),
             infos.liveness ? "✔️" : "❌",
             infos.reversible ? "✔️" : "❌",
+            infos.has_deadlock ? "❌" : "✔️",
             infos.message
         )
     }
 
     updateOnUnbounded(infos: RGResponse) {
-        this.update("∞", "∞", "❌", "", "", infos.message ? infos.message : "net is unbounded")
+        this.update("∞", "∞", "❌", "", "", "", infos.message ? infos.message : "net is unbounded")
     }
 
-    private update(states: string, edges: string, bounded: string, live: string, reversible: string, message: string) {
+    private update(states: string, edges: string, bounded: string, live: string, reversible: string, deadlockFree: string, message: string) {
         this.rgResult = []
         this.rgResult.push({key: "States", value: states})
         this.rgResult.push({key: "Edges", value: edges})
         this.rgResult.push({key: "k-Bounded", value: bounded})
         this.rgResult.push({key: "Liveness", value: live})
         this.rgResult.push({key: "Reversible", value: reversible})
+        this.rgResult.push({key: "Deadlock-Free", value: deadlockFree})
         this.message = message
     }
 
