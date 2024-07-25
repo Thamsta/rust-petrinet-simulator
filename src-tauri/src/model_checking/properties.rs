@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet};
 use std::time::Instant;
 
 use petgraph::algo::tarjan_scc;
-use petgraph::Direction;
 use petgraph::graph::{DiGraph, NodeIndex};
 use petgraph::visit::IntoNodeIdentifiers;
+use petgraph::Direction;
 
-use crate::common::{ReachabilityGraph, RGProperties, RGResult};
+use crate::common::{RGProperties, RGResult, ReachabilityGraph};
 
 pub(super) fn check_properties(result: &RGResult, transitions: usize) -> RGProperties {
     let bounded_vector = get_bounded_vector(&result.rg);

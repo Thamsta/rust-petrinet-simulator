@@ -45,9 +45,9 @@ mod tests {
         // Circle   ┌──>███─>(1)
         //         (0)<─███<──┘
         let result = check_properties(
-            vec![0,1],
+            vec![0, 1],
             vec![vec![0, 1], vec![1, 0]],
-            vec![vec![1, 0], vec![0, 1]]
+            vec![vec![1, 0], vec![0, 1]],
         );
 
         let expected = ExpectedRGResponse {
@@ -68,9 +68,9 @@ mod tests {
         // Circle   ┌──>███─>(9)
         //         (9)<─███<──┘
         let result = check_properties(
-            vec![9,9],
+            vec![9, 9],
             vec![vec![0, 1], vec![1, 0]],
-            vec![vec![1, 0], vec![0, 1]]
+            vec![vec![1, 0], vec![0, 1]],
         );
 
         let expected = ExpectedRGResponse {
@@ -93,7 +93,7 @@ mod tests {
         let result = check_properties(
             vec![0, 1, 0],
             vec![vec![0, 1, 0], vec![1, 0, 0], vec![0, 1, 0]],
-            vec![vec![1, 0, 0], vec![0, 1, 0], vec![0, 0, 1]]
+            vec![vec![1, 0, 0], vec![0, 1, 0], vec![0, 0, 1]],
         );
 
         let expected = ExpectedRGResponse {
@@ -121,8 +121,18 @@ mod tests {
 
         let result = check_properties(
             vec![0, 1, 0, 1, 0],
-            vec![vec![0, 0, 1, 0, 0], vec![1, 1, 0, 0, 0], vec![0, 0, 0, 1, 0], vec![1, 0, 0, 0, 1]],
-            vec![vec![1, 0, 0, 0, 0], vec![0, 0, 0, 1, 1], vec![1, 0, 0, 0, 0], vec![0, 1, 1, 0, 0]]
+            vec![
+                vec![0, 0, 1, 0, 0],
+                vec![1, 1, 0, 0, 0],
+                vec![0, 0, 0, 1, 0],
+                vec![1, 0, 0, 0, 1],
+            ],
+            vec![
+                vec![1, 0, 0, 0, 0],
+                vec![0, 0, 0, 1, 1],
+                vec![1, 0, 0, 0, 0],
+                vec![0, 1, 1, 0, 0],
+            ],
         );
 
         let expected = ExpectedRGResponse {
@@ -146,7 +156,7 @@ mod tests {
         let result = check_properties(
             vec![0, 1, 0],
             vec![vec![0, 1, 0], vec![1, 0, 0], vec![0, 0, 1]],
-            vec![vec![1, 0, 0], vec![0, 1, 0], vec![0, 0, 0]]
+            vec![vec![1, 0, 0], vec![0, 1, 0], vec![0, 0, 0]],
         );
 
         let expected = ExpectedRGResponse {
