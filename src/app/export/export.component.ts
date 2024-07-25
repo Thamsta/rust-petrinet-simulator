@@ -25,30 +25,22 @@ export class ExportComponent {
 
     async exportFile() {
         if (this.canvas) {
-            await this.exportNet()
+            await this.exportNet(this.canvas!)
             return
         }
         if (this.rg) {
-            await this.exportRG()
+            await this.exportRG(this.rg!)
             return
         }
     }
 
-    async exportNet() {
-        if (!this.canvas) return
+    private async exportNet(netCanvas: NetCanvas) {
+        let [filePath, fileEnding] = await this.getFilePath("Save Net", ["pnon", "pnml"], "pnon")
+        if (filePath.length == 0) return;
 
-        let filePath = await save({
-            title: "Save Net",
-            filters: [{name: "", extensions: ["pnon", "pnml"]}],
-        });
-
-        if (filePath == null) return;
-        if (!filePath.includes('.')) filePath += ".pnon"
-
-        const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1)
         const fileName = filePath.substring(filePath.lastIndexOf(path.sep) + 1, filePath.lastIndexOf('.'))
 
-        const net = createNetDTO(this.canvas, fileName)
+        const net = createNetDTO(netCanvas, fileName)
 
         let output
         switch (fileEnding) {
@@ -68,20 +60,51 @@ export class ExportComponent {
 
         await writeTextFile(filePath, output);
 
-        this.canvas.onSavedNet(fileName)
+        netCanvas.onSavedNet(fileName)
     }
 
-    private async exportRG() {
-        let svgContent = this.rg!.getSVGContent()
+    private async exportRG(rgComponent: ReachabilityGraphComponent) {
+        let [filePath, fileEnding] = await this.getFilePath("Save Reachability Graph", ["svg", "dot"], "svg")
+        if (filePath.length == 0) return;
 
+        let output
+        switch (fileEnding) {
+            case "svg":
+                output = rgComponent.getSVGContent();
+                break;
+            case "dot":
+                output = rgComponent.graph!;
+                break;
+        }
+
+        if (!output) {
+            // this case should be prevented by the OS file dialogue
+            console.log(`Unsupported file type ${fileEnding} in path ${filePath}. Nothing will be written.`)
+            return
+        }
+
+        await writeTextFile(filePath, output);
+    }
+
+    private async getFilePath(title: string, extensions: string[], defaultEnding: string): Promise<[string, string]> {
         let filePath = await save({
-            title: "Save Net",
-            filters: [{name: "rg", extensions: ["svg"]}],
+            title: title,
+            filters: [{name: "", extensions: extensions}],
         });
-        if (filePath == null) return;
+        if (filePath == null) return ["", ""];
 
+        if (!filePath.includes('.')) {
+            filePath += "." + defaultEnding
+        }
 
-        await writeTextFile(filePath, svgContent);
+        const fileEnding = filePath.substring(filePath.lastIndexOf('.') + 1);
+
+        if (fileEnding ! in extensions) {
+            // don't allow custom extensions.
+            return ["", ""];
+        }
+
+        return [filePath, fileEnding]
     }
 }
 
