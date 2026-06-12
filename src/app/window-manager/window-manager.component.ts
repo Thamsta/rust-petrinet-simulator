@@ -1,4 +1,4 @@
-import {Component, QueryList, ViewChildren} from '@angular/core';
+import {Component, QueryList, ViewChildren, ChangeDetectionStrategy} from '@angular/core';
 import {ArcDTO, NetDTO, PlaceDTO, Position, TransitionDTO} from "../dtos";
 import {v4 as uuidv4} from "uuid";
 import {FormControl} from "@angular/forms";
@@ -23,7 +23,9 @@ import {fill_color} from "../colors";
 @Component({
     selector: 'app-window-manager',
     templateUrl: './window-manager.component.html',
-    styleUrls: ['./window-manager.component.scss']
+    styleUrls: ['./window-manager.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class WindowManagerComponent {
     static height = 50

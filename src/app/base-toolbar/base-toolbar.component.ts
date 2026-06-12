@@ -1,12 +1,14 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {ReachabilityGraphComponent} from "../reachability-graph/reachability-graph.component";
 import {NetCanvas} from "../canvas/shared/canvas.model";
 
 @Component({
-  selector: 'app-base-toolbar',
-  templateUrl: './base-toolbar.component.html',
-  styleUrls: ['./base-toolbar.component.scss']
+    selector: 'app-base-toolbar',
+    templateUrl: './base-toolbar.component.html',
+    styleUrls: ['./base-toolbar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class BaseToolbarComponent {
     static height = 65

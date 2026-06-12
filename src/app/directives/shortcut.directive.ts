@@ -1,7 +1,8 @@
 import {Directive, ElementRef, HostListener, Input} from '@angular/core';
 
 @Directive({
-	selector: '[appShortcut]'
+    selector: '[appShortcut]',
+    standalone: false
 })
 export class ShortcutDirective {
 

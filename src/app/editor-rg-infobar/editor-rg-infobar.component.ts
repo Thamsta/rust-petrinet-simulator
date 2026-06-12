@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 import {RGResponse} from "../models";
 
 export interface ResultEntry {
@@ -9,7 +9,9 @@ export interface ResultEntry {
 @Component({
     selector: 'app-editor-rg-infobar',
     templateUrl: './editor-rg-infobar.component.html',
-    styleUrls: ['./editor-rg-infobar.component.scss']
+    styleUrls: ['./editor-rg-infobar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class EditorRgInfobarComponent {
     message: string = "";

@@ -1,7 +1,7 @@
 import {Place, Transition} from "../elements";
 import {CanvasComponent} from "../canvas/canvas.component";
 import {ArcDTO, PlaceDTO, TransitionDTO} from "../dtos";
-import {fabric} from "fabric";
+import { ActiveSelection } from "fabric";
 
 export class ClipboardService {
     private readonly canvas: CanvasComponent;
@@ -49,10 +49,7 @@ export class ClipboardService {
 
         const addedElements = this.canvas.insertDTOs(this.cPlaces, this.cTransitions, this.cArcs)
 
-        let activeSelection = new fabric.ActiveSelection(addedElements);
-        activeSelection.canvas = this.canvas.canvas
-        activeSelection.setCoords()
-
+        let activeSelection = new ActiveSelection(addedElements);
         this.canvas.canvas.setActiveObject(activeSelection)
         this.canvas.renderAll()
 

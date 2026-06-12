@@ -1,6 +1,6 @@
-import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild} from '@angular/core'
-import {fabric} from 'fabric'
-import {IEvent} from "fabric/fabric-impl"
+import {AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild, ChangeDetectionStrategy} from '@angular/core'
+import { ActiveSelection, Canvas, FabricObject, Group } from 'fabric'
+import type { TPointerEventInfo, TPointerEvent } from 'fabric'
 import {DrawingTools, getDecIncValue} from "../editor-toolbar/editor-toolbar.models"
 import {Arc, baseOptions, isNetElement, NetElement, Place, Text, Transition} from "../elements"
 import {canvas_color, canvas_color_simulating, toHeatColor} from "../colors"
@@ -13,24 +13,23 @@ import {CanvasEvent, NetCanvas, NetRenameEvent} from "./shared/canvas.model";
 import {ElementCache} from "./shared/elementCache";
 import {ImportService} from "./shared/import.service";
 
-/**
- * A wrapper class around an HTML canvas that is enriched with knowledge about Petri nets.
- */
 @Component({
-	selector: 'app-canvas',
-	templateUrl: './canvas.component.html',
-	styleUrls: ['./canvas.component.scss']
+    selector: 'app-canvas',
+    templateUrl: './canvas.component.html',
+    styleUrls: ['./canvas.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class CanvasComponent implements AfterViewInit, NetCanvas {
 	name = "new"
 	id = ""
 
-	canvas: fabric.Canvas = new fabric.Canvas(null)
+	canvas: Canvas = new Canvas(null as any)
 
-	lastSelected?: fabric.Object
+	lastSelected?: FabricObject
 
 	isLocked = false
-	isDeadlocked = false // show notice on canvas if deadlocked
+	isDeadlocked = false
 
 	elementCache = new ElementCache()
 	importer = new ImportService(this)
@@ -48,15 +47,13 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	netRenameEmitter = new EventEmitter<NetRenameEvent>
 
     ngAfterViewInit() {
-        this.canvas = new fabric.Canvas(this.canvasElement.nativeElement)
+        this.canvas = new Canvas(this.canvasElement.nativeElement)
 		this.setupCanvas()
-        // mouse:down is a special event
-		this.canvas.on('mouse:down', e => this.onClick(e))
-
-	    this.canvas.on('selection:created', e => this.onSelectCreate(e))
-	    this.canvas.on('selection:cleared', e => this.onSelectClear(e))
-	    this.canvas.on('object:moving', e => this.onObjectMoving(e))
-	    this.canvas.on('object:modified', e => this.onObjectModified(e))
+        this.canvas.on('mouse:down', (e: TPointerEventInfo<TPointerEvent>) => this.onClick(e))
+	    this.canvas.on('selection:created', (e: { selected?: FabricObject[] }) => this.onSelectCreate(e))
+	    this.canvas.on('selection:cleared', () => this.onSelectClear())
+	    this.canvas.on('object:moving', (e: { target?: FabricObject }) => this.onObjectMoving(e))
+	    this.canvas.on('object:modified', (e: { target?: FabricObject }) => this.onObjectModified(e))
 		window.addEventListener('resize', this.onWindowResize)
     }
 
@@ -69,19 +66,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 
 	private setupCanvas = () => {
 		this.onWindowResize()
-		this.canvas.setBackgroundColor(canvas_color, this.canvas.renderAll.bind(this.canvas))
+		this.canvas.backgroundColor = canvas_color
+		this.canvas.requestRenderAll()
 
-		// extra canvas settings
 		this.canvas.renderOnAddRemove = false
 		this.canvas.preserveObjectStacking = true
 	}
 
-	private onClick(event: IEvent<MouseEvent>) {
+	private onClick(event: TPointerEventInfo<TPointerEvent>) {
 		if (this.isLocked) {
-			// ignore all clicks when the editor is locked.
 			return
 		}
-
         this.mouseEventEmitter.emit({type: 'mouse:down', source: event})
     }
 
@@ -103,11 +98,11 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         return p
 	}
 
-	addArcFromLastSelected(target: fabric.Object | undefined) {
+	addArcFromLastSelected(target: FabricObject | undefined) {
 		return this.addArc(this.lastSelected, target)
 	}
 
-	addArc(source: fabric.Object | undefined, target: fabric.Object | undefined) {
+	addArc(source: FabricObject | undefined, target: FabricObject | undefined) {
 		if (target instanceof Place && source instanceof Transition
 			|| target instanceof Transition && source instanceof Place) {
 			let arc = new Arc(source, target, this.canvas)
@@ -128,11 +123,10 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
             return
         }
 
-        if (this.lastSelected instanceof fabric.Group) {
+        if (this.lastSelected instanceof Group) {
             this.lastSelected.getObjects().forEach(obj => {
                 this.deleteObject(obj)
             })
-            this.lastSelected.destroy()
             this.canvas.remove(this.lastSelected)
             this.lastSelected.hasBorders = false
         } else {
@@ -144,7 +138,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         this.renderAll()
     }
 
-	deleteObject(obj: fabric.Object | undefined) {
+	deleteObject(obj: FabricObject | undefined) {
 		if (isNetElement(obj)) {
 			obj.remove(this.canvas)
 		}
@@ -164,12 +158,10 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
         })
 
 		this.modifiedNet()
-
         this.renderAll()
     }
 
-	private onSelectClear(_: IEvent<MouseEvent>) {
-		// after a group was disbanded, update text position of places.
+	private onSelectClear() {
         let [places, transitions] = this.getPlacesAndTransitions()
 		places.forEach(obj => obj.updateTextPosition())
 		transitions.forEach(obj => obj.updateTextPosition())
@@ -177,10 +169,9 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	private onObjectMoving(e: IEvent<MouseEvent>) {
+	private onObjectMoving(e: { target?: FabricObject }) {
 		let target = e.target!
-		if (target instanceof fabric.Group) {
-			// TODO: fix grid placement for groups
+		if (target instanceof Group) {
 			target.forEachObject(obj => this.moveObj(obj))
 		} else {
 			this.moveObj(target)
@@ -188,7 +179,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	moveObj(obj: fabric.Object) {
+	moveObj(obj: FabricObject) {
 		if (gridEnabled) {
 			let [left, top] = this.toGridCoordinate(obj.left!, obj.top!)
 			obj.set({top: top, left: left})
@@ -215,19 +206,17 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 	lock() {
         let [places, transitions] = this.getPlacesAndTransitions()
 		this.isLocked = true
-		this.canvas.setBackgroundColor(canvas_color_simulating, () => {
-			this.renderAll()
-		})
+		this.canvas.backgroundColor = canvas_color_simulating
+		this.renderAll()
 		this.elementCache.cache(places, transitions)
 	}
 
 	unlock() {
 		this.isDeadlocked = false
 		this.resetTransitionHeat()
-		this.canvas.setBackgroundColor(canvas_color, () => {})
+		this.canvas.backgroundColor = canvas_color
 		this.isLocked = false
 		this.elementCache.flush()
-
 		this.renderAll()
 	}
 
@@ -264,8 +253,8 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-	onSelectCreate(e: IEvent<MouseEvent>) {
-		let group = e.selected![0]!.group
+	onSelectCreate(e: { selected?: FabricObject[] }) {
+		let group = e.selected?.[0]?.group
 		if (group == undefined) {
 			return
 		}
@@ -276,18 +265,13 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 			return
 		}
 
-		// if the group contained more than net elements, the bounds are calculated weirdly.
-		// thus, we recreate the group only with NetElements.
 		this.canvas.discardActiveObject()
 
-		let activeSelection = new fabric.ActiveSelection(objects);
-		activeSelection.canvas = this.canvas
-		activeSelection.setCoords()
-
+		let activeSelection = new ActiveSelection(objects)
 		this.canvas.setActiveObject(activeSelection)
 	}
 
-	handleGrouping(group: fabric.Group) {
+	handleGrouping(group: Group) {
 		group.set(baseOptions)
 		group.getObjects().forEach(obj => {
 			if (isNetElement(obj)) {
@@ -385,7 +369,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		if (this.lastSelected === undefined) {
 			return []
 		}
-		if (this.lastSelected instanceof fabric.Group) {
+		if (this.lastSelected instanceof Group) {
 			return this.lastSelected.getObjects()
 		}
 
@@ -414,7 +398,7 @@ export class CanvasComponent implements AfterViewInit, NetCanvas {
 		this.renderAll()
 	}
 
-    private onObjectModified(e: IEvent<MouseEvent>) {
+    private onObjectModified(e: { target?: FabricObject }) {
         if (e.target instanceof Text) {
             e.target.updateFromText()
 			this.modifiedNet()

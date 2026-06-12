@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {save} from "@tauri-apps/api/dialog";
 import {writeTextFile} from "@tauri-apps/api/fs";
 import {Arc, Place, Transition} from "../elements";
@@ -16,7 +16,9 @@ import {NetCanvas} from "../canvas/shared/canvas.model";
 @Component({
     selector: 'app-export',
     templateUrl: './export.component.html',
-    styleUrls: ['./export.component.scss']
+    styleUrls: ['./export.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ExportComponent {
 

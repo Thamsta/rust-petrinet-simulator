@@ -1,15 +1,21 @@
 <div class="window-manager">
-    <mat-tab-group mat-stretch-tabs="false" preserveContent="false" headerPosition="below" [selectedIndex]="selected.value" (selectedIndexChange)="tabChanged($event)">
-        <mat-tab *ngFor="let openWindow of openWindows; let index = index">
-            <ng-template matTabLabel>
-                {{openWindow.name + getDirtySuffix(openWindow.isDirty)}}
-                <button (click)="closeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
-            </ng-template>
-            <ng-template matTabContent>
-                <app-editor *ngIf="openWindow.type===WindowTypes.net" [windowManager]="this" [initNet]="openWindow.net" [initDirty]="openWindow.isDirty"></app-editor>
-                <app-reachability-graph *ngIf="openWindow.type===WindowTypes.rg" [windowManager]="this" [graph]="openWindow.rg"></app-reachability-graph>
-                <mat-divider class="shadow"></mat-divider>
-            </ng-template>
-        </mat-tab>
-    </mat-tab-group>
+  <mat-tab-group mat-stretch-tabs="false" preserveContent="false" headerPosition="below" [selectedIndex]="selected.value" (selectedIndexChange)="tabChanged($event)">
+    @for (openWindow of openWindows; track openWindow; let index = $index) {
+      <mat-tab>
+        <ng-template matTabLabel>
+          {{openWindow.name + getDirtySuffix(openWindow.isDirty)}}
+          <button (click)="closeTab(index); $event.stopPropagation()" mat-icon-button><mat-icon>close</mat-icon></button>
+        </ng-template>
+        <ng-template matTabContent>
+          @if (openWindow.type===WindowTypes.net) {
+            <app-editor [windowManager]="this" [initNet]="openWindow.net" [initDirty]="openWindow.isDirty"></app-editor>
+          }
+          @if (openWindow.type===WindowTypes.rg) {
+            <app-reachability-graph [windowManager]="this" [graph]="openWindow.rg"></app-reachability-graph>
+          }
+          <mat-divider class="shadow"></mat-divider>
+        </ng-template>
+      </mat-tab>
+    }
+  </mat-tab-group>
 </div>

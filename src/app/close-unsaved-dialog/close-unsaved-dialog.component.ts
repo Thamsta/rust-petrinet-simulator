@@ -1,10 +1,12 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 
 @Component({
     selector: 'app-close-unsaved-dialog',
     templateUrl: './close-unsaved-dialog.component.html',
-    styleUrls: ['./close-unsaved-dialog.component.scss']
+    styleUrls: ['./close-unsaved-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class CloseUnsavedDialogComponent {
     constructor(

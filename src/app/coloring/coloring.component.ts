@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Output} from '@angular/core';
+import {Component, EventEmitter, Output, ChangeDetectionStrategy} from '@angular/core';
 
 export type ColorSelectEvent = {
     color: string
@@ -13,7 +13,9 @@ const COLORS: string[] = [
 @Component({
     selector: 'app-coloring',
     templateUrl: './coloring.component.html',
-    styleUrls: ['./coloring.component.scss']
+    styleUrls: ['./coloring.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ColoringComponent {
     @Output()

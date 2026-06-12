@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, Output, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy} from '@angular/core';
 import {DrawingTools} from './editor-toolbar.models';
 import {WindowManagerComponent} from "../window-manager/window-manager.component";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
@@ -10,9 +10,11 @@ import {ColoringComponent} from "../coloring/coloring.component";
  * The toolbar of the editor, containing the buttons and commands to control the editor.
  */
 @Component({
-  selector: 'app-editor-toolbar',
-  templateUrl: './editor-toolbar.component.html',
-    styleUrls: ['./editor-toolbar.component.scss']
+    selector: 'app-editor-toolbar',
+    templateUrl: './editor-toolbar.component.html',
+    styleUrls: ['./editor-toolbar.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class EditorToolbarComponent {
     protected readonly DrawingTools = DrawingTools;

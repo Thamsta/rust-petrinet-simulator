@@ -1,7 +1,6 @@
-import {fabric} from "fabric";
+import { Canvas, Circle, FabricObject, FabricText, Group, IText, Line, Rect } from "fabric";
 import {v4 as uuidv4} from "uuid";
 import {fill_color, inverse_text_color, line_color, text_color} from "./colors";
-import {Canvas} from "fabric/fabric-impl";
 import {scale} from "./config";
 
 export type NetElement = Place | Transition | Arc
@@ -10,30 +9,14 @@ export function isNetElement(object: any): object is NetElement {
     return (object instanceof Place || object instanceof Transition || object instanceof Arc)
 }
 
-/**
- * Represents an element that can be included in a group selection and
- * has special behaviour that needs to be considered when it is added
- * to a group.
- * @interface
- */
 interface Groupable {
-    handleGrouping(group: fabric.Group): void
+    handleGrouping(group: Group): void
 }
 
-/**
- * Represents an element which has special behaviour that needs to be
- * considered when it is removed.
- * @interface
- */
 interface Removable {
-    remove(canvas: fabric.Canvas): void
+    remove(canvas: Canvas): void
 }
 
-/**
- * Represents an element which has a countable element that can be in- and
- * decremented.
- * @interface
- */
 interface Countable {
     add(amount: number): void
     setAmount(amount: number): void
@@ -44,10 +27,6 @@ interface TextEditable {
     exitEditing(): void
 }
 
-/**
- * Allows the presentation of arbitrary text under the element.
- * Currently experimental.
- */
 interface WithInfoText {
     setInfoText(text: string): void
 }
@@ -57,31 +36,21 @@ interface Colorizable {
     resetColor(): void
 }
 
-/**
- * A point of cartesian coordinates.
- * @interface
- */
 interface Point {
     x: number;
     y: number;
 }
 
-/**
- * Class that contains ingoing and outgoing arc, to be added to connectable elements
- * @class
- * @implements Removable
- */
 class Connectable implements Removable {
     arcs_in: Arc[] = []
     arcs_out: Arc[] = []
 
-    remove(canvas: fabric.Canvas) {
+    remove(canvas: Canvas) {
         this.arcs_in.forEach(arc => arc.remove(canvas))
         this.arcs_out.forEach(arc => arc.remove(canvas))
     }
 }
 
-// Options that are shared amongst all elements
 export const baseOptions = {
 	lockScalingY: true,
 	lockScalingX: true,
@@ -93,52 +62,46 @@ export const baseOptions = {
 	stroke: line_color,
 }
 
-// Options for elements that are not movable by the user
 const immovableOptions = {
 	hasBorders: false,
 	lockMovementX: true,
 	lockMovementY: true,
 }
 
-// Options for transitions
 const transitionOptions = {
 	fill: fill_color,
 	width: 80 * scale,
 	height: 50 * scale,
-	originX: 'center',
-	originY: 'center',
+	originX: 'center' as 'center',
+	originY: 'center' as 'center',
 	...baseOptions,
 }
 
-// Options for places
 const placeOptions = {
 	fill: fill_color,
 	radius: 30 * scale,
-	originX: 'center',
-	originY: 'center',
+	originX: 'center' as 'center',
+	originY: 'center' as 'center',
 	...baseOptions,
 }
 
-// Options for lines
 const lineOptions = {
-	originX: 'center',
-	originY: 'center',
+	originX: 'center' as 'center',
+	originY: 'center' as 'center',
 	...immovableOptions,
 	...baseOptions,
 }
 
-// Default options for text.
 const textOptions = {
-	textAlign: 'center',
+	textAlign: 'center' as 'center',
     fontSize: 42 * scale,
 	...immovableOptions,
 	...baseOptions,
     strokeWidth: 0,
 }
 
-// Default options for info text.
 const infoTextOptions = {
-	textAlign: 'center',
+	textAlign: 'center' as 'center',
     fontSize: 14 * scale,
     fontFamily: 'monospace',
 	...immovableOptions,
@@ -146,9 +109,8 @@ const infoTextOptions = {
     strokeWidth: 0,
 }
 
-// Default options for name text.
 const nameTextOptions = {
-	textAlign: 'center',
+	textAlign: 'center' as 'center',
     fontSize: 14 * scale,
     fontFamily: 'monospace',
 	...immovableOptions,
@@ -156,12 +118,7 @@ const nameTextOptions = {
     strokeWidth: 0,
 }
 
-/**
- * Represents a Transition
- * @class
- * @implements {Removable, Groupable, WithInfoText, Colorizable}
- */
-export class Transition extends fabric.Rect implements Removable, Groupable, WithInfoText, Colorizable {
+export class Transition extends Rect implements Removable, Groupable, WithInfoText, Colorizable {
     id = uuidv4();
 
     arcs: Connectable = new Connectable()
@@ -170,7 +127,7 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
 
     color: string = fill_color
 
-    constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
+    constructor(x: number, y: number, name: string, canvas: Canvas) {
         super({
             left: x,
             top: y,
@@ -203,7 +160,7 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
         this.updateTextPosition()
     }
 
-    handleGrouping(group: fabric.Group): void {
+    handleGrouping(group: Group): void {
         if (!group.contains(this.infoText)) group.add(this.infoText)
         if (!group.contains(this.nameText)) group.add(this.nameText)
         this.updateTextPosition()
@@ -236,12 +193,7 @@ export class Transition extends fabric.Rect implements Removable, Groupable, Wit
     }
 }
 
-/**
- * Represents a Place. Has a number of tokens which can be changed.
- * @class
- * @implements {Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable}
- */
-export class Place extends fabric.Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable {
+export class Place extends Circle implements Removable, Countable, Groupable, TextEditable, WithInfoText, Colorizable {
     id = uuidv4();
 
     tokens= 0
@@ -254,7 +206,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     infoText: InfoText
     nameText: NameText
 
-    constructor(x: number, y: number, name: string, canvas: fabric.Canvas) {
+    constructor(x: number, y: number, name: string, canvas: Canvas) {
         super({
             left: x,
             top: y,
@@ -266,10 +218,10 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         this.updateText()
         this.updateTextPosition()
         canvas.add(this.infoText, this.nameText, this.tokenText, this)
-        canvas.sendBackwards(this)
-        canvas.bringToFront(this.infoText)
-        canvas.bringToFront(this.nameText)
-        canvas.bringToFront(this.tokenText)
+        canvas.sendObjectBackwards(this)
+        canvas.bringObjectToFront(this.infoText)
+        canvas.bringObjectToFront(this.nameText)
+        canvas.bringObjectToFront(this.tokenText)
     }
 
     setColor(color: string): void {
@@ -309,14 +261,14 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
         }
     }
 
-    handleGrouping(group: fabric.Group): void {
+    handleGrouping(group: Group): void {
         if (!group.contains(this.infoText)) group.add(this.infoText)
         if (!group.contains(this.nameText)) group.add(this.nameText)
         if (!group.contains(this.tokenText)) group.add(this.tokenText)
-        this.updateTextPosition() // recalculate text so it uses the relative coordinates of the group
+        this.updateTextPosition()
     }
 
-    remove(canvas: fabric.Canvas): void {
+    remove(canvas: Canvas): void {
         canvas.remove(this, this.tokenText, this.infoText, this.nameText)
         this.arcs.remove(canvas)
     }
@@ -366,12 +318,7 @@ export class Place extends fabric.Circle implements Removable, Countable, Groupa
     }
 }
 
-/**
- * Represents an Arc that connects a Place and a Transition
- * @class
- * @implements {Removable, Countable, Groupable}
- */
-export class Arc extends fabric.Line implements Removable, Countable, Groupable, TextEditable, WithInfoText {
+export class Arc extends Line implements Removable, Countable, Groupable, TextEditable, WithInfoText {
     id = uuidv4();
 
     from: Place | Transition;
@@ -381,15 +328,15 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
 
     infoText: InfoText
 
-    arrowArc1: fabric.Line;
-    arrowArc2: fabric.Line;
+    arrowArc1: Line;
+    arrowArc2: Line;
 
-    constructor(from: Place | Transition, to: Place | Transition, canvas: fabric.Canvas) {
+    constructor(from: Place | Transition, to: Place | Transition, canvas: Canvas) {
         super([from.left!, from.top!, to.left!, to.top!], lineOptions);
 
         this.weightText = new Text(this.weight.toString(), this)
-        this.arrowArc1 = new fabric.Line([0,0,0,0], lineOptions) // use any coordinates, will be updated later
-        this.arrowArc2 = new fabric.Line([0,0,0,0], lineOptions)
+        this.arrowArc1 = new Line([0,0,0,0], lineOptions)
+        this.arrowArc2 = new Line([0,0,0,0], lineOptions)
 
         this.from = from;
         this.to = to;
@@ -400,9 +347,9 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
         this.updateText()
 
         canvas.add(this, this.arrowArc1, this.arrowArc2, this.weightText, this.infoText);
-        canvas.sendToBack(this);
-        canvas.sendToBack(this.arrowArc1);
-        canvas.sendToBack(this.arrowArc2);
+        canvas.sendObjectToBack(this);
+        canvas.sendObjectToBack(this.arrowArc1);
+        canvas.sendObjectToBack(this.arrowArc2);
     }
 
     setInfoText(text: string): void {
@@ -422,13 +369,13 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
         }
     }
 
-    handleGrouping(group: fabric.Group): void {
+    handleGrouping(group: Group): void {
         group.remove(this, this.arrowArc1, this.arrowArc2, this.weightText)
         this.updateLinePoints()
         this.updateText()
     }
 
-    remove(canvas: fabric.Canvas): void {
+    remove(canvas: Canvas): void {
         const in_index = this.from.arcs.arcs_out.indexOf(this)
         if (in_index >= 0) {
             this.from.arcs.arcs_out.splice(in_index, 1)
@@ -457,16 +404,13 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
         const toGroup = this.to.group
         let lineStart
         if (fromGroup) {
-            // from is in group and arc is not
             lineStart = {x: this.from.left! + fromGroup.left! + (fromGroup.width! / 2), y: this.from.top! + fromGroup.top! + (fromGroup.height! / 2)}
         } else {
-            // no group
             lineStart = {x: this.from.left!, y: this.from.top!}
         }
 
         let target: Point
         if (toGroup) {
-            // from is in group and arc is not
             target = {x: this.to.left! + toGroup.left! + (toGroup.width! / 2), y: this.to.top! + toGroup.top! + (toGroup.height! / 2)}
         } else {
             target = {x: this.to.left!, y: this.to.top!}
@@ -495,12 +439,10 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
             lengthToShorten = this.getLineLengthIntoTransition(from, to, toElem)
         }
 
-        // If line is too short, return p1 as the endpoint
         if (lineLength <= lengthToShorten) {
             return { x: from.x, y: from.y };
         }
 
-        // Shorten the line by the specified length
         const shortenedLength = lineLength - lengthToShorten;
         const shortenedX = from.x + (dx / lineLength) * shortenedLength;
         const shortenedY = from.y + (dy / lineLength) * shortenedLength;
@@ -509,7 +451,6 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
     }
 
     private getLineLengthIntoTransition(from: Point, to: Point, transition: Transition): number {
-        // Calculate the vector components of the line
         const dx = from.x - to.x;
         const dy = from.y - to.y;
 
@@ -518,7 +459,6 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
         const clippedAngle = Math.abs(Math.abs(angleDegrees) - 90);
         const clippedAngleRadians = clippedAngle * Math.PI / 180
 
-        // Calculate the length of the line segment within the rectangle
         if (clippedAngle < 50 * (transition.height! / transition.width!)) {
             return ((transition.width! / 2) / Math.cos(clippedAngleRadians))
         } else {
@@ -564,20 +504,16 @@ export class Arc extends fabric.Line implements Removable, Countable, Groupable,
     }
 }
 
-/**
- * Model class for any kind of Text. Knows its parent.
- * @class
- */
-export class Text extends fabric.IText {
-    parent: NetElement;
+export class Text extends IText {
+    netParent: NetElement;
 
     constructor(text: string, parent: NetElement) {
         super(text, textOptions);
-        this.parent = parent;
+        this.netParent = parent;
     }
 
     updateFromText() {
-        this.parent.updateTextFromString(this.text ? this.text : "");
+        this.netParent.updateTextFromString(this.text ? this.text : "");
     }
 
     updateTextColor(inverted: boolean) {
@@ -588,29 +524,21 @@ export class Text extends fabric.IText {
     }
 }
 
-/**
- * Model class for any kind of Text. Knows its parent.
- * @class
- */
-export class NameText extends fabric.Text {
-    parent: NetElement;
+export class NameText extends FabricText {
+    netParent: NetElement;
 
     constructor(text: string, parent: NetElement) {
         super(text, nameTextOptions);
-        this.parent = parent;
+        this.netParent = parent;
     }
 }
 
-/**
- * Model class for any kind of Text. Knows its parent.
- * @class
- */
-export class InfoText extends fabric.Text {
-    parent: NetElement;
+export class InfoText extends FabricText {
+    netParent: NetElement;
 
     constructor(text: string, parent: NetElement) {
         super(text, infoTextOptions);
-        this.parent = parent;
+        this.netParent = parent;
     }
 }
 

@@ -1,9 +1,9 @@
-import {AfterViewInit, Component, EventEmitter, Input, NgZone, Output, ViewChild} from '@angular/core';
-import {fabric} from "fabric";
+import {AfterViewInit, Component, EventEmitter, Input, NgZone, Output, ViewChild, ChangeDetectionStrategy} from '@angular/core';
+import {FabricObject} from "fabric";
+import type { TPointerEventInfo, TPointerEvent } from 'fabric';
 import {Arc, Place, Text, Transition} from "../elements";
 import {SimulatorService, States} from "../simulator/simulator.service";
 import {ReachabilityGraphService} from "../reachability-graph/reachability-graph.service";
-import {IEvent} from "fabric/fabric-impl";
 import {DrawingTools} from "../editor-toolbar/editor-toolbar.models";
 import {CanvasComponent} from "../canvas/canvas.component";
 import {NetDTO} from "../dtos";
@@ -26,9 +26,11 @@ export type NetChangedEvent = {
  * The superclass of the editor. It knows and connects all components. Contains the business logic of the editor.
  */
 @Component({
-  selector: 'app-editor',
-  templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.scss']
+    selector: 'app-editor',
+    templateUrl: './editor.component.html',
+    styleUrls: ['./editor.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class EditorComponent implements AfterViewInit {
 
@@ -78,14 +80,14 @@ export class EditorComponent implements AfterViewInit {
         this.clipboard?.paste()
     }
 
-    private getTarget(event: fabric.IEvent<MouseEvent>): fabric.Object | undefined {
+    private getTarget(event: TPointerEventInfo<TPointerEvent>): FabricObject | undefined {
         let target = event.target
-        return target instanceof Text ? target.parent : target
+        return target instanceof Text ? target.netParent : target
     }
 
-    private onClick(event: IEvent<MouseEvent>) {
-        let x = event.e.offsetX
-        let y = event.e.offsetY
+    private onClick(event: TPointerEventInfo<TPointerEvent>) {
+        let x = (event.e as MouseEvent).offsetX
+        let y = (event.e as MouseEvent).offsetY
         let target = this.getTarget(event)
 
         let tool = this.toolbar.getCurrentTool()

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input} from '@angular/core';
+import {AfterViewInit, Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {graphviz} from "d3-graphviz";
 import {v4 as uuidv4} from "uuid";
 import {BaseToolbarComponent} from "../base-toolbar/base-toolbar.component";
@@ -9,9 +9,11 @@ import {WindowManagerComponent} from "../window-manager/window-manager.component
  * Needs an input graph in .dot format.
  */
 @Component({
-  selector: 'app-reachability-graph',
-  templateUrl: './reachability-graph.component.html',
-  styleUrls: ['./reachability-graph.component.scss']
+    selector: 'app-reachability-graph',
+    templateUrl: './reachability-graph.component.html',
+    styleUrls: ['./reachability-graph.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ReachabilityGraphComponent implements AfterViewInit {
     @Input() windowManager!: WindowManagerComponent

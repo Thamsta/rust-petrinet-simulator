@@ -1,4 +1,4 @@
-import {Component, Input} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy} from '@angular/core';
 import {open} from '@tauri-apps/api/dialog';
 import {readTextFile} from '@tauri-apps/api/fs';
 import {NetDTO} from "../dtos";
@@ -13,7 +13,9 @@ import {WindowManagerComponent} from "../window-manager/window-manager.component
 @Component({
     selector: 'app-import',
     templateUrl: './import.component.html',
-    styleUrls: ['./import.component.scss']
+    styleUrls: ['./import.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ImportComponent {
 

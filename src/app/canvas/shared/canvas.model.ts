@@ -1,6 +1,6 @@
 import {Arc, NetElement, Place, Transition} from "../../elements";
 import {NetDTO} from "../../dtos";
-import {IEvent} from "fabric/fabric-impl";
+import type { TPointerEventInfo, TPointerEvent } from 'fabric';
 
 export interface NetCanvas {
     name: string
@@ -22,7 +22,7 @@ export interface NetCanvas {
 
 export type CanvasEvent = {
     type: string
-    source: IEvent<MouseEvent>
+    source: TPointerEventInfo<TPointerEvent>
 }
 
 export type NetRenameEvent = {

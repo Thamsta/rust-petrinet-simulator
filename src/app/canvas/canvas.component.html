@@ -1,4 +1,6 @@
 <div>
-	<canvas #htmlCanvasElement></canvas>
+  <canvas #htmlCanvasElement></canvas>
 </div>
-<mat-icon *ngIf="isDeadlocked" class="canvas-overlay">block</mat-icon>
+@if (isDeadlocked) {
+  <mat-icon class="canvas-overlay">block</mat-icon>
+}

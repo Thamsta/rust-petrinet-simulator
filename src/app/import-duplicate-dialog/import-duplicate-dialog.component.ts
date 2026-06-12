@@ -1,4 +1,4 @@
-import {Component, Inject} from '@angular/core';
+import {Component, Inject, ChangeDetectionStrategy} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material/dialog";
 
 export enum DuplicateNetStrategies {
@@ -13,7 +13,9 @@ export enum DuplicateNetStrategies {
 @Component({
     selector: 'app-import-duplicate-dialog',
     templateUrl: './import-duplicate-dialog.component.html',
-    styleUrls: ['./import-duplicate-dialog.component.scss']
+    styleUrls: ['./import-duplicate-dialog.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class ImportDuplicateDialogComponent {
     constructor(

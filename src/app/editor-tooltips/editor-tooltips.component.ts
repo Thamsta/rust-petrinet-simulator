@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ChangeDetectionStrategy} from '@angular/core';
 
 export interface ShortcutEntry {
     name: string;
@@ -66,7 +66,9 @@ const SHORTCUT_TABLES: ShortcutTable[] = [
 @Component({
     selector: 'app-editor-tooltips',
     templateUrl: './editor-tooltips.component.html',
-    styleUrls: ['./editor-tooltips.component.scss']
+    styleUrls: ['./editor-tooltips.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class EditorTooltipsComponent {
     displayedColumns: string[] = ['key', 'name', 'description'];
