@@ -4,22 +4,23 @@ version = "0.3.0"
 description = "A Rust Petrinet Simulator"
 default-run = "petrinets"
 edition = "2021"
-rust-version = "1.60"
+rust-version = "1.77"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.5.0", features = [] }
+tauri-build = { version = "1.5.6", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "1.5.2", features = [ "fs-all", "dialog-all"] }
-rand = "0.8.5"
+tauri = { version = "1.8.3", features = [ "fs-all", "dialog-all"] }
+rand = "0.8.6"
 ndarray = "0.15.6"
-petgraph = "0.6.4"
+petgraph = "0.6.5"
 derive-new = "0.6.0"
-lazy_static = "1.4.0"
+lazy_static = "1.5.0"
+time = ">=0.3, <0.3.48"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.
